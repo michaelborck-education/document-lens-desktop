@@ -51,6 +51,10 @@ export interface ElectronAPI {
   dbRun: (sql: string, params?: unknown[]) => Promise<DatabaseResult>
   dbExec: (sql: string) => Promise<void>
 
+  // File system
+  readFile: (filePath: string) => Promise<ArrayBuffer>
+  getFileStats: (filePath: string) => Promise<{ size: number; mtime: number }>
+
   // Event listeners
   onUpdateAvailable: (callback: () => void) => () => void
   onUpdateDownloaded: (callback: () => void) => () => void

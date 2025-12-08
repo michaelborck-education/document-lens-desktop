@@ -1,8 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Upload, FileText, BarChart3, Search } from 'lucide-react'
+import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { DocumentTable } from '@/components/DocumentTable'
+import { DocumentMetadataModal } from '@/components/DocumentMetadataModal'
+import { ImportProgressDialog } from '@/components/ImportProgressDialog'
+import {
+  importDocuments,
+  deleteDocuments,
+  type DocumentRecord,
+  type ImportProgress,
+  type ImportResult,
+} from '@/services/documents'
 
 interface Project {
   id: string
@@ -12,21 +22,23 @@ interface Project {
   updated_at: string
 }
 
-interface Document {
-  id: string
-  filename: string
-  file_path: string
-  analysis_status: string
-  report_year: number | null
-  company_name: string | null
-  created_at: string
-}
-
 export function ProjectDashboard() {
   const { projectId } = useParams<{ projectId: string }>()
   const [project, setProject] = useState<Project | null>(null)
-  const [documents, setDocuments] = useState<Document[]>([])
+  const [documents, setDocuments] = useState<DocumentRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  
+  // Drag and drop state
+  const [isDragging, setIsDragging] = useState(false)
+  
+  // Import state
+  const [importing, setImporting] = useState(false)
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null)
+  const [importResults, setImportResults] = useState<ImportResult[]>([])
+  
+  // Modal state
+  const [editingDocument, setEditingDocument] = useState<DocumentRecord | null>(null)
 
   useEffect(() => {
     if (projectId) {
@@ -52,7 +64,7 @@ export function ProjectDashboard() {
   const loadDocuments = async () => {
     try {
       setLoading(true)
-      const result = await window.electron.dbQuery<Document>(
+      const result = await window.electron.dbQuery<DocumentRecord>(
         'SELECT * FROM documents WHERE project_id = ? ORDER BY created_at DESC',
         [projectId]
       )
@@ -64,24 +76,114 @@ export function ProjectDashboard() {
     }
   }
 
-  const handleImportFiles = async () => {
+  const handleImportFiles = async (filePaths?: string[]) => {
     try {
-      const result = await window.electron.openFileDialog({
-        title: 'Select PDF files to import',
-        filters: [{ name: 'PDF Documents', extensions: ['pdf'] }],
-      })
+      let paths = filePaths
+      
+      if (!paths) {
+        const result = await window.electron.openFileDialog({
+          title: 'Select PDF files to import',
+          filters: [{ name: 'PDF Documents', extensions: ['pdf'] }],
+        })
 
-      if (result.canceled || result.filePaths.length === 0) {
-        return
+        if (result.canceled || result.filePaths.length === 0) {
+          return
+        }
+        paths = result.filePaths
       }
 
-      // TODO: Process and import files
-      console.log('Selected files:', result.filePaths)
-      alert(`Selected ${result.filePaths.length} file(s). Import functionality coming in Phase 2.2!`)
+      setImporting(true)
+      setImportResults([])
+      setImportProgress({
+        total: paths.length,
+        current: 0,
+        currentFile: '',
+        status: 'pending',
+      })
+
+      const results = await importDocuments(projectId!, paths, setImportProgress)
+      setImportResults(results)
+      
+      // Reload documents after import
+      loadDocuments()
+      
+      // Auto-close dialog after 3 seconds if all successful
+      const allSuccess = results.every((r) => r.success)
+      if (allSuccess) {
+        setTimeout(() => {
+          setImporting(false)
+          setImportProgress(null)
+          setImportResults([])
+        }, 2000)
+      }
     } catch (error) {
-      console.error('Failed to open file dialog:', error)
+      console.error('Import failed:', error)
+      setImportProgress({
+        total: 0,
+        current: 0,
+        currentFile: '',
+        status: 'failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
     }
   }
+
+  const handleDeleteDocuments = async (documentIds: string[]) => {
+    const count = documentIds.length
+    const message = count === 1
+      ? 'Are you sure you want to delete this document?'
+      : `Are you sure you want to delete ${count} documents?`
+    
+    if (!confirm(message)) {
+      return
+    }
+
+    try {
+      await deleteDocuments(documentIds)
+      setSelectedIds(new Set())
+      loadDocuments()
+    } catch (error) {
+      console.error('Failed to delete documents:', error)
+    }
+  }
+
+  const handleOpenFile = async (document: DocumentRecord) => {
+    try {
+      await window.electron.openPath(document.file_path)
+    } catch (error) {
+      console.error('Failed to open file:', error)
+    }
+  }
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const files = Array.from(e.dataTransfer.files)
+    const pdfFiles = files.filter((f) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'))
+    
+    if (pdfFiles.length > 0) {
+      // Note: In Electron, we can get the file path from the File object
+      const filePaths = pdfFiles.map((f) => (f as any).path).filter(Boolean)
+      if (filePaths.length > 0) {
+        handleImportFiles(filePaths)
+      }
+    }
+  }, [projectId])
 
   if (!project) {
     return (
@@ -95,7 +197,22 @@ export function ProjectDashboard() {
   }
 
   return (
-    <div className="p-8">
+    <div 
+      className="p-8 min-h-full"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drag overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-50 bg-primary/10 border-4 border-dashed border-primary flex items-center justify-center">
+          <div className="text-center">
+            <Upload className="h-16 w-16 mx-auto text-primary mb-4" />
+            <p className="text-xl font-medium text-primary">Drop PDF files here</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Link to="/">
@@ -163,7 +280,7 @@ export function ProjectDashboard() {
 
       {/* Actions */}
       <div className="flex gap-2 mb-6">
-        <Button onClick={handleImportFiles}>
+        <Button onClick={() => handleImportFiles()}>
           <Upload className="h-4 w-4 mr-2" />
           Import PDFs
         </Button>
@@ -175,6 +292,16 @@ export function ProjectDashboard() {
           <Search className="h-4 w-4 mr-2" />
           Keyword Search
         </Button>
+        
+        {selectedIds.size > 0 && (
+          <Button
+            variant="destructive"
+            onClick={() => handleDeleteDocuments(Array.from(selectedIds))}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete ({selectedIds.size})
+          </Button>
+        )}
       </div>
 
       {/* Documents List */}
@@ -190,55 +317,47 @@ export function ProjectDashboard() {
               ))}
             </div>
           ) : documents.length === 0 ? (
-            <div className="text-center py-12">
+            <div 
+              className="text-center py-12 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors"
+              onClick={() => handleImportFiles()}
+            >
               <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h2 className="text-lg font-medium mb-2">No documents yet</h2>
               <p className="text-muted-foreground mb-4">
-                Import PDF files to start analyzing
+                Drag and drop PDF files here, or click to browse
               </p>
-              <Button onClick={handleImportFiles}>
+              <Button>
                 <Upload className="h-4 w-4 mr-2" />
                 Import PDFs
               </Button>
             </div>
           ) : (
-            <div className="space-y-2">
-              {documents.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">{doc.filename}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {doc.company_name || 'Unknown Company'}
-                        {doc.report_year && ` - ${doc.report_year}`}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        doc.analysis_status === 'completed'
-                          ? 'bg-green-100 text-green-800'
-                          : doc.analysis_status === 'analyzing'
-                          ? 'bg-blue-100 text-blue-800'
-                          : doc.analysis_status === 'failed'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {doc.analysis_status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <DocumentTable
+              documents={documents}
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
+              onEdit={setEditingDocument}
+              onDelete={handleDeleteDocuments}
+              onOpenFile={handleOpenFile}
+            />
           )}
         </CardContent>
       </Card>
+
+      {/* Import Progress Dialog */}
+      <ImportProgressDialog
+        open={importing}
+        progress={importProgress}
+        results={importResults}
+      />
+
+      {/* Document Metadata Modal */}
+      <DocumentMetadataModal
+        open={editingDocument !== null}
+        onClose={() => setEditingDocument(null)}
+        document={editingDocument}
+        onSaved={loadDocuments}
+      />
     </div>
   )
 }

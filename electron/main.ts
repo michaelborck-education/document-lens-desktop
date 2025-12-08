@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
 import { initDatabase, getDatabase } from './database'
 import { BackendManager } from './backend-manager'
@@ -168,6 +169,30 @@ ipcMain.handle('db:exec', async (_, sql: string) => {
     return db.exec(sql)
   } catch (error) {
     console.error('Database exec error:', error)
+    throw error
+  }
+})
+
+// File system handlers
+ipcMain.handle('fs:readFile', async (_, filePath: string) => {
+  try {
+    const buffer = fs.readFileSync(filePath)
+    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
+  } catch (error) {
+    console.error('File read error:', error)
+    throw error
+  }
+})
+
+ipcMain.handle('fs:getFileStats', async (_, filePath: string) => {
+  try {
+    const stats = fs.statSync(filePath)
+    return {
+      size: stats.size,
+      mtime: stats.mtimeMs
+    }
+  } catch (error) {
+    console.error('File stats error:', error)
     throw error
   }
 })

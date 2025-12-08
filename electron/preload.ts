@@ -67,6 +67,12 @@ const electronAPI = {
   dbExec: (sql: string): Promise<void> =>
     ipcRenderer.invoke('db:exec', sql),
 
+  // File system
+  readFile: (filePath: string): Promise<ArrayBuffer> =>
+    ipcRenderer.invoke('fs:readFile', filePath),
+  getFileStats: (filePath: string): Promise<{ size: number; mtime: number }> =>
+    ipcRenderer.invoke('fs:getFileStats', filePath),
+
   // Event listeners for updates
   onUpdateAvailable: (callback: () => void) => {
     ipcRenderer.on('update-available', callback)
