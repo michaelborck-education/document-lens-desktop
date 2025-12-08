@@ -94,9 +94,9 @@ document-lens-desktop/
 
 ## Backend
 
-This application connects to the [document-lens](https://github.com/yourusername/document-lens) API backend for text extraction and analysis. The backend can be:
+This application connects to the [document-lens](https://github.com/michaelborck-education/document-lens) API backend for text extraction and analysis. The backend can be:
 - Run locally during development
-- Bundled with the desktop app for distribution
+- Bundled with the desktop app for distribution (via PyInstaller)
 
 ## License
 
