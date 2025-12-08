@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Layout } from './components/Layout'
 import { ProjectList } from './pages/ProjectList'
 import { ProjectDashboard } from './pages/ProjectDashboard'
+import { KeywordSearch } from './pages/KeywordSearch'
 import { KeywordLists } from './pages/KeywordLists'
 import { Settings } from './pages/Settings'
 import { api } from './services/api'
@@ -56,6 +57,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<ProjectList />} />
           <Route path="project/:projectId" element={<ProjectDashboard />} />
+          <Route path="project/:projectId/search" element={<KeywordSearch />} />
           <Route path="keywords" element={<KeywordLists />} />
           <Route path="settings" element={<Settings />} />
         </Route>

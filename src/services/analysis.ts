@@ -1,0 +1,414 @@
+/**
+ * Analysis Service
+ * 
+ * Handles document analysis, keyword search, and batch operations.
+ */
+
+import { v4 as uuidv4 } from 'uuid'
+import { api } from './api'
+import type { DocumentRecord } from './documents'
+
+export interface AnalysisProgress {
+  total: number
+  current: number
+  currentDocument: string
+  status: 'pending' | 'analyzing' | 'completed' | 'failed'
+  error?: string
+}
+
+export interface AnalysisResult {
+  id: string
+  document_id: string
+  analysis_type: string
+  results: string // JSON string
+  created_at: string
+}
+
+export interface KeywordMatch {
+  keyword: string
+  count: number
+  contexts: Array<{
+    text: string
+    position: number
+  }>
+}
+
+export interface KeywordSearchResult {
+  documentId: string
+  documentName: string
+  companyName: string | null
+  reportYear: number | null
+  matches: Record<string, KeywordMatch>
+  totalMatches: number
+}
+
+export interface BatchKeywordSearchResult {
+  keywords: string[]
+  documents: KeywordSearchResult[]
+  summary: {
+    totalDocuments: number
+    totalMatches: number
+    keywordCounts: Record<string, number>
+  }
+}
+
+/**
+ * Analyze a single document
+ */
+export async function analyzeDocument(
+  document: DocumentRecord,
+  onProgress?: (status: string) => void
+): Promise<void> {
+  if (!document.extracted_text) {
+    throw new Error('Document has no extracted text')
+  }
+
+  try {
+    // Update status to analyzing
+    await window.electron.dbRun(
+      "UPDATE documents SET analysis_status = 'analyzing' WHERE id = ?",
+      [document.id]
+    )
+
+    onProgress?.('Analyzing readability...')
+    const readability = await api.analyzeReadability(document.extracted_text)
+    
+    // Save readability results
+    await saveAnalysisResult(document.id, 'readability', readability)
+
+    onProgress?.('Analyzing writing quality...')
+    const writingQuality = await api.analyzeWritingQuality(document.extracted_text)
+    
+    // Save writing quality results
+    await saveAnalysisResult(document.id, 'writing_quality', writingQuality)
+
+    onProgress?.('Analyzing word frequency...')
+    const wordAnalysis = await api.analyzeWords(document.extracted_text, 100)
+    
+    // Save word analysis results
+    await saveAnalysisResult(document.id, 'word_analysis', wordAnalysis)
+
+    // Update status to completed
+    await window.electron.dbRun(
+      "UPDATE documents SET analysis_status = 'completed', analyzed_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [document.id]
+    )
+  } catch (error) {
+    // Update status to failed
+    await window.electron.dbRun(
+      "UPDATE documents SET analysis_status = 'failed' WHERE id = ?",
+      [document.id]
+    )
+    throw error
+  }
+}
+
+/**
+ * Save analysis result to database
+ */
+async function saveAnalysisResult(
+  documentId: string,
+  analysisType: string,
+  results: unknown
+): Promise<void> {
+  const id = uuidv4()
+  
+  // Delete existing result of same type
+  await window.electron.dbRun(
+    'DELETE FROM analysis_results WHERE document_id = ? AND analysis_type = ?',
+    [documentId, analysisType]
+  )
+  
+  // Insert new result
+  await window.electron.dbRun(
+    'INSERT INTO analysis_results (id, document_id, analysis_type, results) VALUES (?, ?, ?, ?)',
+    [id, documentId, analysisType, JSON.stringify(results)]
+  )
+}
+
+/**
+ * Analyze multiple documents with progress tracking
+ */
+export async function analyzeDocuments(
+  documents: DocumentRecord[],
+  onProgress?: (progress: AnalysisProgress) => void
+): Promise<{ success: number; failed: number }> {
+  let success = 0
+  let failed = 0
+
+  for (let i = 0; i < documents.length; i++) {
+    const doc = documents[i]
+    
+    onProgress?.({
+      total: documents.length,
+      current: i + 1,
+      currentDocument: doc.filename,
+      status: 'analyzing',
+    })
+
+    try {
+      await analyzeDocument(doc, (status) => {
+        onProgress?.({
+          total: documents.length,
+          current: i + 1,
+          currentDocument: doc.filename,
+          status: 'analyzing',
+        })
+      })
+      success++
+    } catch (error) {
+      console.error(`Failed to analyze ${doc.filename}:`, error)
+      failed++
+    }
+  }
+
+  onProgress?.({
+    total: documents.length,
+    current: documents.length,
+    currentDocument: '',
+    status: 'completed',
+  })
+
+  return { success, failed }
+}
+
+/**
+ * Search for a single keyword in a document's text
+ */
+function searchKeywordInText(
+  text: string,
+  keyword: string,
+  contextChars: number = 100
+): KeywordMatch {
+  const matches: Array<{ text: string; position: number }> = []
+  const lowerText = text.toLowerCase()
+  const lowerKeyword = keyword.toLowerCase()
+  
+  let position = 0
+  while (true) {
+    const index = lowerText.indexOf(lowerKeyword, position)
+    if (index === -1) break
+    
+    // Extract context around the match
+    const start = Math.max(0, index - contextChars)
+    const end = Math.min(text.length, index + keyword.length + contextChars)
+    let context = text.substring(start, end)
+    
+    // Add ellipsis if truncated
+    if (start > 0) context = '...' + context
+    if (end < text.length) context = context + '...'
+    
+    matches.push({
+      text: context,
+      position: index,
+    })
+    
+    position = index + 1
+  }
+
+  return {
+    keyword,
+    count: matches.length,
+    contexts: matches.slice(0, 10), // Limit to 10 contexts per keyword
+  }
+}
+
+/**
+ * Search for multiple keywords across multiple documents (local implementation)
+ */
+export async function searchKeywordsLocal(
+  documents: DocumentRecord[],
+  keywords: string[],
+  contextChars: number = 100
+): Promise<BatchKeywordSearchResult> {
+  const results: KeywordSearchResult[] = []
+  const keywordCounts: Record<string, number> = {}
+  let totalMatches = 0
+
+  // Initialize keyword counts
+  keywords.forEach(k => { keywordCounts[k] = 0 })
+
+  for (const doc of documents) {
+    if (!doc.extracted_text) continue
+
+    const matches: Record<string, KeywordMatch> = {}
+    let docTotalMatches = 0
+
+    for (const keyword of keywords) {
+      const match = searchKeywordInText(doc.extracted_text, keyword, contextChars)
+      if (match.count > 0) {
+        matches[keyword] = match
+        docTotalMatches += match.count
+        keywordCounts[keyword] += match.count
+        totalMatches += match.count
+      }
+    }
+
+    results.push({
+      documentId: doc.id,
+      documentName: doc.filename,
+      companyName: doc.company_name,
+      reportYear: doc.report_year,
+      matches,
+      totalMatches: docTotalMatches,
+    })
+  }
+
+  // Sort by total matches descending
+  results.sort((a, b) => b.totalMatches - a.totalMatches)
+
+  return {
+    keywords,
+    documents: results,
+    summary: {
+      totalDocuments: documents.length,
+      totalMatches,
+      keywordCounts,
+    },
+  }
+}
+
+/**
+ * Search for keywords using the API (if available)
+ */
+export async function searchKeywordsApi(
+  documents: DocumentRecord[],
+  keywords: string[],
+  contextChars: number = 100
+): Promise<BatchKeywordSearchResult> {
+  try {
+    // Try to use the batch API endpoint
+    const texts = documents.map(d => d.extracted_text || '')
+    const names = documents.map(d => d.filename)
+    
+    const apiResult = await api.searchKeywords(keywords, texts, names, contextChars)
+    
+    // Transform API result to our format
+    const results: KeywordSearchResult[] = documents.map((doc, index) => {
+      const docResults = apiResult.results[doc.filename] || {}
+      const matches: Record<string, KeywordMatch> = {}
+      let totalMatches = 0
+
+      for (const [keyword, data] of Object.entries(docResults)) {
+        matches[keyword] = {
+          keyword,
+          count: data.count,
+          contexts: data.contexts,
+        }
+        totalMatches += data.count
+      }
+
+      return {
+        documentId: doc.id,
+        documentName: doc.filename,
+        companyName: doc.company_name,
+        reportYear: doc.report_year,
+        matches,
+        totalMatches,
+      }
+    })
+
+    // Calculate summary
+    const keywordCounts: Record<string, number> = {}
+    keywords.forEach(k => { keywordCounts[k] = 0 })
+    
+    let totalMatches = 0
+    for (const result of results) {
+      for (const [keyword, match] of Object.entries(result.matches)) {
+        keywordCounts[keyword] += match.count
+        totalMatches += match.count
+      }
+    }
+
+    results.sort((a, b) => b.totalMatches - a.totalMatches)
+
+    return {
+      keywords,
+      documents: results,
+      summary: {
+        totalDocuments: documents.length,
+        totalMatches,
+        keywordCounts,
+      },
+    }
+  } catch (error) {
+    // Fall back to local search if API fails
+    console.warn('API search failed, using local search:', error)
+    return searchKeywordsLocal(documents, keywords, contextChars)
+  }
+}
+
+/**
+ * Get analysis results for a document
+ */
+export async function getDocumentAnalysis(
+  documentId: string
+): Promise<Record<string, unknown>> {
+  const results = await window.electron.dbQuery<AnalysisResult>(
+    'SELECT * FROM analysis_results WHERE document_id = ?',
+    [documentId]
+  )
+
+  const analysis: Record<string, unknown> = {}
+  for (const result of results) {
+    try {
+      analysis[result.analysis_type] = JSON.parse(result.results)
+    } catch {
+      analysis[result.analysis_type] = result.results
+    }
+  }
+
+  return analysis
+}
+
+/**
+ * Save keyword search results to database
+ */
+export async function saveKeywordSearchResults(
+  projectId: string,
+  keywordListId: string,
+  selectedKeywords: string[],
+  results: BatchKeywordSearchResult
+): Promise<string> {
+  const id = uuidv4()
+  
+  await window.electron.dbRun(
+    `INSERT INTO keyword_results (id, project_id, keyword_list_id, selected_keywords, results)
+     VALUES (?, ?, ?, ?, ?)`,
+    [id, projectId, keywordListId, JSON.stringify(selectedKeywords), JSON.stringify(results)]
+  )
+
+  return id
+}
+
+/**
+ * Get saved keyword search results for a project
+ */
+export async function getKeywordSearchResults(
+  projectId: string
+): Promise<Array<{
+  id: string
+  keyword_list_id: string
+  selected_keywords: string[]
+  results: BatchKeywordSearchResult
+  created_at: string
+}>> {
+  const rows = await window.electron.dbQuery<{
+    id: string
+    keyword_list_id: string
+    selected_keywords: string
+    results: string
+    created_at: string
+  }>(
+    'SELECT * FROM keyword_results WHERE project_id = ? ORDER BY created_at DESC',
+    [projectId]
+  )
+
+  return rows.map(row => ({
+    id: row.id,
+    keyword_list_id: row.keyword_list_id,
+    selected_keywords: JSON.parse(row.selected_keywords),
+    results: JSON.parse(row.results),
+    created_at: row.created_at,
+  }))
+}

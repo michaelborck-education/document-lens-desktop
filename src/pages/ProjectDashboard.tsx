@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2 } from 'lucide-react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import { DocumentTable } from '@/components/DocumentTable'
 import { DocumentMetadataModal } from '@/components/DocumentMetadataModal'
 import { ImportProgressDialog } from '@/components/ImportProgressDialog'
@@ -13,6 +14,10 @@ import {
   type ImportProgress,
   type ImportResult,
 } from '@/services/documents'
+import {
+  analyzeDocuments,
+  type AnalysisProgress,
+} from '@/services/analysis'
 
 interface Project {
   id: string
@@ -24,6 +29,7 @@ interface Project {
 
 export function ProjectDashboard() {
   const { projectId } = useParams<{ projectId: string }>()
+  const navigate = useNavigate()
   const [project, setProject] = useState<Project | null>(null)
   const [documents, setDocuments] = useState<DocumentRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,6 +42,10 @@ export function ProjectDashboard() {
   const [importing, setImporting] = useState(false)
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(null)
   const [importResults, setImportResults] = useState<ImportResult[]>([])
+  
+  // Analysis state
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analysisProgress, setAnalysisProgress] = useState<AnalysisProgress | null>(null)
   
   // Modal state
   const [editingDocument, setEditingDocument] = useState<DocumentRecord | null>(null)
@@ -152,6 +162,44 @@ export function ProjectDashboard() {
       await window.electron.openPath(document.file_path)
     } catch (error) {
       console.error('Failed to open file:', error)
+    }
+  }
+
+  const handleAnalyzeAll = async () => {
+    // Get documents that need analysis (have text but not completed)
+    const docsToAnalyze = documents.filter(
+      d => d.extracted_text && d.analysis_status !== 'completed'
+    )
+
+    if (docsToAnalyze.length === 0) {
+      alert('All documents are already analyzed or have no text to analyze.')
+      return
+    }
+
+    setAnalyzing(true)
+    setAnalysisProgress({
+      total: docsToAnalyze.length,
+      current: 0,
+      currentDocument: '',
+      status: 'pending',
+    })
+
+    try {
+      const result = await analyzeDocuments(docsToAnalyze, setAnalysisProgress)
+      
+      // Show completion message
+      if (result.failed > 0) {
+        alert(`Analysis complete: ${result.success} succeeded, ${result.failed} failed`)
+      }
+      
+      // Reload documents to show updated status
+      loadDocuments()
+    } catch (error) {
+      console.error('Analysis failed:', error)
+      alert('Analysis failed. Please try again.')
+    } finally {
+      setAnalyzing(false)
+      setAnalysisProgress(null)
     }
   }
 
@@ -284,11 +332,23 @@ export function ProjectDashboard() {
           <Upload className="h-4 w-4 mr-2" />
           Import PDFs
         </Button>
-        <Button variant="outline" disabled={documents.length === 0}>
-          <BarChart3 className="h-4 w-4 mr-2" />
-          Analyze All
+        <Button 
+          variant="outline" 
+          disabled={documents.length === 0 || analyzing}
+          onClick={handleAnalyzeAll}
+        >
+          {analyzing ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <BarChart3 className="h-4 w-4 mr-2" />
+          )}
+          {analyzing ? 'Analyzing...' : 'Analyze All'}
         </Button>
-        <Button variant="outline" disabled={documents.length === 0}>
+        <Button 
+          variant="outline" 
+          disabled={documents.length === 0}
+          onClick={() => navigate(`/project/${projectId}/search`)}
+        >
           <Search className="h-4 w-4 mr-2" />
           Keyword Search
         </Button>
@@ -303,6 +363,29 @@ export function ProjectDashboard() {
           </Button>
         )}
       </div>
+
+      {/* Analysis Progress */}
+      {analyzing && analysisProgress && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4 mb-2">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  Analyzing: {analysisProgress.currentDocument}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {analysisProgress.current} of {analysisProgress.total} documents
+                </p>
+              </div>
+            </div>
+            <Progress 
+              value={(analysisProgress.current / analysisProgress.total) * 100} 
+              className="h-2" 
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Documents List */}
       <Card>
