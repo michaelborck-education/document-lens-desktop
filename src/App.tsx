@@ -3,18 +3,31 @@ import { useEffect, useState } from 'react'
 import { Layout } from './components/Layout'
 import { ProjectList } from './pages/ProjectList'
 import { ProjectDashboard } from './pages/ProjectDashboard'
+import { KeywordLists } from './pages/KeywordLists'
 import { Settings } from './pages/Settings'
 import { api } from './services/api'
+import { seedFrameworkKeywords } from './services/keywords'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking')
 
   useEffect(() => {
+    // Initialize app
+    initializeApp()
     checkBackendStatus()
     // Check status periodically
     const interval = setInterval(checkBackendStatus, 30000)
     return () => clearInterval(interval)
   }, [])
+
+  const initializeApp = async () => {
+    try {
+      // Seed framework keywords if not already done
+      await seedFrameworkKeywords()
+    } catch (error) {
+      console.error('Failed to initialize app:', error)
+    }
+  }
 
   const checkBackendStatus = async () => {
     try {
@@ -43,6 +56,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<ProjectList />} />
           <Route path="project/:projectId" element={<ProjectDashboard />} />
+          <Route path="keywords" element={<KeywordLists />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
