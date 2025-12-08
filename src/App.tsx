@@ -28,10 +28,16 @@ function App() {
 
   const initializeApp = async () => {
     try {
+      console.log('Initializing app - seeding framework keywords...')
       // Seed framework keywords if not already done
       await seedFrameworkKeywords()
+      console.log('App initialization complete')
     } catch (error) {
       console.error('Failed to initialize app:', error)
+      // Alert in development so we notice the issue
+      if (import.meta.env.DEV) {
+        console.error('CRITICAL: Framework keyword seeding failed!', error)
+      }
     }
   }
 

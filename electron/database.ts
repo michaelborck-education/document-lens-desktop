@@ -189,6 +189,79 @@ const DEFAULT_INDUSTRIES = [
   { id: 'agriculture', name: 'Agriculture', category: 'Consumer' }
 ]
 
+// Framework keyword data embedded directly (from src/data/frameworks/*.json)
+interface FrameworkData {
+  id: string
+  name: string
+  description: string
+  list_type: string
+  keywords: Record<string, string[]>
+}
+
+const FRAMEWORK_KEYWORDS: FrameworkData[] = [
+  {
+    id: 'tcfd',
+    name: 'TCFD - Climate-related Financial Disclosures',
+    description: "Keywords aligned with TCFD's four pillars for climate-related financial risk disclosure. The Task Force on Climate-related Financial Disclosures provides recommendations for companies to report on climate-related risks and opportunities.",
+    list_type: 'grouped',
+    keywords: {
+      "Governance": ["board oversight", "climate governance", "management role", "climate committee", "board responsibility", "governance structure", "executive compensation", "climate expertise", "board composition", "climate oversight", "management accountability", "climate leadership", "sustainability committee", "risk committee", "board-level review", "management processes"],
+      "Strategy": ["climate risks", "physical risks", "transition risks", "climate opportunities", "scenario analysis", "2 degree pathway", "1.5 degree", "net zero", "climate strategy", "decarbonization", "low carbon", "climate resilience", "stranded assets", "carbon transition", "business model resilience", "climate scenarios", "strategic planning", "long-term risks", "medium-term risks", "short-term risks", "climate-related opportunities", "resource efficiency", "energy source", "new products", "new markets", "acute risks", "chronic risks", "policy risks", "legal risks", "technology risks", "market risks", "reputation risks"],
+      "Risk Management": ["risk identification", "risk assessment", "climate risk integration", "materiality", "risk mitigation", "climate risk management", "enterprise risk", "risk processes", "risk framework", "climate risk exposure", "risk monitoring", "due diligence", "supply chain risk", "operational risk", "financial planning risk", "risk appetite"],
+      "Metrics and Targets": ["scope 1", "scope 2", "scope 3", "ghg emissions", "greenhouse gas", "carbon intensity", "emission targets", "carbon neutral", "carbon footprint", "science based targets", "emission reduction", "carbon offset", "climate metrics", "energy consumption", "renewable energy percentage", "water usage", "waste metrics", "carbon pricing", "internal carbon price", "emissions intensity", "absolute emissions", "target baseline", "progress against targets"]
+    }
+  },
+  {
+    id: 'sdgs',
+    name: 'UN Sustainable Development Goals',
+    description: 'Keywords for the 17 UN Sustainable Development Goals adopted in 2015 as part of the 2030 Agenda for Sustainable Development. These goals provide a shared blueprint for peace and prosperity for people and the planet.',
+    list_type: 'grouped',
+    keywords: {
+      "SDG 1 - No Poverty": ["poverty", "poverty eradication", "extreme poverty", "poverty line", "social protection", "economic resources", "basic services", "financial inclusion", "microfinance", "vulnerable", "income equality", "wealth distribution", "quality of life", "developing countries", "disadvantaged", "poor and vulnerable", "resources", "social protection systems"],
+      "SDG 2 - Zero Hunger": ["hunger", "food security", "malnutrition", "sustainable agriculture", "agricultural productivity", "food production", "crop diversity", "genetic diversity", "resilient agriculture", "small-scale food producers", "rural infrastructure", "food gap", "food reserves", "nutrition", "nutritious", "undernourished", "stunting", "wasting", "trade restrictions"],
+      "SDG 3 - Good Health and Well-being": ["health", "wellbeing", "well-being", "mortality", "life expectancy", "universal health coverage", "mental health", "occupational health", "workplace safety", "disease prevention", "health services", "employee health", "maternal mortality", "child mortality", "neonatal mortality", "communicable diseases", "non-communicable diseases", "road traffic accidents", "substance abuse", "reproductive health", "vaccines", "health workforce", "air pollution health", "water contamination"],
+      "SDG 4 - Quality Education": ["education", "training", "skills development", "lifelong learning", "vocational training", "literacy", "equal education", "inclusive education", "scholarships", "teacher training", "workforce development", "early childhood development", "primary education", "secondary education", "technical education", "numeracy", "gender equality education", "education for sustainable development", "school enrollment"],
+      "SDG 5 - Gender Equality": ["gender equality", "women empowerment", "empower women", "equal opportunities", "discrimination", "women in leadership", "gender parity", "equal pay", "workplace equality", "diversity", "inclusion", "women's rights", "female representation", "violence against women", "gender-based violence", "female genital mutilation", "forced marriage", "unpaid care work", "reproductive rights", "sexual harassment", "women in management"],
+      "SDG 6 - Clean Water and Sanitation": ["clean water", "water access", "sanitation", "water quality", "water efficiency", "wastewater", "water treatment", "water scarcity", "water management", "water stewardship", "water recycling", "freshwater", "water conservation", "drinking water", "hygiene", "open defecation", "water-related ecosystems", "water harvesting", "transboundary water", "water pollution", "aquifer", "groundwater"],
+      "SDG 7 - Affordable and Clean Energy": ["renewable energy", "clean energy", "energy efficiency", "solar energy", "solar power", "wind energy", "wind power", "sustainable energy", "energy access", "modern energy", "green energy", "low carbon energy", "energy transition", "fossil fuel", "hydroelectric", "hydropower", "geothermal", "biofuel", "bioenergy", "energy infrastructure", "clean fuel", "energy research", "battery storage", "energy intensity", "electricity access"],
+      "SDG 8 - Decent Work and Economic Growth": ["economic growth", "decent work", "employment", "job creation", "labor rights", "labour rights", "safe work", "productive employment", "youth employment", "forced labor", "forced labour", "child labor", "child labour", "modern slavery", "living wage", "fair wages", "working conditions", "sustainable economic growth", "gdp growth", "economic productivity", "resource efficiency", "full employment", "equal pay for equal work", "migrant workers", "workers rights", "unemployment"],
+      "SDG 9 - Industry Innovation and Infrastructure": ["innovation", "infrastructure", "industrialization", "sustainable infrastructure", "research and development", "r&d", "technology", "manufacturing", "resilient infrastructure", "industrial processes", "clean technologies", "digitalization", "internet access", "broadband", "information technology", "small-scale industries", "value addition", "industrial diversification", "technology transfer", "scientific research"],
+      "SDG 10 - Reduced Inequalities": ["inequality", "inequalities", "equal opportunity", "social inclusion", "discrimination", "income inequality", "social protection", "migration", "migrants", "inclusion", "accessibility", "marginalized groups", "vulnerable populations", "fiscal policy", "wage policy", "developing countries representation", "remittances", "safe migration", "orderly migration", "income growth", "reduce disparities"],
+      "SDG 11 - Sustainable Cities and Communities": ["sustainable cities", "urban development", "affordable housing", "public transport", "public transportation", "urban planning", "resilient cities", "air quality", "green spaces", "public spaces", "waste management", "sustainable urbanization", "smart cities", "cultural heritage", "natural heritage", "disaster resilience", "slums", "informal settlements", "urban sprawl", "sustainable buildings", "green buildings", "urban air pollution", "municipal waste"],
+      "SDG 12 - Responsible Consumption and Production": ["sustainable consumption", "sustainable production", "resource efficiency", "circular economy", "waste reduction", "recycling", "sustainable sourcing", "product lifecycle", "sustainable procurement", "food waste", "food loss", "chemical management", "sustainable packaging", "eco-design", "extended producer responsibility", "sustainable practices", "sustainability reporting", "sustainable tourism", "fossil fuel subsidies", "material footprint", "domestic material consumption", "hazardous chemicals", "waste generation", "reuse", "reduce"],
+      "SDG 13 - Climate Action": ["climate change", "climate action", "carbon emissions", "greenhouse gas", "ghg", "global warming", "climate adaptation", "climate mitigation", "climate resilience", "carbon reduction", "emission reduction", "paris agreement", "climate risk", "extreme weather", "sea level rise", "decarbonization", "net zero", "carbon neutral", "climate strategy", "climate finance", "climate education", "climate policy", "nationally determined contributions", "ndc", "climate hazards", "climate disasters", "low-carbon", "climate-related", "temperature rise", "cop", "unfccc"],
+      "SDG 14 - Life Below Water": ["ocean", "oceans", "marine", "marine conservation", "ocean acidification", "sustainable fisheries", "marine pollution", "coral reef", "coral bleaching", "coastal ecosystems", "marine biodiversity", "overfishing", "illegal fishing", "plastic pollution", "ocean health", "marine resources", "fish stocks", "aquaculture", "marine protected areas", "blue economy", "ocean governance", "marine debris", "sea"],
+      "SDG 15 - Life on Land": ["biodiversity", "deforestation", "forest", "forests", "land degradation", "ecosystem", "ecosystems", "conservation", "habitat", "habitats", "endangered species", "reforestation", "afforestation", "sustainable forestry", "sustainable forest management", "land use", "soil degradation", "protected areas", "wildlife", "invasive species", "desertification", "drought", "terrestrial ecosystems", "mountain ecosystems", "wetlands", "biodiversity loss", "poaching", "wildlife trafficking", "genetic resources", "species extinction"],
+      "SDG 16 - Peace Justice and Strong Institutions": ["governance", "transparency", "accountability", "anti-corruption", "corruption", "bribery", "rule of law", "human rights", "ethical business", "whistleblower", "compliance", "fair business practices", "justice", "inclusive institutions", "effective institutions", "accountable institutions", "violence reduction", "abuse", "exploitation", "trafficking", "organized crime", "illicit financial flows", "arms trafficking", "torture", "access to justice", "legal identity", "fundamental freedoms", "public access to information"],
+      "SDG 17 - Partnerships for the Goals": ["partnership", "partnerships", "collaboration", "stakeholder engagement", "public-private partnership", "multi-stakeholder", "knowledge sharing", "capacity building", "technology transfer", "international cooperation", "development assistance", "oda", "foreign direct investment", "fdi", "debt sustainability", "trade", "global partnership", "south-south cooperation", "north-south cooperation", "policy coherence", "data monitoring", "statistical capacity"]
+    }
+  },
+  {
+    id: 'gri',
+    name: 'GRI - Global Reporting Initiative Standards',
+    description: "Keywords aligned with GRI Universal, Economic (200 series), Environmental (300 series), and Social (400 series) Standards. GRI provides the world's most widely used standards for sustainability reporting.",
+    list_type: 'grouped',
+    keywords: {
+      "Economic (GRI 200)": ["economic performance", "economic value generated", "economic value distributed", "revenue", "operating costs", "employee wages", "employee benefits", "payments to providers of capital", "payments to government", "community investments", "market presence", "local hiring", "senior management local", "minimum wage", "indirect economic impacts", "infrastructure investments", "services supported", "significant indirect impacts", "procurement practices", "local suppliers", "spending on local suppliers", "anti-corruption", "corruption risk assessment", "corruption training", "confirmed corruption incidents", "anti-competitive behavior", "legal actions anti-competitive", "anti-trust", "monopoly practices", "tax", "tax payments by country", "tax governance"],
+      "Environmental (GRI 300)": ["materials", "materials used", "raw materials", "recycled input materials", "reclaimed products", "energy", "energy consumption", "energy intensity", "energy reduction", "renewable energy", "water", "water withdrawal", "water discharge", "water consumption", "water stress areas", "water recycled", "water reused", "biodiversity", "operational sites biodiversity", "protected areas", "significant biodiversity impacts", "habitats protected", "habitats restored", "iucn red list", "conservation list species", "emissions", "direct ghg emissions", "scope 1 emissions", "indirect ghg emissions", "scope 2 emissions", "other indirect emissions", "scope 3 emissions", "ghg emissions intensity", "ghg reduction", "ozone-depleting substances", "nitrogen oxides", "nox", "sulfur oxides", "sox", "particulate matter", "air emissions", "waste", "waste generated", "waste by type", "hazardous waste", "non-hazardous waste", "waste diverted", "waste recycled", "waste composted", "waste disposed", "waste to landfill", "waste incinerated", "effluents", "water discharge quality", "spills", "significant spills", "environmental compliance", "environmental fines", "environmental sanctions", "supplier environmental assessment", "new suppliers environmental criteria"],
+      "Social (GRI 400)": ["employment", "new employee hires", "employee turnover", "benefits", "full-time employees", "part-time employees", "temporary employees", "parental leave", "return to work", "labor management relations", "collective bargaining", "collective agreements", "minimum notice period", "occupational health and safety", "occupational health management", "hazard identification", "risk assessment", "worker training health", "occupational health services", "worker health promotion", "work-related injuries", "work-related ill health", "work-related fatalities", "recordable injuries", "lost time injuries", "training and education", "training hours", "employee training", "skills management", "career development", "performance reviews", "diversity and equal opportunity", "diversity of governance bodies", "diversity of employees", "gender diversity", "age diversity", "minority groups", "equal remuneration", "pay equity", "gender pay gap", "non-discrimination", "discrimination incidents", "freedom of association", "collective bargaining rights", "child labor", "child labor risk", "young workers", "forced or compulsory labor", "forced labor risk", "security practices", "security personnel trained", "human rights", "human rights training", "human rights assessment", "human rights screening", "rights of indigenous peoples", "indigenous rights", "free prior informed consent", "local communities", "community engagement", "community impact assessment", "local community programs", "supplier social assessment", "new suppliers social criteria", "negative social impacts supply chain", "public policy", "political contributions", "lobbying", "customer health and safety", "product health safety assessment", "product safety incidents", "marketing and labeling", "product information", "marketing communications", "customer privacy", "customer data breaches", "data protection", "socioeconomic compliance", "non-compliance fines"]
+    }
+  },
+  {
+    id: 'sasb',
+    name: 'SASB - Sustainability Accounting Standards',
+    description: "Keywords across SASB's five sustainability dimensions. SASB Standards identify the sustainability-related risks and opportunities most likely to affect a company's financial condition and operating performance. Now maintained by the ISSB (International Sustainability Standards Board).",
+    list_type: 'grouped',
+    keywords: {
+      "Environment": ["ghg emissions", "greenhouse gas emissions", "scope 1 emissions", "scope 2 emissions", "scope 3 emissions", "carbon emissions", "air quality", "air emissions", "air pollutants", "criteria pollutants", "energy management", "energy consumption", "energy efficiency", "grid electricity", "renewable energy", "water management", "water withdrawal", "water consumption", "water discharge", "water stress", "water recycling", "waste management", "hazardous waste", "non-hazardous waste", "waste disposal", "waste diversion", "ecological impacts", "biodiversity impacts", "land use", "habitat", "environmental incidents", "spills", "releases", "remediation", "environmental compliance"],
+      "Social Capital": ["human rights", "human rights policy", "community relations", "community engagement", "community investment", "access and affordability", "product access", "customer welfare", "customer satisfaction", "customer privacy", "data security", "data breach", "cybersecurity", "personal data", "fair marketing", "responsible marketing", "product labeling", "fair disclosure", "selling practices", "responsible lending", "financial inclusion", "financial literacy"],
+      "Human Capital": ["labor practices", "fair labor", "employee health", "employee safety", "workplace safety", "occupational health", "employee engagement", "employee satisfaction", "diversity and inclusion", "workforce diversity", "gender diversity", "ethnic diversity", "equal opportunity", "employee development", "training", "talent management", "talent retention", "compensation and benefits", "fair compensation", "benefits", "collective bargaining", "labor relations", "union relations", "labor disputes", "workforce management"],
+      "Business Model and Innovation": ["product lifecycle", "lifecycle management", "lifecycle assessment", "product design", "design for environment", "packaging lifecycle", "sustainable packaging", "product end-of-life", "materials sourcing", "raw materials", "sustainable materials", "supply chain management", "supply chain standards", "supplier code of conduct", "responsible sourcing", "conflict minerals", "physical supply chain", "supply chain resilience", "business model resilience", "climate adaptation", "resource scarcity", "critical materials", "materials efficiency", "product innovation", "sustainable innovation"],
+      "Leadership and Governance": ["business ethics", "ethical conduct", "code of conduct", "competitive behavior", "anti-competitive practices", "antitrust", "regulatory compliance", "legal compliance", "regulatory capture", "critical incident", "crisis management", "risk management", "enterprise risk", "systemic risk management", "governance", "corporate governance", "board oversight", "board independence", "executive compensation", "incentive alignment", "lobbying", "political contributions", "political spending", "corruption", "bribery", "anti-corruption", "management of legal environment", "policy influence"]
+    }
+  }
+]
+
 export function initDatabase(): Database.Database {
   if (db) return db
 
@@ -258,6 +331,35 @@ function seedDefaultData(database: Database.Database) {
     const insertSetting = database.prepare('INSERT INTO settings (key, value) VALUES (?, ?)')
     insertSetting.run('backend_url', 'http://localhost:8000')
     insertSetting.run('theme', 'system')
+  }
+
+  // Seed framework keyword lists
+  const keywordListCount = database.prepare('SELECT COUNT(*) as count FROM keyword_lists WHERE is_builtin = 1').get() as { count: number }
+  
+  if (keywordListCount.count === 0) {
+    console.log('Seeding framework keyword lists...')
+    const insertKeywordList = database.prepare(
+      `INSERT INTO keyword_lists (id, name, description, framework, list_type, keywords, is_builtin)
+       VALUES (?, ?, ?, ?, ?, ?, 1)`
+    )
+    const insertMany = database.transaction((frameworks: typeof FRAMEWORK_KEYWORDS) => {
+      for (const framework of frameworks) {
+        const id = `builtin-${framework.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        insertKeywordList.run(
+          id,
+          framework.name,
+          framework.description,
+          framework.id,
+          framework.list_type,
+          JSON.stringify(framework.keywords)
+        )
+        console.log(`  Seeded: ${framework.name}`)
+      }
+    })
+    insertMany(FRAMEWORK_KEYWORDS)
+    console.log(`Seeded ${FRAMEWORK_KEYWORDS.length} framework keyword lists`)
+  } else {
+    console.log(`Framework keyword lists already seeded (${keywordListCount.count} found)`)
   }
 }
 

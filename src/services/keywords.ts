@@ -50,35 +50,46 @@ const FRAMEWORKS: Record<string, FrameworkData> = {
 
 /**
  * Seed built-in framework keyword lists into the database
+ * Note: Primary seeding now happens in the main process (electron/database.ts)
+ * This function serves as a verification/fallback for the renderer
  */
 export async function seedFrameworkKeywords(): Promise<void> {
-  // Check if already seeded
-  const existing = await window.electron.dbQuery<{ count: number }>(
-    'SELECT COUNT(*) as count FROM keyword_lists WHERE is_builtin = 1'
-  )
-  
-  if (existing[0].count > 0) {
-    console.log('Framework keywords already seeded')
-    return
-  }
-
-  console.log('Seeding framework keywords...')
-  
-  for (const [key, data] of Object.entries(FRAMEWORKS)) {
-    const id = uuidv4()
-    await window.electron.dbRun(
-      `INSERT INTO keyword_lists (id, name, description, framework, list_type, keywords, is_builtin)
-       VALUES (?, ?, ?, ?, ?, ?, 1)`,
-      [
-        id,
-        data.name,
-        data.description,
-        key,
-        data.list_type,
-        JSON.stringify(data.keywords),
-      ]
+  try {
+    // Check if already seeded (should be done by main process)
+    const existing = await window.electron.dbQuery<{ count: number }>(
+      'SELECT COUNT(*) as count FROM keyword_lists WHERE is_builtin = 1'
     )
-    console.log(`Seeded ${data.name} with ${data.total_keywords} keywords`)
+    
+    if (existing && existing[0] && existing[0].count > 0) {
+      console.log(`Framework keywords verified: ${existing[0].count} found in database`)
+      return
+    }
+
+    // Fallback: seed from renderer if main process didn't seed
+    console.warn('Framework keywords not found in database, attempting fallback seeding...')
+    
+    for (const [key, data] of Object.entries(FRAMEWORKS)) {
+      try {
+        const id = uuidv4()
+        await window.electron.dbRun(
+          `INSERT INTO keyword_lists (id, name, description, framework, list_type, keywords, is_builtin)
+           VALUES (?, ?, ?, ?, ?, ?, 1)`,
+          [id, data.name, data.description, key, data.list_type, JSON.stringify(data.keywords)]
+        )
+        console.log(`Fallback seeded: ${data.name}`)
+      } catch (insertError) {
+        console.error(`Failed to insert framework ${key}:`, insertError)
+      }
+    }
+    
+    // Verify
+    const verifyCount = await window.electron.dbQuery<{ count: number }>(
+      'SELECT COUNT(*) as count FROM keyword_lists WHERE is_builtin = 1'
+    )
+    console.log(`Fallback seeding complete: ${verifyCount[0]?.count || 0} framework keyword lists`)
+    
+  } catch (error) {
+    console.error('Failed to verify/seed framework keywords:', error)
   }
 }
 
