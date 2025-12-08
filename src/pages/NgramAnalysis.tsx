@@ -18,9 +18,9 @@ import {
   analyzeNgrams,
   getNgramContexts,
   type NgramAnalysisResult,
-  type AggregatedNgramResult,
   type NgramProgress,
 } from '@/services/ngrams'
+import { exportNgramResults } from '@/services/export'
 import type { DocumentRecord } from '@/services/documents'
 
 export function NgramAnalysis() {
@@ -175,32 +175,12 @@ export function NgramAnalysis() {
     })
   }
 
+  const [exportFormat, setExportFormat] = useState<'csv' | 'xlsx'>('xlsx')
+
   const exportResults = () => {
     if (!results) return
-
-    // Create CSV content
-    const lines: string[] = ['Phrase,Total Count,Document Count,Documents']
-
-    for (const ngram of results.aggregated) {
-      const docNames = ngram.byDocument.map((d) => d.documentName).join('; ')
-      lines.push(
-        [
-          `"${ngram.phrase}"`,
-          ngram.totalCount,
-          ngram.documentCount,
-          `"${docNames}"`,
-        ].join(',')
-      )
-    }
-
-    const csv = lines.join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `ngram-analysis-${ngramType}gram-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    const filename = `ngram-analysis-${ngramType}gram-${new Date().toISOString().split('T')[0]}`
+    exportNgramResults(results, filename, exportFormat)
   }
 
   if (loading) {
@@ -327,10 +307,20 @@ export function NgramAnalysis() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle>Results Summary</CardTitle>
-                <Button variant="outline" size="sm" onClick={exportResults}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={exportFormat}
+                    onChange={(e) => setExportFormat(e.target.value as 'csv' | 'xlsx')}
+                    className="text-sm border rounded px-2 py-1"
+                  >
+                    <option value="xlsx">Excel</option>
+                    <option value="csv">CSV</option>
+                  </select>
+                  <Button variant="outline" size="sm" onClick={exportResults}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Loader2,
   RefreshCw,
+  Download,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { getDocument, type DocumentRecord } from '@/services/documents'
 import { analyzeDocument, getDocumentAnalysis } from '@/services/analysis'
+import { downloadDocumentJson } from '@/services/export'
 import { KeywordSelector } from '@/components/KeywordSelector'
 
 interface PageData {
@@ -278,6 +280,14 @@ export function DocumentView() {
             <Button variant="outline" size="sm" onClick={handleOpenPdf}>
               <ExternalLink className="h-4 w-4 mr-2" />
               Open PDF
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadDocumentJson(document.id, true)}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export
             </Button>
             <Button
               size="sm"

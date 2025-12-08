@@ -9,8 +9,8 @@ import { KeywordSelector } from '@/components/KeywordSelector'
 import {
   searchKeywordsLocal,
   type BatchKeywordSearchResult,
-  type KeywordSearchResult,
 } from '@/services/analysis'
+import { exportKeywordResults } from '@/services/export'
 import type { DocumentRecord } from '@/services/documents'
 
 export function KeywordSearch() {
@@ -152,32 +152,12 @@ export function KeywordSearch() {
     })
   }
 
+  const [exportFormat, setExportFormat] = useState<'csv' | 'xlsx'>('xlsx')
+
   const exportResults = () => {
     if (!results) return
-    
-    // Create CSV content
-    const lines: string[] = ['Document,Company,Year,Keyword,Count']
-    
-    for (const doc of results.documents) {
-      for (const [keyword, match] of Object.entries(doc.matches)) {
-        lines.push([
-          `"${doc.documentName}"`,
-          `"${doc.companyName || ''}"`,
-          doc.reportYear || '',
-          `"${keyword}"`,
-          match.count,
-        ].join(','))
-      }
-    }
-    
-    const csv = lines.join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `keyword-search-results-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    const filename = `keyword-search-results-${new Date().toISOString().split('T')[0]}`
+    exportKeywordResults(results, filename, exportFormat)
   }
 
   if (loading) {
@@ -256,10 +236,20 @@ export function KeywordSearch() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle>Results Summary</CardTitle>
-                <Button variant="outline" size="sm" onClick={exportResults}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={exportFormat}
+                    onChange={(e) => setExportFormat(e.target.value as 'csv' | 'xlsx')}
+                    className="text-sm border rounded px-2 py-1"
+                  >
+                    <option value="xlsx">Excel</option>
+                    <option value="csv">CSV</option>
+                  </select>
+                  <Button variant="outline" size="sm" onClick={exportResults}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart } from 'lucide-react'
+import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { DocumentTable } from '@/components/DocumentTable'
 import { DocumentMetadataModal } from '@/components/DocumentMetadataModal'
 import { ImportProgressDialog } from '@/components/ImportProgressDialog'
+import { ExportOptionsModal } from '@/components/ExportOptionsModal'
 import {
   importDocuments,
   deleteDocuments,
@@ -49,6 +50,7 @@ export function ProjectDashboard() {
   
   // Modal state
   const [editingDocument, setEditingDocument] = useState<DocumentRecord | null>(null)
+  const [showExportModal, setShowExportModal] = useState(false)
 
   useEffect(() => {
     if (projectId) {
@@ -368,6 +370,14 @@ export function ProjectDashboard() {
           <PieChart className="h-4 w-4 mr-2" />
           Visualizations
         </Button>
+        <Button 
+          variant="outline" 
+          disabled={documents.length === 0}
+          onClick={() => setShowExportModal(true)}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Export
+        </Button>
         
         {selectedIds.size > 0 && (
           <Button
@@ -457,6 +467,15 @@ export function ProjectDashboard() {
         onClose={() => setEditingDocument(null)}
         document={editingDocument}
         onSaved={loadDocuments}
+      />
+
+      {/* Export Options Modal */}
+      <ExportOptionsModal
+        open={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        projectId={projectId!}
+        projectName={project?.name || 'project'}
+        documentCount={documents.length}
       />
     </div>
   )
