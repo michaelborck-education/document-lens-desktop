@@ -417,6 +417,7 @@ export function ProjectDashboard() {
           ) : (
             <DocumentTable
               documents={documents}
+              projectId={projectId!}
               selectedIds={selectedIds}
               onSelectionChange={setSelectedIds}
               onEdit={setEditingDocument}

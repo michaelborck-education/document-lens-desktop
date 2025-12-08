@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   FileText,
   MoreVertical,
@@ -7,6 +8,7 @@ import {
   ExternalLink,
   ChevronUp,
   ChevronDown,
+  Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -17,6 +19,7 @@ type SortDirection = 'asc' | 'desc'
 
 interface DocumentTableProps {
   documents: DocumentRecord[]
+  projectId: string
   selectedIds: Set<string>
   onSelectionChange: (ids: Set<string>) => void
   onEdit: (document: DocumentRecord) => void
@@ -26,6 +29,7 @@ interface DocumentTableProps {
 
 export function DocumentTable({
   documents,
+  projectId,
   selectedIds,
   onSelectionChange,
   onEdit,
@@ -167,12 +171,15 @@ export function DocumentTable({
                 />
               </td>
               <td className="px-3 py-3">
-                <div className="flex items-center gap-2">
+                <Link
+                  to={`/project/${projectId}/document/${doc.id}`}
+                  className="flex items-center gap-2 hover:text-primary transition-colors"
+                >
                   <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="truncate max-w-[300px]" title={doc.filename}>
+                  <span className="truncate max-w-[300px] hover:underline" title={doc.filename}>
                     {doc.filename}
                   </span>
-                </div>
+                </Link>
               </td>
               <td className="px-3 py-3">
                 <span className="text-sm text-muted-foreground">
@@ -209,6 +216,14 @@ export function DocumentTable({
                         onClick={() => setContextMenu(null)}
                       />
                       <div className="absolute right-0 top-full mt-1 z-20 w-40 bg-popover border rounded-md shadow-lg py-1">
+                        <Link
+                          to={`/project/${projectId}/document/${doc.id}`}
+                          className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted"
+                          onClick={() => setContextMenu(null)}
+                        >
+                          <Eye className="h-4 w-4" />
+                          View Document
+                        </Link>
                         <button
                           className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted"
                           onClick={() => {
