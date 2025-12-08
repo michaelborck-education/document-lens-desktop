@@ -1,17 +1,72 @@
 import { useState, useEffect } from 'react'
+import {
+  Settings as SettingsIcon,
+  Database,
+  Globe,
+  Building2,
+  Trash2,
+  Plus,
+  X,
+  Check,
+  Loader2,
+  RefreshCw,
+  AlertTriangle,
+  FolderOpen,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { api } from '@/services/api'
+
+interface Country {
+  code: string
+  name: string
+  is_default: boolean
+}
+
+interface Industry {
+  id: string
+  name: string
+  category: string | null
+  is_default: boolean
+}
 
 export function Settings() {
   const [backendUrl, setBackendUrl] = useState('http://localhost:8000')
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [appVersion, setAppVersion] = useState('')
+  const [dbPath, setDbPath] = useState('')
+  
+  // Data stats
+  const [stats, setStats] = useState({ projects: 0, documents: 0, analyses: 0 })
+  
+  // Country/Industry editors
+  const [countries, setCountries] = useState<Country[]>([])
+  const [industries, setIndustries] = useState<Industry[]>([])
+  const [editingCountries, setEditingCountries] = useState(false)
+  const [editingIndustries, setEditingIndustries] = useState(false)
+  const [newCountry, setNewCountry] = useState({ code: '', name: '' })
+  const [newIndustry, setNewIndustry] = useState({ id: '', name: '', category: '' })
+  
+  // Clear data confirmation
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
+  const [clearConfirmText, setClearConfirmText] = useState('')
+  const [clearing, setClearing] = useState(false)
 
   useEffect(() => {
     loadSettings()
     loadAppVersion()
+    loadDbPath()
+    loadStats()
+    loadCountries()
+    loadIndustries()
   }, [])
 
   const loadSettings = async () => {
@@ -34,6 +89,54 @@ export function Settings() {
       setAppVersion(version)
     } catch (error) {
       console.error('Failed to get app version:', error)
+    }
+  }
+
+  const loadDbPath = async () => {
+    try {
+      const userDataPath = await window.electron.getPath('userData')
+      setDbPath(`${userDataPath}/document-lens.db`)
+    } catch (error) {
+      console.error('Failed to get db path:', error)
+    }
+  }
+
+  const loadStats = async () => {
+    try {
+      const [projectsResult, documentsResult, analysesResult] = await Promise.all([
+        window.electron.dbQuery<{ count: number }>('SELECT COUNT(*) as count FROM projects'),
+        window.electron.dbQuery<{ count: number }>('SELECT COUNT(*) as count FROM documents'),
+        window.electron.dbQuery<{ count: number }>('SELECT COUNT(*) as count FROM analysis_results'),
+      ])
+      setStats({
+        projects: projectsResult[0]?.count || 0,
+        documents: documentsResult[0]?.count || 0,
+        analyses: analysesResult[0]?.count || 0,
+      })
+    } catch (error) {
+      console.error('Failed to load stats:', error)
+    }
+  }
+
+  const loadCountries = async () => {
+    try {
+      const result = await window.electron.dbQuery<Country>(
+        'SELECT * FROM countries ORDER BY name'
+      )
+      setCountries(result)
+    } catch (error) {
+      console.error('Failed to load countries:', error)
+    }
+  }
+
+  const loadIndustries = async () => {
+    try {
+      const result = await window.electron.dbQuery<Industry>(
+        'SELECT * FROM industries ORDER BY category, name'
+      )
+      setIndustries(result)
+    } catch (error) {
+      console.error('Failed to load industries:', error)
     }
   }
 
@@ -61,14 +164,106 @@ export function Settings() {
     }
   }
 
+  const addCountry = async () => {
+    if (!newCountry.code || !newCountry.name) return
+    try {
+      await window.electron.dbRun(
+        'INSERT OR REPLACE INTO countries (code, name, is_default) VALUES (?, ?, 0)',
+        [newCountry.code.toUpperCase(), newCountry.name]
+      )
+      setNewCountry({ code: '', name: '' })
+      loadCountries()
+    } catch (error) {
+      console.error('Failed to add country:', error)
+    }
+  }
+
+  const deleteCountry = async (code: string) => {
+    try {
+      await window.electron.dbRun('DELETE FROM countries WHERE code = ?', [code])
+      loadCountries()
+    } catch (error) {
+      console.error('Failed to delete country:', error)
+    }
+  }
+
+  const addIndustry = async () => {
+    if (!newIndustry.id || !newIndustry.name) return
+    try {
+      await window.electron.dbRun(
+        'INSERT OR REPLACE INTO industries (id, name, category, is_default) VALUES (?, ?, ?, 0)',
+        [newIndustry.id.toLowerCase().replace(/\s+/g, '_'), newIndustry.name, newIndustry.category || null]
+      )
+      setNewIndustry({ id: '', name: '', category: '' })
+      loadIndustries()
+    } catch (error) {
+      console.error('Failed to add industry:', error)
+    }
+  }
+
+  const deleteIndustry = async (id: string) => {
+    try {
+      await window.electron.dbRun('DELETE FROM industries WHERE id = ?', [id])
+      loadIndustries()
+    } catch (error) {
+      console.error('Failed to delete industry:', error)
+    }
+  }
+
+  const clearAllData = async () => {
+    if (clearConfirmText !== 'DELETE') return
+    
+    setClearing(true)
+    try {
+      // Delete all data in order (respecting foreign keys)
+      await window.electron.dbRun('DELETE FROM analysis_results')
+      await window.electron.dbRun('DELETE FROM keyword_results')
+      await window.electron.dbRun('DELETE FROM ngram_results')
+      await window.electron.dbRun('DELETE FROM documents')
+      await window.electron.dbRun('DELETE FROM projects')
+      
+      // Reset stats
+      loadStats()
+      setShowClearConfirm(false)
+      setClearConfirmText('')
+    } catch (error) {
+      console.error('Failed to clear data:', error)
+      alert('Failed to clear data. Please try again.')
+    } finally {
+      setClearing(false)
+    }
+  }
+
+  const resetToDefaults = async (type: 'countries' | 'industries') => {
+    try {
+      if (type === 'countries') {
+        // Delete non-default countries
+        await window.electron.dbRun('DELETE FROM countries WHERE is_default = 0')
+        loadCountries()
+      } else {
+        // Delete non-default industries
+        await window.electron.dbRun('DELETE FROM industries WHERE is_default = 0')
+        loadIndustries()
+      }
+    } catch (error) {
+      console.error(`Failed to reset ${type}:`, error)
+    }
+  }
+
   return (
-    <div className="p-8 max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+    <div className="p-8 max-w-3xl">
+      <div className="flex items-center gap-3 mb-6">
+        <SettingsIcon className="h-6 w-6" />
+        <h1 className="text-2xl font-bold">Settings</h1>
+      </div>
 
       {/* Backend Configuration */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Backend Configuration</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Backend Configuration
+          </CardTitle>
           <CardDescription>
             Configure the connection to the document-lens API backend
           </CardDescription>
@@ -86,6 +281,9 @@ export function Settings() {
                 Save
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Default: http://localhost:8000 (development) or http://localhost:8765 (bundled)
+            </p>
           </div>
           <div>
             <Button
@@ -99,6 +297,15 @@ export function Settings() {
                   : 'outline'
               }
             >
+              {testStatus === 'testing' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : testStatus === 'success' ? (
+                <Check className="h-4 w-4 mr-2" />
+              ) : testStatus === 'error' ? (
+                <X className="h-4 w-4 mr-2" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
               {testStatus === 'testing'
                 ? 'Testing...'
                 : testStatus === 'success'
@@ -111,29 +318,235 @@ export function Settings() {
         </CardContent>
       </Card>
 
+      {/* Country List */}
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Country List
+              </CardTitle>
+              <CardDescription>
+                {countries.length} countries available for document metadata
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingCountries(!editingCountries)}
+            >
+              {editingCountries ? 'Done' : 'Edit'}
+            </Button>
+          </div>
+        </CardHeader>
+        {editingCountries && (
+          <CardContent className="space-y-4">
+            {/* Add new country */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Code (e.g., US)"
+                value={newCountry.code}
+                onChange={(e) => setNewCountry({ ...newCountry, code: e.target.value })}
+                className="w-24"
+                maxLength={3}
+              />
+              <Input
+                placeholder="Country name"
+                value={newCountry.name}
+                onChange={(e) => setNewCountry({ ...newCountry, name: e.target.value })}
+                className="flex-1"
+              />
+              <Button onClick={addCountry} size="icon" disabled={!newCountry.code || !newCountry.name}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Country list */}
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {countries.map((country) => (
+                <div
+                  key={country.code}
+                  className="flex items-center justify-between py-1 px-2 rounded hover:bg-muted"
+                >
+                  <span className="text-sm">
+                    <span className="font-mono text-muted-foreground mr-2">{country.code}</span>
+                    {country.name}
+                  </span>
+                  {!country.is_default && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => deleteCountry(country.code)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => resetToDefaults('countries')}
+            >
+              Reset to Defaults
+            </Button>
+          </CardContent>
+        )}
+      </Card>
+
+      {/* Industry List */}
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Industry List
+              </CardTitle>
+              <CardDescription>
+                {industries.length} industries available for document metadata
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingIndustries(!editingIndustries)}
+            >
+              {editingIndustries ? 'Done' : 'Edit'}
+            </Button>
+          </div>
+        </CardHeader>
+        {editingIndustries && (
+          <CardContent className="space-y-4">
+            {/* Add new industry */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="ID (e.g., tech)"
+                value={newIndustry.id}
+                onChange={(e) => setNewIndustry({ ...newIndustry, id: e.target.value })}
+                className="w-32"
+              />
+              <Input
+                placeholder="Industry name"
+                value={newIndustry.name}
+                onChange={(e) => setNewIndustry({ ...newIndustry, name: e.target.value })}
+                className="flex-1"
+              />
+              <Input
+                placeholder="Category (optional)"
+                value={newIndustry.category}
+                onChange={(e) => setNewIndustry({ ...newIndustry, category: e.target.value })}
+                className="w-32"
+              />
+              <Button onClick={addIndustry} size="icon" disabled={!newIndustry.id || !newIndustry.name}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Industry list */}
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {industries.map((industry) => (
+                <div
+                  key={industry.id}
+                  className="flex items-center justify-between py-1 px-2 rounded hover:bg-muted"
+                >
+                  <span className="text-sm">
+                    {industry.name}
+                    {industry.category && (
+                      <span className="text-muted-foreground ml-2">({industry.category})</span>
+                    )}
+                  </span>
+                  {!industry.is_default && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => deleteIndustry(industry.id)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => resetToDefaults('industries')}
+            >
+              Reset to Defaults
+            </Button>
+          </CardContent>
+        )}
+      </Card>
+
       {/* Data Management */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Data Management</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-5 w-5" />
+            Data Management
+          </CardTitle>
           <CardDescription>
             Manage your local database and cached data
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-medium">Database Location</div>
-              <div className="text-sm text-muted-foreground">
-                ~/Library/Application Support/document-lens-desktop/document-lens.db
-              </div>
+          {/* Database location */}
+          <div>
+            <div className="font-medium text-sm mb-1">Database Location</div>
+            <div className="flex items-center gap-2">
+              <code className="text-xs bg-muted px-2 py-1 rounded flex-1 truncate">
+                {dbPath || 'Loading...'}
+              </code>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (dbPath) {
+                    const folderPath = dbPath.substring(0, dbPath.lastIndexOf('/'))
+                    window.electron.openPath(folderPath)
+                  }
+                }}
+              >
+                <FolderOpen className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-          <div className="pt-4 border-t">
-            <Button variant="destructive" disabled>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 py-4 border-y">
+            <div className="text-center">
+              <div className="text-2xl font-bold">{stats.projects}</div>
+              <div className="text-xs text-muted-foreground">Projects</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{stats.documents}</div>
+              <div className="text-xs text-muted-foreground">Documents</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{stats.analyses}</div>
+              <div className="text-xs text-muted-foreground">Analyses</div>
+            </div>
+          </div>
+
+          {/* Clear data */}
+          <div>
+            <Button
+              variant="destructive"
+              onClick={() => setShowClearConfirm(true)}
+              disabled={stats.projects === 0 && stats.documents === 0}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
               Clear All Data
             </Button>
             <p className="text-xs text-muted-foreground mt-2">
-              This will delete all projects, documents, and analysis results.
+              This will delete all projects, documents, and analysis results. This cannot be undone.
             </p>
           </div>
         </CardContent>
@@ -151,16 +564,14 @@ export function Settings() {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Backend</span>
-            <a
-              href="https://github.com/michaelborck-education/document-lens"
+            <button
               className="text-primary hover:underline"
-              onClick={(e) => {
-                e.preventDefault()
+              onClick={() => {
                 window.electron.openExternal('https://github.com/michaelborck-education/document-lens')
               }}
             >
               document-lens
-            </a>
+            </button>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">License</span>
@@ -168,6 +579,55 @@ export function Settings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Clear Data Confirmation Dialog */}
+      <Dialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Clear All Data
+            </DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete all projects,
+              documents, and analysis results from your local database.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm">
+              To confirm, type <strong>DELETE</strong> below:
+            </p>
+            <Input
+              value={clearConfirmText}
+              onChange={(e) => setClearConfirmText(e.target.value)}
+              placeholder="Type DELETE to confirm"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowClearConfirm(false)
+                  setClearConfirmText('')
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={clearConfirmText !== 'DELETE' || clearing}
+                onClick={clearAllData}
+              >
+                {clearing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4 mr-2" />
+                )}
+                {clearing ? 'Clearing...' : 'Clear All Data'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
