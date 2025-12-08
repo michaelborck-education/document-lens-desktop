@@ -12,12 +12,16 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
+    "build": "npm run build:vite && electron-builder",
     "build:vite": "tsc && vite build",
+    "build:mac": "npm run build:vite && electron-builder --mac",
+    "build:win": "npm run build:vite && electron-builder --win",
+    "build:linux": "npm run build:vite && electron-builder --linux",
+    "build:all": "npm run build:vite && electron-builder --mac --win --linux",
     "preview": "vite preview",
-    "electron:dev": "concurrently \"vite\" \"electron .\"",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src electron --ext .ts,.tsx"
+    "lint": "eslint src electron --ext .ts,.tsx",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.3",

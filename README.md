@@ -68,10 +68,35 @@ npm install
 
 # Start development
 npm run dev
-
-# Build for production
-npm run build
 ```
+
+### Building
+
+```bash
+# Build for current platform
+npm run build
+
+# Build for specific platform
+npm run build:mac     # macOS (.dmg)
+npm run build:win     # Windows (.exe)
+npm run build:linux   # Linux (.AppImage)
+
+# Build for all platforms (requires appropriate OS or CI)
+npm run build:all
+```
+
+Build outputs are placed in the `release/` directory.
+
+### Releasing
+
+1. Update version in `package.json`
+2. Commit changes
+3. Create and push a git tag:
+   ```bash
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
+4. GitHub Actions will automatically build and create a release
 
 ### Project Structure
 

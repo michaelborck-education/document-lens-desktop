@@ -10,10 +10,15 @@ files:
   - dist/**/*
   - dist-electron/**/*
   - package.json
+  - node_modules/better-sqlite3/**/*
 
-extraResources:
-  - from: framework-keywords
-    to: framework-keywords
+# Rebuild native modules for the target platform
+npmRebuild: true
+buildDependenciesFromSource: true
+
+asar: true
+asarUnpack:
+  - node_modules/better-sqlite3/**/*
 
 win:
   target:
@@ -48,6 +53,15 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
+
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
 
 publish:
   provider: github
