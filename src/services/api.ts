@@ -157,7 +157,7 @@ class ApiClient {
     topK: number = 100,
     filterTerms?: string[]
   ): Promise<NgramResponse> {
-    return this.request<NgramResponse>('/ngrams', {
+    return this.request<NgramResponse>('/advanced/ngrams', {
       method: 'POST',
       body: JSON.stringify({
         text,
