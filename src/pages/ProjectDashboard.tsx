@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash } from 'lucide-react'
+import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -359,6 +359,14 @@ export function ProjectDashboard() {
         >
           <Hash className="h-4 w-4 mr-2" />
           N-gram Analysis
+        </Button>
+        <Button 
+          variant="outline" 
+          disabled={documents.length === 0}
+          onClick={() => navigate(`/project/${projectId}/visualize`)}
+        >
+          <PieChart className="h-4 w-4 mr-2" />
+          Visualizations
         </Button>
         
         {selectedIds.size > 0 && (
