@@ -21,6 +21,9 @@ jobs:
             platform: win
 
     runs-on: ${{ matrix.os }}
+    
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -41,8 +44,8 @@ jobs:
       - name: Build Vite
         run: npm run build:vite
 
-      - name: Build Electron app
-        run: npm run build:${{ matrix.platform }}
+      - name: Build Electron app (no publish)
+        run: npx electron-builder --${{ matrix.platform }} --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,6 +58,7 @@ jobs:
             release/*.exe
             release/*.AppImage
             release/*.yml
+            release/*.blockmap
           if-no-files-found: ignore
 
   release:
