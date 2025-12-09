@@ -1,11 +1,8 @@
 import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
-import { fileURLToPath } from 'url'
 import { initDatabase, getDatabase } from './database'
 import { BackendManager } from './backend-manager'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // The built directory structure
 //
@@ -48,6 +45,19 @@ function createWindow() {
     mainWindow?.show()
   })
 
+  // Fallback: show window after timeout if ready-to-show doesn't fire
+  setTimeout(() => {
+    if (mainWindow && !mainWindow.isVisible()) {
+      console.log('Fallback: showing window after timeout')
+      mainWindow.show()
+    }
+  }, 3000)
+
+  // Log any load failures
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load:', errorCode, errorDescription)
+  })
+
   // Open external links in browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)
@@ -70,9 +80,15 @@ app.whenReady().then(async () => {
   // Initialize backend manager
   backendManager = new BackendManager()
   
-  // Start backend (in development, assumes it's running externally)
+  // Try to start backend (in production). If it fails, the app still works
+  // for local features (keyword search, visualizations, export)
   if (app.isPackaged) {
-    await backendManager.start()
+    try {
+      await backendManager.start()
+    } catch (error) {
+      console.warn('Could not start embedded backend:', error)
+      console.log('App will run in offline mode - local features still available')
+    }
   }
 
   createWindow()
