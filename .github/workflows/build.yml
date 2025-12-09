@@ -15,10 +15,13 @@ jobs:
         include:
           - os: macos-latest
             platform: mac
+            backend_ext: ""
           - os: ubuntu-latest
             platform: linux
+            backend_ext: ""
           - os: windows-latest
             platform: win
+            backend_ext: ".exe"
 
     runs-on: ${{ matrix.os }}
     
@@ -26,8 +29,77 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout desktop app
         uses: actions/checkout@v4
+
+      - name: Checkout document-lens backend
+        uses: actions/checkout@v4
+        with:
+          repository: michaelborck-education/document-lens
+          path: document-lens-backend
+          # Use a specific tag/branch for reproducible builds
+          # ref: v1.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies and PyInstaller
+        run: |
+          cd document-lens-backend
+          pip install --upgrade pip
+          pip install pyinstaller
+          pip install -e .
+        shell: bash
+
+      - name: Download NLTK data
+        run: |
+          python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab'); nltk.download('averaged_perceptron_tagger'); nltk.download('averaged_perceptron_tagger_eng'); nltk.download('stopwords')"
+        shell: bash
+
+      - name: Build Python backend with PyInstaller
+        run: |
+          cd document-lens-backend
+          pyinstaller --onefile \
+            --name "document-lens-api" \
+            --add-data "app/data:app/data" \
+            --hidden-import uvicorn.logging \
+            --hidden-import uvicorn.lifespan \
+            --hidden-import uvicorn.lifespan.on \
+            --hidden-import uvicorn.lifespan.off \
+            --hidden-import uvicorn.protocols \
+            --hidden-import uvicorn.protocols.http \
+            --hidden-import uvicorn.protocols.http.auto \
+            --hidden-import uvicorn.protocols.http.h11_impl \
+            --hidden-import uvicorn.protocols.http.httptools_impl \
+            --hidden-import uvicorn.protocols.websockets \
+            --hidden-import uvicorn.protocols.websockets.auto \
+            --hidden-import uvicorn.protocols.websockets.websockets_impl \
+            --hidden-import uvicorn.protocols.websockets.wsproto_impl \
+            --hidden-import uvicorn.loops \
+            --hidden-import uvicorn.loops.auto \
+            --hidden-import uvicorn.loops.asyncio \
+            --hidden-import uvicorn.loops.uvloop \
+            --hidden-import fastapi \
+            --hidden-import pydantic \
+            --hidden-import slowapi \
+            --hidden-import textstat \
+            --hidden-import nltk \
+            --hidden-import sklearn \
+            --hidden-import PyPDF2 \
+            --hidden-import pdfplumber \
+            --collect-data nltk \
+            --collect-submodules nltk \
+            app/main.py
+        shell: bash
+
+      - name: Copy backend to resources
+        run: |
+          mkdir -p backend
+          cp "document-lens-backend/dist/document-lens-api${{ matrix.backend_ext }}" "backend/document-lens-api${{ matrix.backend_ext }}"
+          ls -la backend/
+        shell: bash
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

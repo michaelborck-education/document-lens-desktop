@@ -21,6 +21,13 @@ asar: true
 asarUnpack:
   - node_modules/better-sqlite3/**/*
 
+# Bundle the Python backend executable
+extraResources:
+  - from: backend/
+    to: backend
+    filter:
+      - "**/*"
+
 win:
   target:
     - target: nsis
