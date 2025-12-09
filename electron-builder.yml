@@ -12,9 +12,10 @@ files:
   - package.json
   - node_modules/better-sqlite3/**/*
 
-# Rebuild native modules for the target platform
+# Use prebuilt binaries instead of rebuilding from source
+# This avoids issues with Python/node-gyp on newer Python versions
 npmRebuild: true
-buildDependenciesFromSource: true
+buildDependenciesFromSource: false
 
 asar: true
 asarUnpack:
