@@ -163,6 +163,34 @@ ipcMain.handle('backend:getUrl', () => {
   return backendManager?.getUrl() ?? 'http://localhost:8000'
 })
 
+// Debug: get resources path info
+ipcMain.handle('debug:getResourcesInfo', () => {
+  const resourcesPath = process.resourcesPath
+  const fs = require('fs')
+  const path = require('path')
+  
+  let info: Record<string, unknown> = {
+    resourcesPath,
+    isPackaged: app.isPackaged,
+    platform: process.platform
+  }
+  
+  try {
+    info.resourcesContents = fs.readdirSync(resourcesPath)
+    const backendDir = path.join(resourcesPath, 'backend')
+    if (fs.existsSync(backendDir)) {
+      info.backendExists = true
+      info.backendContents = fs.readdirSync(backendDir)
+    } else {
+      info.backendExists = false
+    }
+  } catch (e) {
+    info.error = String(e)
+  }
+  
+  return info
+})
+
 // Database handlers - these will be expanded as needed
 ipcMain.handle('db:query', async (_, { sql, params }) => {
   const db = getDatabase()

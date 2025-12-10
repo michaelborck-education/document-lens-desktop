@@ -34,7 +34,27 @@ export class BackendManager {
       
       // Check in extraResources
       const resourcesPath = process.resourcesPath
+      console.log('[Backend] resourcesPath:', resourcesPath)
+      console.log('[Backend] Looking for backend executable:', backendName)
+      
       const backendPath = path.join(resourcesPath, 'backend', backendName)
+      console.log('[Backend] Checking path:', backendPath)
+      console.log('[Backend] Exists:', fs.existsSync(backendPath))
+      
+      // List contents of resources directory for debugging
+      try {
+        const resourceContents = fs.readdirSync(resourcesPath)
+        console.log('[Backend] Resources directory contents:', resourceContents)
+        const backendDir = path.join(resourcesPath, 'backend')
+        if (fs.existsSync(backendDir)) {
+          const backendContents = fs.readdirSync(backendDir)
+          console.log('[Backend] Backend directory contents:', backendContents)
+        } else {
+          console.log('[Backend] Backend directory does not exist!')
+        }
+      } catch (e) {
+        console.log('[Backend] Error listing directories:', e)
+      }
       
       if (fs.existsSync(backendPath)) {
         return backendPath
@@ -42,6 +62,7 @@ export class BackendManager {
       
       // Fallback to app.asar.unpacked if using asar
       const unpackedPath = path.join(resourcesPath, 'app.asar.unpacked', 'backend', backendName)
+      console.log('[Backend] Checking unpacked path:', unpackedPath)
       if (fs.existsSync(unpackedPath)) {
         return unpackedPath
       }
