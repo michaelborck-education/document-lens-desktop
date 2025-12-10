@@ -139,11 +139,18 @@ jobs:
           cp -r ../nltk_data ./nltk_data
           ls -la nltk_data/
           
+          # Determine platform-specific separator for --add-data
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            SEP=";"
+          else
+            SEP=":"
+          fi
+          
           pyinstaller --onefile \
             --console \
             --name "document-lens-api" \
-            --add-data "app/data:app/data" \
-            --add-data "nltk_data:nltk_data" \
+            --add-data "app/data${SEP}app/data" \
+            --add-data "nltk_data${SEP}nltk_data" \
             --hidden-import uvicorn.logging \
             --hidden-import uvicorn.lifespan \
             --hidden-import uvicorn.lifespan.on \
@@ -175,8 +182,6 @@ jobs:
             --exclude-module matplotlib \
             --exclude-module PIL \
             --exclude-module cv2 \
-            --exclude-module scipy.spatial.cKDTree \
-            --strip \
             run_server.py
         shell: bash
 
