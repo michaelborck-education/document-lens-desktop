@@ -14,7 +14,7 @@ export class BackendManager {
   private process: ChildProcess | null = null
   private port: number = 8000
   private host: string = '127.0.0.1'
-  private startupTimeout: number = 30000 // 30 seconds
+  private startupTimeout: number = 60000 // 60 seconds - PyInstaller bundles can be slow to start
   private healthCheckInterval: NodeJS.Timeout | null = null
 
   constructor() {
