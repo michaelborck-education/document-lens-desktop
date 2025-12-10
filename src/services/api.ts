@@ -5,14 +5,17 @@
  * Backend repo: https://github.com/michaelborck-education/document-lens
  */
 
-// Default to localhost:8000 for development
-const DEFAULT_API_URL = 'http://localhost:8000'
+// Default to bundled backend port in production, development port otherwise
+const DEFAULT_API_URL = 'http://127.0.0.1:8765'
+const DEV_API_URL = 'http://localhost:8000'
 
 class ApiClient {
   private baseUrl: string = DEFAULT_API_URL
+  private urlInitialized: boolean = false
+  private initPromise: Promise<void> | null = null
 
   constructor() {
-    this.initializeUrl()
+    this.initPromise = this.initializeUrl()
   }
 
   private async initializeUrl() {
@@ -20,14 +23,28 @@ class ApiClient {
       // Get the backend URL from Electron
       if (window.electron) {
         this.baseUrl = await window.electron.getBackendUrl()
+        console.log('[API] Backend URL from Electron:', this.baseUrl)
+      } else {
+        // In development without Electron, use dev URL
+        this.baseUrl = DEV_API_URL
+        console.log('[API] Using development URL:', this.baseUrl)
       }
     } catch (error) {
-      console.warn('Could not get backend URL from Electron, using default:', DEFAULT_API_URL)
+      console.warn('[API] Could not get backend URL from Electron, using default:', this.baseUrl)
+    }
+    this.urlInitialized = true
+  }
+
+  // Ensure URL is initialized before making requests
+  private async ensureInitialized(): Promise<void> {
+    if (!this.urlInitialized && this.initPromise) {
+      await this.initPromise
     }
   }
 
   setBaseUrl(url: string) {
     this.baseUrl = url
+    this.urlInitialized = true
   }
 
   getBaseUrl(): string {
@@ -38,6 +55,7 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
+    await this.ensureInitialized()
     const url = `${this.baseUrl}${endpoint}`
     
     const response = await fetch(url, {
@@ -60,6 +78,7 @@ class ApiClient {
     endpoint: string,
     formData: FormData
   ): Promise<T> {
+    await this.ensureInitialized()
     const url = `${this.baseUrl}${endpoint}`
     
     const response = await fetch(url, {

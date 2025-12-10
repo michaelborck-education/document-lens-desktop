@@ -160,7 +160,7 @@ ipcMain.handle('backend:getStatus', () => {
 })
 
 ipcMain.handle('backend:getUrl', () => {
-  return backendManager?.getUrl() ?? 'http://localhost:8000'
+  return backendManager?.getUrl() ?? 'http://127.0.0.1:8765'
 })
 
 // Debug: get resources path info
