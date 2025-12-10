@@ -143,12 +143,41 @@ jobs:
         run: |
           cd document-lens-backend
           echo "Testing backend executable..."
-          timeout 15 ./dist/document-lens-api${{ matrix.backend_ext }} --port 19999 &
+          echo "Executable size: $(ls -lh ./dist/document-lens-api${{ matrix.backend_ext }})"
+          
+          # Start server in background, redirect output to file for debugging
+          ./dist/document-lens-api${{ matrix.backend_ext }} --port 19999 > server.log 2>&1 &
           PID=$!
-          sleep 10
-          echo "Checking if server is responding..."
-          curl -f http://127.0.0.1:19999/health || (echo "Health check failed"; kill $PID 2>/dev/null; exit 1)
-          echo "Server responded successfully!"
+          echo "Started server with PID: $PID"
+          
+          # Wait for server to start (check every second for up to 30 seconds)
+          echo "Waiting for server to start..."
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:19999/health > /dev/null 2>&1; then
+              echo "Server is up after $i seconds!"
+              break
+            fi
+            if ! kill -0 $PID 2>/dev/null; then
+              echo "Server process died!"
+              echo "=== Server log ==="
+              cat server.log || true
+              exit 1
+            fi
+            sleep 1
+          done
+          
+          # Final health check
+          echo "Performing health check..."
+          if curl -f http://127.0.0.1:19999/health; then
+            echo "Health check passed!"
+          else
+            echo "Health check failed!"
+            echo "=== Server log ==="
+            cat server.log || true
+            kill $PID 2>/dev/null || true
+            exit 1
+          fi
+          
           kill $PID 2>/dev/null || true
         shell: bash
         continue-on-error: false
