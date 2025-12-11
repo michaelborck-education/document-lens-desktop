@@ -96,7 +96,8 @@ class ApiClient {
     options: ProcessFileOptions = {}
   ): Promise<ProcessFileResponse> {
     const formData = new FormData()
-    formData.append('file', file)
+    // Backend expects 'files' (plural) as the field name
+    formData.append('files', file)
     
     if (options.include_extracted_text !== undefined) {
       formData.append('include_extracted_text', String(options.include_extracted_text))

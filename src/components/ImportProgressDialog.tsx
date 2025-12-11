@@ -1,5 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
 import { FileText, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import type { ImportProgress, ImportResult } from '@/services/documents'
 
@@ -7,9 +8,10 @@ interface ImportProgressDialogProps {
   open: boolean
   progress: ImportProgress | null
   results: ImportResult[]
+  onClose?: () => void
 }
 
-export function ImportProgressDialog({ open, progress, results }: ImportProgressDialogProps) {
+export function ImportProgressDialog({ open, progress, results, onClose }: ImportProgressDialogProps) {
   const successCount = results.filter(r => r.success).length
   const failCount = results.filter(r => !r.success).length
   const progressPercent = progress ? (progress.current / progress.total) * 100 : 0
@@ -75,6 +77,12 @@ export function ImportProgressDialog({ open, progress, results }: ImportProgress
                     </div>
                   ))}
                 </div>
+              )}
+              
+              {onClose && (
+                <Button onClick={onClose} className="w-full mt-4">
+                  Close
+                </Button>
               )}
             </div>
           )}

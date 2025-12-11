@@ -459,6 +459,7 @@ export function ProjectDashboard() {
         open={importing}
         progress={importProgress}
         results={importResults}
+        onClose={() => setImporting(false)}
       />
 
       {/* Document Metadata Modal */}
