@@ -4,6 +4,11 @@ import path from 'path'
 import fs from 'fs'
 import http from 'http'
 
+// Backend configuration constants - single source of truth
+export const BACKEND_PORT = 8765
+export const BACKEND_HOST = '127.0.0.1'
+export const BACKEND_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}`
+
 export interface BackendStatus {
   running: boolean
   url: string | null
@@ -12,15 +17,10 @@ export interface BackendStatus {
 
 export class BackendManager {
   private process: ChildProcess | null = null
-  private port: number = 8000
-  private host: string = '127.0.0.1'
+  private port: number = BACKEND_PORT
+  private host: string = BACKEND_HOST
   private startupTimeout: number = 180000 // 3 minutes - PyInstaller bundles are very slow to start on first launch
   private healthCheckInterval: NodeJS.Timeout | null = null
-
-  constructor() {
-    // Use a different port range for the embedded backend
-    this.port = 8765
-  }
 
   /**
    * Get the path to the bundled backend executable

@@ -5,12 +5,10 @@
  * Backend repo: https://github.com/michaelborck-education/document-lens
  */
 
-// Default to bundled backend port in production, development port otherwise
-const DEFAULT_API_URL = 'http://127.0.0.1:8765'
-const DEV_API_URL = 'http://localhost:8000'
+import { getBackendUrl, getDefaultBackendUrl } from '@/config/backend'
 
 class ApiClient {
-  private baseUrl: string = DEFAULT_API_URL
+  private baseUrl: string = getDefaultBackendUrl()
   private urlInitialized: boolean = false
   private initPromise: Promise<void> | null = null
 
@@ -20,17 +18,9 @@ class ApiClient {
 
   private async initializeUrl() {
     try {
-      // Get the backend URL from Electron
-      if (window.electron) {
-        this.baseUrl = await window.electron.getBackendUrl()
-        console.log('[API] Backend URL from Electron:', this.baseUrl)
-      } else {
-        // In development without Electron, use dev URL
-        this.baseUrl = DEV_API_URL
-        console.log('[API] Using development URL:', this.baseUrl)
-      }
+      this.baseUrl = await getBackendUrl()
     } catch (error) {
-      console.warn('[API] Could not get backend URL from Electron, using default:', this.baseUrl)
+      console.warn('[API] Could not get backend URL, using default:', this.baseUrl)
     }
     this.urlInitialized = true
   }

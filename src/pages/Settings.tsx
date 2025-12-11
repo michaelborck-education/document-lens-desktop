@@ -24,6 +24,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { api } from '@/services/api'
+import { getDefaultBackendUrl, BACKEND_URL_BUNDLED, BACKEND_URL_DEV } from '@/config/backend'
 
 interface Country {
   code: string
@@ -39,7 +40,7 @@ interface Industry {
 }
 
 export function Settings() {
-  const [backendUrl, setBackendUrl] = useState('http://localhost:8000')
+  const [backendUrl, setBackendUrl] = useState('')
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [appVersion, setAppVersion] = useState('')
   const [dbPath, setDbPath] = useState('')
@@ -71,12 +72,17 @@ export function Settings() {
 
   const loadSettings = async () => {
     try {
+      // Check if user has saved a custom URL
       const result = await window.electron.dbQuery<{ value: string }>(
         "SELECT value FROM settings WHERE key = 'backend_url'"
       )
-      if (result.length > 0) {
+      if (result.length > 0 && result[0].value) {
+        // User has saved a custom URL - use it
         setBackendUrl(result[0].value)
         api.setBaseUrl(result[0].value)
+      } else {
+        // No saved URL - use the current API URL (initialized from Electron/config)
+        setBackendUrl(api.getBaseUrl())
       }
     } catch (error) {
       console.error('Failed to load settings:', error)
@@ -275,14 +281,14 @@ export function Settings() {
               <Input
                 value={backendUrl}
                 onChange={(e) => setBackendUrl(e.target.value)}
-                placeholder="http://localhost:8000"
+                placeholder={BACKEND_URL_BUNDLED}
               />
               <Button onClick={saveBackendUrl} variant="outline">
                 Save
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Default: http://localhost:8000 (development) or http://localhost:8765 (bundled)
+              Default: {BACKEND_URL_BUNDLED} (bundled) or {BACKEND_URL_DEV} (development)
             </p>
           </div>
           <div>

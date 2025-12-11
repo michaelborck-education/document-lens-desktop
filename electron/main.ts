@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import { initDatabase, getDatabase } from './database'
-import { BackendManager } from './backend-manager'
+import { BackendManager, BACKEND_URL } from './backend-manager'
 
 // The built directory structure
 //
@@ -160,7 +160,7 @@ ipcMain.handle('backend:getStatus', () => {
 })
 
 ipcMain.handle('backend:getUrl', () => {
-  return backendManager?.getUrl() ?? 'http://127.0.0.1:8765'
+  return backendManager?.getUrl() ?? BACKEND_URL
 })
 
 // Debug: get resources path info
