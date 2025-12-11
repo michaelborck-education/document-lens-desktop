@@ -5,21 +5,16 @@
  * All components should use this module instead of hardcoding URLs.
  */
 
-// Default ports
-export const BACKEND_PORT_BUNDLED = 8765
-export const BACKEND_PORT_DEV = 8000
-
-// Default URLs
-export const BACKEND_URL_BUNDLED = `http://127.0.0.1:${BACKEND_PORT_BUNDLED}`
-export const BACKEND_URL_DEV = `http://localhost:${BACKEND_PORT_DEV}`
+// Backend configuration - single values, no dev/prod distinction
+export const BACKEND_PORT = 8765
+export const BACKEND_HOST = '127.0.0.1'
+export const BACKEND_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}`
 
 /**
- * Get the default backend URL based on environment
+ * Get the default backend URL
  */
 export function getDefaultBackendUrl(): string {
-  // In production (packaged app), use the bundled backend port
-  // In development, use the dev server port
-  return BACKEND_URL_BUNDLED
+  return BACKEND_URL
 }
 
 /**
@@ -36,9 +31,8 @@ export async function getBackendUrl(): Promise<string> {
     console.warn('[Config] Could not get backend URL from Electron:', error)
   }
   
-  const defaultUrl = getDefaultBackendUrl()
-  console.log('[Config] Using default backend URL:', defaultUrl)
-  return defaultUrl
+  console.log('[Config] Using default backend URL:', BACKEND_URL)
+  return BACKEND_URL
 }
 
 /**

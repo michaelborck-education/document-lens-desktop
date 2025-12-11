@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import { app } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import { BACKEND_URL } from './backend-manager'
 
 let db: Database.Database | null = null
 
@@ -329,7 +330,7 @@ function seedDefaultData(database: Database.Database) {
   if (settingsCount.count === 0) {
     console.log('Seeding default settings...')
     const insertSetting = database.prepare('INSERT INTO settings (key, value) VALUES (?, ?)')
-    insertSetting.run('backend_url', 'http://localhost:8000')
+    insertSetting.run('backend_url', BACKEND_URL)
     insertSetting.run('theme', 'system')
   }
 

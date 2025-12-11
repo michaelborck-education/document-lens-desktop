@@ -82,9 +82,8 @@ export class BackendManager {
     const backendPath = this.getBackendPath()
     
     if (!backendPath) {
-      // Development mode - backend should be running externally
-      console.log('Development mode: assuming backend is running externally at http://localhost:8000')
-      this.port = 8000
+      // Development mode - backend should be running externally on the same port
+      console.log(`Development mode: assuming backend is running externally at ${BACKEND_URL}`)
       return
     }
 

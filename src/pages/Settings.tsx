@@ -24,7 +24,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { api } from '@/services/api'
-import { getDefaultBackendUrl, BACKEND_URL_BUNDLED, BACKEND_URL_DEV } from '@/config/backend'
+import { BACKEND_URL } from '@/config/backend'
 
 interface Country {
   code: string
@@ -281,14 +281,14 @@ export function Settings() {
               <Input
                 value={backendUrl}
                 onChange={(e) => setBackendUrl(e.target.value)}
-                placeholder={BACKEND_URL_BUNDLED}
+                placeholder={BACKEND_URL}
               />
               <Button onClick={saveBackendUrl} variant="outline">
                 Save
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Default: {BACKEND_URL_BUNDLED} (bundled) or {BACKEND_URL_DEV} (development)
+              Default: {BACKEND_URL}
             </p>
           </div>
           <div>
