@@ -243,13 +243,15 @@ export async function getProjectSummaryData(
       [doc.id]
     )
 
+    let textMetrics: { word_count?: number } = {}
     let readability: Record<string, number> = {}
-    let wordAnalysis: { total_words?: number } = {}
+    let wordAnalysis: { vocabulary_richness?: number } = {}
     let writingQuality: { vocabulary_richness?: number } = {}
 
     for (const row of analysisRows) {
       try {
         const parsed = JSON.parse(row.results)
+        if (row.analysis_type === 'text_metrics') textMetrics = parsed
         if (row.analysis_type === 'readability') readability = parsed
         if (row.analysis_type === 'word_analysis') wordAnalysis = parsed
         if (row.analysis_type === 'writing_quality') writingQuality = parsed
@@ -265,12 +267,14 @@ export async function getProjectSummaryData(
       industry: doc.industry || '',
       country: doc.country || '',
       analysis_status: doc.analysis_status,
-      word_count: wordAnalysis.total_words || '',
-      flesch_reading_ease: readability.flesch_reading_ease?.toFixed(1) || '',
+      word_count: textMetrics.word_count || '',
+      flesch_reading_ease: (readability.flesch_score ?? readability.flesch_reading_ease)?.toFixed(1) || '',
       flesch_kincaid_grade: readability.flesch_kincaid_grade?.toFixed(1) || '',
-      vocabulary_richness: writingQuality.vocabulary_richness
-        ? (writingQuality.vocabulary_richness * 100).toFixed(1) + '%'
-        : '',
+      vocabulary_richness: wordAnalysis.vocabulary_richness
+        ? (wordAnalysis.vocabulary_richness * 100).toFixed(1) + '%'
+        : (writingQuality.vocabulary_richness
+          ? (writingQuality.vocabulary_richness * 100).toFixed(1) + '%'
+          : ''),
       imported_at: formatDate(doc.created_at),
       analyzed_at: doc.analyzed_at ? formatDate(doc.analyzed_at) : '',
     })

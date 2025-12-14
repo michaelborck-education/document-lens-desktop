@@ -27,29 +27,34 @@ interface PageData {
   text: string
 }
 
+// Matches the actual backend /text endpoint response structure
 interface ReadabilityData {
-  flesch_reading_ease: number
+  flesch_score: number
   flesch_kincaid_grade: number
-  gunning_fog: number
-  smog_index: number
-  coleman_liau_index: number
-  automated_readability_index: number
-  average_grade_level: number
-  reading_time_minutes: number
+  interpretation: string
 }
 
 interface WritingQualityData {
-  average_sentence_length: number
-  average_word_length: number
-  vocabulary_richness: number
   passive_voice_percentage: number
-  complex_word_percentage: number
+  sentence_variety: number
+  academic_tone: number
+  transition_words: number
+  hedging_language: number
 }
 
 interface WordAnalysisData {
-  total_words: number
-  unique_words: number
-  top_words: Array<{ word: string; count: number; frequency: number }>
+  unique_words: string[]
+  vocabulary_richness: number
+  top_words: Array<{ word: string; count: number; size?: number }>
+  bigrams: Array<{ phrase: string; count: number }>
+  trigrams: Array<{ phrase: string; count: number }>
+}
+
+interface TextMetricsData {
+  word_count: number
+  sentence_count: number
+  paragraph_count: number
+  avg_words_per_sentence: number
 }
 
 export function DocumentView() {
@@ -64,6 +69,7 @@ export function DocumentView() {
   const [textSearch, setTextSearch] = useState('')
   
   // Analysis tab state
+  const [textMetrics, setTextMetrics] = useState<TextMetricsData | null>(null)
   const [readability, setReadability] = useState<ReadabilityData | null>(null)
   const [writingQuality, setWritingQuality] = useState<WritingQualityData | null>(null)
   const [wordAnalysis, setWordAnalysis] = useState<WordAnalysisData | null>(null)
@@ -124,6 +130,9 @@ export function DocumentView() {
   const loadAnalysis = async (docId: string) => {
     try {
       const analysis = await getDocumentAnalysis(docId)
+      if (analysis.text_metrics) {
+        setTextMetrics(analysis.text_metrics as TextMetricsData)
+      }
       if (analysis.readability) {
         setReadability(analysis.readability as ReadabilityData)
       }
@@ -393,6 +402,35 @@ export function DocumentView() {
               </Card>
             ) : (
               <div className="space-y-6">
+                {/* Text Metrics */}
+                {textMetrics && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Text Metrics</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center p-4 bg-muted rounded-lg">
+                          <div className="text-3xl font-bold">{textMetrics.word_count.toLocaleString()}</div>
+                          <div className="text-sm text-muted-foreground">Words</div>
+                        </div>
+                        <div className="text-center p-4 bg-muted rounded-lg">
+                          <div className="text-3xl font-bold">{textMetrics.sentence_count.toLocaleString()}</div>
+                          <div className="text-sm text-muted-foreground">Sentences</div>
+                        </div>
+                        <div className="text-center p-4 bg-muted rounded-lg">
+                          <div className="text-3xl font-bold">{textMetrics.paragraph_count.toLocaleString()}</div>
+                          <div className="text-sm text-muted-foreground">Paragraphs</div>
+                        </div>
+                        <div className="text-center p-4 bg-muted rounded-lg">
+                          <div className="text-3xl font-bold">{textMetrics.avg_words_per_sentence.toFixed(1)}</div>
+                          <div className="text-sm text-muted-foreground">Avg Words/Sentence</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Readability */}
                 {readability && (
                   <Card>
@@ -400,12 +438,12 @@ export function DocumentView() {
                       <CardTitle>Readability Scores</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div className="text-center p-4 bg-muted rounded-lg">
-                          <div className="text-3xl font-bold">{readability.flesch_reading_ease.toFixed(1)}</div>
+                          <div className="text-3xl font-bold">{readability.flesch_score.toFixed(1)}</div>
                           <div className="text-sm text-muted-foreground">Flesch Reading Ease</div>
-                          <div className={`text-xs mt-1 ${getReadabilityLabel(readability.flesch_reading_ease).color}`}>
-                            {getReadabilityLabel(readability.flesch_reading_ease).label}
+                          <div className={`text-xs mt-1 ${getReadabilityLabel(readability.flesch_score).color}`}>
+                            {getReadabilityLabel(readability.flesch_score).label}
                           </div>
                         </div>
                         <div className="text-center p-4 bg-muted rounded-lg">
@@ -413,31 +451,10 @@ export function DocumentView() {
                           <div className="text-sm text-muted-foreground">Grade Level</div>
                           <div className="text-xs mt-1 text-muted-foreground">Flesch-Kincaid</div>
                         </div>
-                        <div className="text-center p-4 bg-muted rounded-lg">
-                          <div className="text-3xl font-bold">{readability.gunning_fog.toFixed(1)}</div>
-                          <div className="text-sm text-muted-foreground">Gunning Fog</div>
-                          <div className="text-xs mt-1 text-muted-foreground">Index</div>
-                        </div>
-                        <div className="text-center p-4 bg-muted rounded-lg">
-                          <div className="text-3xl font-bold">{readability.reading_time_minutes.toFixed(0)}</div>
-                          <div className="text-sm text-muted-foreground">Reading Time</div>
-                          <div className="text-xs mt-1 text-muted-foreground">minutes</div>
-                        </div>
                       </div>
-
-                      <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">SMOG Index:</span>
-                          <span className="font-medium">{readability.smog_index.toFixed(1)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Coleman-Liau:</span>
-                          <span className="font-medium">{readability.coleman_liau_index.toFixed(1)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">ARI:</span>
-                          <span className="font-medium">{readability.automated_readability_index.toFixed(1)}</span>
-                        </div>
+                      <div className="mt-4 p-3 bg-muted/50 rounded-lg text-center">
+                        <span className="text-sm text-muted-foreground">Interpretation: </span>
+                        <span className="font-medium">{readability.interpretation}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -453,13 +470,6 @@ export function DocumentView() {
                       <div className="space-y-4">
                         <div>
                           <div className="flex justify-between text-sm mb-1">
-                            <span>Vocabulary Richness</span>
-                            <span>{(writingQuality.vocabulary_richness * 100).toFixed(1)}%</span>
-                          </div>
-                          <Progress value={writingQuality.vocabulary_richness * 100} className="h-2" />
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
                             <span>Passive Voice Usage</span>
                             <span>{writingQuality.passive_voice_percentage.toFixed(1)}%</span>
                           </div>
@@ -467,20 +477,27 @@ export function DocumentView() {
                         </div>
                         <div>
                           <div className="flex justify-between text-sm mb-1">
-                            <span>Complex Words</span>
-                            <span>{writingQuality.complex_word_percentage.toFixed(1)}%</span>
+                            <span>Sentence Variety</span>
+                            <span>{writingQuality.sentence_variety.toFixed(1)}%</span>
                           </div>
-                          <Progress value={writingQuality.complex_word_percentage} className="h-2" />
+                          <Progress value={writingQuality.sentence_variety} className="h-2" />
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>Academic Tone</span>
+                            <span>{writingQuality.academic_tone.toFixed(1)}%</span>
+                          </div>
+                          <Progress value={writingQuality.academic_tone} className="h-2" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
                           <div className="text-center">
-                            <div className="text-2xl font-bold">{writingQuality.average_sentence_length.toFixed(1)}</div>
-                            <div className="text-sm text-muted-foreground">Avg. Sentence Length</div>
+                            <div className="text-2xl font-bold">{writingQuality.transition_words.toFixed(1)}%</div>
+                            <div className="text-sm text-muted-foreground">Transition Words</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-2xl font-bold">{writingQuality.average_word_length.toFixed(1)}</div>
-                            <div className="text-sm text-muted-foreground">Avg. Word Length</div>
+                            <div className="text-2xl font-bold">{writingQuality.hedging_language.toFixed(1)}%</div>
+                            <div className="text-sm text-muted-foreground">Hedging Language</div>
                           </div>
                         </div>
                       </div>
@@ -497,27 +514,65 @@ export function DocumentView() {
                     <CardContent>
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="text-center p-4 bg-muted rounded-lg">
-                          <div className="text-2xl font-bold">{wordAnalysis.total_words.toLocaleString()}</div>
-                          <div className="text-sm text-muted-foreground">Total Words</div>
+                          <div className="text-2xl font-bold">{wordAnalysis.unique_words.length.toLocaleString()}</div>
+                          <div className="text-sm text-muted-foreground">Unique Words</div>
                         </div>
                         <div className="text-center p-4 bg-muted rounded-lg">
-                          <div className="text-2xl font-bold">{wordAnalysis.unique_words.toLocaleString()}</div>
-                          <div className="text-sm text-muted-foreground">Unique Words</div>
+                          <div className="text-2xl font-bold">{(wordAnalysis.vocabulary_richness * 100).toFixed(1)}%</div>
+                          <div className="text-sm text-muted-foreground">Vocabulary Richness</div>
                         </div>
                       </div>
 
-                      <h4 className="text-sm font-medium mb-2">Top Words</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {wordAnalysis.top_words.slice(0, 30).map((word, i) => (
-                          <span
-                            key={i}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-muted rounded text-sm"
-                          >
-                            {word.word}
-                            <span className="text-xs text-muted-foreground">({word.count})</span>
-                          </span>
-                        ))}
-                      </div>
+                      {wordAnalysis.top_words.length > 0 && (
+                        <>
+                          <h4 className="text-sm font-medium mb-2">Top Words</h4>
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {wordAnalysis.top_words.slice(0, 30).map((word, i) => (
+                              <span
+                                key={i}
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-muted rounded text-sm"
+                              >
+                                {word.word}
+                                <span className="text-xs text-muted-foreground">({word.count})</span>
+                              </span>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {wordAnalysis.bigrams.length > 0 && (
+                        <>
+                          <h4 className="text-sm font-medium mb-2">Common Bigrams (2-word phrases)</h4>
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {wordAnalysis.bigrams.slice(0, 15).map((bigram, i) => (
+                              <span
+                                key={i}
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded text-sm"
+                              >
+                                {bigram.phrase}
+                                <span className="text-xs text-muted-foreground">({bigram.count})</span>
+                              </span>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {wordAnalysis.trigrams.length > 0 && (
+                        <>
+                          <h4 className="text-sm font-medium mb-2">Common Trigrams (3-word phrases)</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {wordAnalysis.trigrams.slice(0, 10).map((trigram, i) => (
+                              <span
+                                key={i}
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded text-sm"
+                              >
+                                {trigram.phrase}
+                                <span className="text-xs text-muted-foreground">({trigram.count})</span>
+                              </span>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 )}
