@@ -186,25 +186,9 @@ class ApiClient {
     }
   }
 
-  // Analyze text
-  async analyzeText(text: string): Promise<AnalyzeTextResponse> {
-    return this.request<AnalyzeTextResponse>('/analyze', {
-      method: 'POST',
-      body: JSON.stringify({ text }),
-    })
-  }
-
-  // Readability analysis
-  async analyzeReadability(text: string): Promise<ReadabilityResponse> {
-    return this.request<ReadabilityResponse>('/readability', {
-      method: 'POST',
-      body: JSON.stringify({ text }),
-    })
-  }
-
-  // Writing quality analysis
-  async analyzeWritingQuality(text: string): Promise<WritingQualityResponse> {
-    return this.request<WritingQualityResponse>('/writing-quality', {
+  // Analyze text - uses /text endpoint which returns all analysis in one call
+  async analyzeText(text: string): Promise<TextAnalysisApiResponse> {
+    return this.request<TextAnalysisApiResponse>('/text', {
       method: 'POST',
       body: JSON.stringify({ text }),
     })
@@ -247,7 +231,7 @@ class ApiClient {
     topK: number = 100,
     filterTerms?: string[]
   ): Promise<NgramResponse> {
-    return this.request<NgramResponse>('/advanced/ngrams', {
+    return this.request<NgramResponse>('/ngrams', {
       method: 'POST',
       body: JSON.stringify({
         text,
@@ -255,14 +239,6 @@ class ApiClient {
         top_k: topK,
         filter_terms: filterTerms,
       }),
-    })
-  }
-
-  // Word analysis (frequency, etc.)
-  async analyzeWords(text: string, topK: number = 100): Promise<WordAnalysisResponse> {
-    return this.request<WordAnalysisResponse>('/words', {
-      method: 'POST',
-      body: JSON.stringify({ text, top_k: topK }),
     })
   }
 }
@@ -361,31 +337,57 @@ export interface ProcessFileResponse {
   }
 }
 
-export interface AnalyzeTextResponse {
-  word_count: number
-  sentence_count: number
-  paragraph_count: number
-  readability: ReadabilityResponse
-  writing_quality: WritingQualityResponse
+// Response from /text endpoint - all analysis in one call
+export interface TextAnalysisApiResponse {
+  service: string
+  version: string
+  content_type: string
+  analysis: {
+    text_metrics: {
+      word_count: number
+      sentence_count: number
+      paragraph_count: number
+      avg_words_per_sentence: number
+    }
+    readability: {
+      flesch_score: number
+      flesch_kincaid_grade: number
+      interpretation: string
+    }
+    writing_quality: {
+      passive_voice_percentage: number
+      sentence_variety: number
+      academic_tone: number
+      transition_words: number
+      hedging_language: number
+    }
+    word_analysis: {
+      unique_words: string[]
+      vocabulary_richness: number
+      top_words: Array<{ word: string; count: number; size?: number }>
+      bigrams: Array<{ phrase: string; count: number }>
+      trigrams: Array<{ phrase: string; count: number }>
+    }
+    ner?: {
+      entities: Array<{ text: string; label: string }>
+    }
+  }
+  processing_time: number
 }
 
+// Legacy interfaces for backwards compatibility
 export interface ReadabilityResponse {
-  flesch_reading_ease: number
+  flesch_score: number
   flesch_kincaid_grade: number
-  gunning_fog: number
-  smog_index: number
-  coleman_liau_index: number
-  automated_readability_index: number
-  average_grade_level: number
-  reading_time_minutes: number
+  interpretation: string
 }
 
 export interface WritingQualityResponse {
-  average_sentence_length: number
-  average_word_length: number
-  vocabulary_richness: number
   passive_voice_percentage: number
-  complex_word_percentage: number
+  sentence_variety: number
+  academic_tone: number
+  transition_words: number
+  hedging_language: number
 }
 
 export interface KeywordSearchResponse {

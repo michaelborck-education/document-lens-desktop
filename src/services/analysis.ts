@@ -54,6 +54,7 @@ export interface BatchKeywordSearchResult {
 
 /**
  * Analyze a single document
+ * Uses the /text endpoint which returns all analysis in one call
  */
 export async function analyzeDocument(
   document: DocumentRecord,
@@ -70,23 +71,20 @@ export async function analyzeDocument(
       [document.id]
     )
 
-    onProgress?.('Analyzing readability...')
-    const readability = await api.analyzeReadability(document.extracted_text)
+    onProgress?.('Analyzing document...')
     
-    // Save readability results
-    await saveAnalysisResult(document.id, 'readability', readability)
-
-    onProgress?.('Analyzing writing quality...')
-    const writingQuality = await api.analyzeWritingQuality(document.extracted_text)
+    // Single API call gets all analysis data
+    const result = await api.analyzeText(document.extracted_text)
     
-    // Save writing quality results
-    await saveAnalysisResult(document.id, 'writing_quality', writingQuality)
-
-    onProgress?.('Analyzing word frequency...')
-    const wordAnalysis = await api.analyzeWords(document.extracted_text, 100)
+    // Save all analysis results from the unified response
+    await saveAnalysisResult(document.id, 'text_metrics', result.analysis.text_metrics)
+    await saveAnalysisResult(document.id, 'readability', result.analysis.readability)
+    await saveAnalysisResult(document.id, 'writing_quality', result.analysis.writing_quality)
+    await saveAnalysisResult(document.id, 'word_analysis', result.analysis.word_analysis)
     
-    // Save word analysis results
-    await saveAnalysisResult(document.id, 'word_analysis', wordAnalysis)
+    if (result.analysis.ner) {
+      await saveAnalysisResult(document.id, 'ner', result.analysis.ner)
+    }
 
     // Update status to completed
     await window.electron.dbRun(
