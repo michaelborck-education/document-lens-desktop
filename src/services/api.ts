@@ -103,7 +103,26 @@ class ApiClient {
       formData.append('include_extracted_text', String(options.include_extracted_text))
     }
 
-    return this.requestFormData<ProcessFileResponse>('/files', formData)
+    // Backend returns a nested response, extract the first file's result
+    const apiResponse = await this.requestFormData<ProcessFilesApiResponse>('/files', formData)
+    
+    // Get the first file result
+    const fileResult = apiResponse.results?.individual_files?.[0]
+    
+    if (!fileResult) {
+      throw new ApiError(500, 'No file results returned from API')
+    }
+    
+    // Map to the expected response format
+    return {
+      filename: fileResult.filename,
+      content_type: fileResult.content_type,
+      size: fileResult.size,
+      extracted_text: fileResult.extracted_text,
+      metadata: fileResult.metadata,
+      // The backend doesn't have 'inferred' in this endpoint, so we leave it undefined
+      inferred: undefined
+    }
   }
 
   // Analyze text
@@ -209,6 +228,51 @@ export interface ProcessFileOptions {
   include_extracted_text?: boolean
 }
 
+// Individual file result from the backend
+export interface FileResult {
+  filename: string
+  content_type: string
+  size: number
+  extracted_text?: {
+    full_text: string
+    pages?: Array<{
+      page_number: number
+      text: string
+    }>
+    total_pages?: number
+  }
+  metadata?: {
+    author?: string
+    title?: string
+    subject?: string
+    creator?: string
+    pages?: number
+    creation_date?: string
+    modification_date?: string
+  }
+  analysis?: Record<string, unknown>
+}
+
+// Full response from /files endpoint
+export interface ProcessFilesApiResponse {
+  service: string
+  version: string
+  files_processed: number
+  analysis_type: string
+  processing_time: number
+  results: {
+    individual_files: FileResult[]
+    cross_analysis?: Record<string, unknown>
+    summary?: {
+      total_files: number
+      total_text_length: number
+      supported_formats: string[]
+      metadata_extracted: boolean
+    }
+  }
+}
+
+// Simplified response for single file (what we extract from the API response)
 export interface ProcessFileResponse {
   filename: string
   content_type: string
