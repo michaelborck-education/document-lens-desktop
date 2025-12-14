@@ -98,24 +98,74 @@ class ApiClient {
     return this.request<HealthResponse>('/health')
   }
 
-  // File processing
+  // File processing - accepts either File or raw bytes with filename
   async processFile(
     file: File,
     options: ProcessFileOptions = {}
   ): Promise<ProcessFileResponse> {
+    await this.ensureInitialized()
+    const url = `${this.baseUrl}/files`
+    
+    console.log('[API] processFile called with:', file.name, 'size:', file.size, 'type:', file.type)
+    
+    // Read file content as ArrayBuffer for debugging
+    const fileArrayBuffer = await file.arrayBuffer()
+    console.log('[API] File ArrayBuffer size:', fileArrayBuffer.byteLength)
+    
+    // Verify first bytes (PDF should start with %PDF)
+    const firstBytes = new Uint8Array(fileArrayBuffer.slice(0, 10))
+    const firstBytesStr = String.fromCharCode(...firstBytes)
+    console.log('[API] First bytes:', firstBytesStr)
+    
+    // Create a fresh Blob from the ArrayBuffer to ensure clean data
+    const blob = new Blob([fileArrayBuffer], { type: file.type || 'application/pdf' })
+    console.log('[API] Created Blob, size:', blob.size, 'type:', blob.type)
+    
+    // Build FormData with the blob
     const formData = new FormData()
-    // Backend expects 'files' (plural) as the field name
-    formData.append('files', file)
+    formData.append('files', blob, file.name)
     
     // Add form fields - FastAPI expects lowercase 'true'/'false' strings for booleans
     if (options.include_extracted_text) {
       formData.append('include_extracted_text', 'true')
     }
     
-    console.log('[API] Sending file:', file.name, 'size:', file.size, 'type:', file.type)
+    // Debug: Log FormData entries
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof Blob) {
+        const blobValue = value as Blob
+        console.log(`[API] FormData entry: ${key} = Blob(size=${blobValue.size}, type=${blobValue.type})`)
+      } else {
+        console.log(`[API] FormData entry: ${key} = ${value}`)
+      }
+    }
+    
+    console.log('[API] Sending request to:', url)
+
+    // Make the request
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      // Don't set Content-Type - browser will set it with boundary
+    })
+    
+    console.log('[API] Response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[API] FormData request failed:', response.status, errorText)
+      let detail = 'Request failed'
+      try {
+        const errorJson = JSON.parse(errorText)
+        detail = errorJson.detail || detail
+      } catch {
+        detail = errorText || detail
+      }
+      throw new ApiError(response.status, detail)
+    }
 
     // Backend returns a nested response, extract the first file's result
-    const apiResponse = await this.requestFormData<ProcessFilesApiResponse>('/files', formData)
+    const apiResponse: ProcessFilesApiResponse = await response.json()
     
     // Get the first file result
     const fileResult = apiResponse.results?.individual_files?.[0]

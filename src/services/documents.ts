@@ -140,7 +140,15 @@ export async function importDocument(
     }
     const contentType = contentTypes[ext || ''] || 'application/octet-stream'
     
-    const file = new File([fileBuffer], filename, { type: contentType })
+    // Convert ArrayBuffer to Uint8Array for proper File construction
+    // (ArrayBuffer from IPC may need this conversion)
+    const uint8Array = new Uint8Array(fileBuffer)
+    console.log('[Documents] ArrayBuffer received, byte length:', fileBuffer.byteLength)
+    console.log('[Documents] Uint8Array created, length:', uint8Array.length)
+    
+    // Create a Blob first, then convert to File (more reliable across environments)
+    const blob = new Blob([uint8Array], { type: contentType })
+    const file = new File([blob], filename, { type: contentType })
     console.log('[Documents] Created file:', filename, 'size:', file.size, 'type:', file.type)
     
     // Process through API
