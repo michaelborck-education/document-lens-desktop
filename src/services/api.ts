@@ -78,8 +78,16 @@ class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
-      throw new ApiError(response.status, error.detail || 'Request failed')
+      const errorText = await response.text()
+      console.error('[API] FormData request failed:', response.status, errorText)
+      let detail = 'Request failed'
+      try {
+        const errorJson = JSON.parse(errorText)
+        detail = errorJson.detail || detail
+      } catch {
+        detail = errorText || detail
+      }
+      throw new ApiError(response.status, detail)
     }
 
     return response.json()
@@ -99,9 +107,12 @@ class ApiClient {
     // Backend expects 'files' (plural) as the field name
     formData.append('files', file)
     
-    if (options.include_extracted_text !== undefined) {
-      formData.append('include_extracted_text', String(options.include_extracted_text))
+    // Add form fields - FastAPI expects lowercase 'true'/'false' strings for booleans
+    if (options.include_extracted_text) {
+      formData.append('include_extracted_text', 'true')
     }
+    
+    console.log('[API] Sending file:', file.name, 'size:', file.size, 'type:', file.type)
 
     // Backend returns a nested response, extract the first file's result
     const apiResponse = await this.requestFormData<ProcessFilesApiResponse>('/files', formData)

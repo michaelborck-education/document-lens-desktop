@@ -127,7 +127,21 @@ export async function importDocument(
     // Create a File object from the path
     // Note: In Electron, we need to read the file through IPC
     const fileBuffer = await window.electron.readFile(filePath)
-    const file = new File([fileBuffer], filename, { type: 'application/pdf' })
+    
+    // Detect content type from filename extension
+    const ext = filename.toLowerCase().split('.').pop()
+    const contentTypes: Record<string, string> = {
+      'pdf': 'application/pdf',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'txt': 'text/plain',
+      'md': 'text/markdown',
+      'json': 'application/json'
+    }
+    const contentType = contentTypes[ext || ''] || 'application/octet-stream'
+    
+    const file = new File([fileBuffer], filename, { type: contentType })
+    console.log('[Documents] Created file:', filename, 'size:', file.size, 'type:', file.type)
     
     // Process through API
     const apiResult = await api.processFile(file, { include_extracted_text: true })
