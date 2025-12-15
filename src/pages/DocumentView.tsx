@@ -515,7 +515,8 @@ export function DocumentView() {
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="text-center p-4 bg-muted rounded-lg">
                           <div className="text-2xl font-bold">{wordAnalysis.unique_words.length.toLocaleString()}</div>
-                          <div className="text-sm text-muted-foreground">Unique Words</div>
+                          <div className="text-sm text-muted-foreground">Sample Content Words</div>
+                          <div className="text-xs text-muted-foreground">(excluding common words)</div>
                         </div>
                         <div className="text-center p-4 bg-muted rounded-lg">
                           <div className="text-2xl font-bold">{(wordAnalysis.vocabulary_richness * 100).toFixed(1)}%</div>

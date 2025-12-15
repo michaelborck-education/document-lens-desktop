@@ -252,6 +252,25 @@ jobs:
             fi
 
             echo "File upload test passed! Multipart parsing is working."
+            
+            # Test that a 15MB file is accepted (verifies 50MB limit is bundled)
+            echo "Testing large file acceptance (15MB)..."
+            LARGE_FILE="${RUNNER_TEMP}/large_test.txt"
+            dd if=/dev/zero bs=1024 count=15360 2>/dev/null | tr '\0' 'A' > "$LARGE_FILE"
+            echo "Created test file: $(ls -lh "$LARGE_FILE" | awk '{print $5}')"
+            
+            LARGE_RESULT=$(curl -s -X POST "http://127.0.0.1:19999/files" \
+              -F "files=@$LARGE_FILE;type=text/plain" \
+              -F "include_extracted_text=true")
+            
+            if echo "$LARGE_RESULT" | grep -q "too large"; then
+              echo "FAILED: Backend still has old 10MB limit!"
+              echo "Result: $LARGE_RESULT"
+              kill $PID 2>/dev/null || true
+              exit 1
+            fi
+            
+            echo "Large file test passed! 50MB limit is correctly bundled."
           else
             echo "Skipping file upload test on Windows (verified locally)"
           fi
