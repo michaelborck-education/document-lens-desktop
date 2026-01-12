@@ -107,12 +107,61 @@ CREATE TABLE IF NOT EXISTS industries (
     is_default BOOLEAN DEFAULT TRUE
 );
 
+-- Virtual Collections (user-defined document groupings)
+CREATE TABLE IF NOT EXISTS collections (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    filter_criteria TEXT,               -- JSON: filter used to create collection
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Collection Documents (many-to-many junction table)
+CREATE TABLE IF NOT EXISTS collection_documents (
+    collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+    document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (collection_id, document_id)
+);
+
+-- Analysis Profiles (saved research lens configurations per project)
+CREATE TABLE IF NOT EXISTS analysis_profiles (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    config TEXT NOT NULL,               -- JSON: keywords, domains, analysis_types, comparison settings
+    is_active BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bundle Import Tracking (for deduplication and import history)
+CREATE TABLE IF NOT EXISTS bundle_imports (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    source_bundle_path TEXT,
+    source_project_id TEXT,
+    source_project_name TEXT,
+    imported_document_count INTEGER DEFAULT 0,
+    skipped_duplicate_count INTEGER DEFAULT 0,
+    imported_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_documents_project ON documents(project_id);
 CREATE INDEX IF NOT EXISTS idx_documents_year ON documents(report_year);
 CREATE INDEX IF NOT EXISTS idx_documents_company ON documents(company_name);
 CREATE INDEX IF NOT EXISTS idx_analysis_document ON analysis_results(document_id);
 CREATE INDEX IF NOT EXISTS idx_keyword_results_project ON keyword_results(project_id);
+CREATE INDEX IF NOT EXISTS idx_collections_project ON collections(project_id);
+CREATE INDEX IF NOT EXISTS idx_collection_docs_collection ON collection_documents(collection_id);
+CREATE INDEX IF NOT EXISTS idx_collection_docs_document ON collection_documents(document_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_project ON analysis_profiles(project_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_active ON analysis_profiles(project_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_bundle_imports_project ON bundle_imports(project_id);
 `
 
 const DEFAULT_COUNTRIES = [
