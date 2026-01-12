@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import crypto from 'crypto'
 import { initDatabase, getDatabase } from './database'
 import { BackendManager, BACKEND_URL } from './backend-manager'
 
@@ -237,6 +238,18 @@ ipcMain.handle('fs:getFileStats', async (_, filePath: string) => {
     }
   } catch (error) {
     console.error('File stats error:', error)
+    throw error
+  }
+})
+
+ipcMain.handle('fs:computeFileHash', async (_, filePath: string) => {
+  try {
+    const fileBuffer = fs.readFileSync(filePath)
+    const hashSum = crypto.createHash('sha256')
+    hashSum.update(fileBuffer)
+    return hashSum.digest('hex')
+  } catch (error) {
+    console.error('File hash computation error:', error)
     throw error
   }
 })

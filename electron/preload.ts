@@ -72,6 +72,8 @@ const electronAPI = {
     ipcRenderer.invoke('fs:readFile', filePath),
   getFileStats: (filePath: string): Promise<{ size: number; mtime: number }> =>
     ipcRenderer.invoke('fs:getFileStats', filePath),
+  computeFileHash: (filePath: string): Promise<string> =>
+    ipcRenderer.invoke('fs:computeFileHash', filePath),
 
   // Event listeners for updates
   onUpdateAvailable: (callback: () => void) => {

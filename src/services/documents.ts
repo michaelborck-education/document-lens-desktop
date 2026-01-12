@@ -47,22 +47,13 @@ export interface ImportResult {
 }
 
 /**
- * Calculate a simple hash of file contents for deduplication
+ * Calculate SHA-256 hash of file contents for deduplication
+ * Uses the actual file content to generate a deterministic hash
  */
 async function calculateFileHash(filePath: string): Promise<string> {
-  // We'll use the file path + size + modification time as a simple hash
-  // In a production app, you might want to use actual content hashing
-  const stats = await window.electron.dbQuery<{ path: string }>(
-    'SELECT ? as path',
-    [filePath]
-  )
-  
-  // For now, use a combination of path and timestamp
-  const encoder = new TextEncoder()
-  const data = encoder.encode(filePath + Date.now())
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  // Compute hash on main process (has access to file system)
+  // This ensures same file = same hash regardless of when it's imported
+  return window.electron.computeFileHash(filePath)
 }
 
 /**
