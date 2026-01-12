@@ -54,6 +54,7 @@ export interface ElectronAPI {
   // File system
   readFile: (filePath: string) => Promise<ArrayBuffer>
   getFileStats: (filePath: string) => Promise<{ size: number; mtime: number }>
+  computeFileHash: (filePath: string) => Promise<string>
 
   // Event listeners
   onUpdateAvailable: (callback: () => void) => () => void

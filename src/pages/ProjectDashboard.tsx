@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download } from 'lucide-react'
+import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download, Folder, FolderPlus, GitCompare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -8,6 +8,10 @@ import { DocumentTable } from '@/components/DocumentTable'
 import { DocumentMetadataModal } from '@/components/DocumentMetadataModal'
 import { ImportProgressDialog } from '@/components/ImportProgressDialog'
 import { ExportOptionsModal } from '@/components/ExportOptionsModal'
+import { CollectionManager } from '@/components/CollectionManager'
+import { SaveToCollectionDialog } from '@/components/SaveToCollectionDialog'
+import { ProfileSelector } from '@/components/ProfileSelector'
+import { ProfileEditor } from '@/components/ProfileEditor'
 import {
   importDocuments,
   deleteDocuments,
@@ -51,6 +55,9 @@ export function ProjectDashboard() {
   // Modal state
   const [editingDocument, setEditingDocument] = useState<DocumentRecord | null>(null)
   const [showExportModal, setShowExportModal] = useState(false)
+  const [showCollectionManager, setShowCollectionManager] = useState(false)
+  const [showSaveToCollection, setShowSaveToCollection] = useState(false)
+  const [showProfileEditor, setShowProfileEditor] = useState(false)
 
   useEffect(() => {
     if (projectId) {
@@ -270,12 +277,16 @@ export function ProjectDashboard() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">{project.name}</h1>
           {project.description && (
             <p className="text-muted-foreground">{project.description}</p>
           )}
         </div>
+        <ProfileSelector
+          projectId={projectId!}
+          onManageProfiles={() => setShowProfileEditor(true)}
+        />
       </div>
 
       {/* Stats Cards */}
@@ -329,13 +340,13 @@ export function ProjectDashboard() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         <Button onClick={() => handleImportFiles()}>
           <Upload className="h-4 w-4 mr-2" />
           Import PDFs
         </Button>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           disabled={documents.length === 0 || analyzing}
           onClick={handleAnalyzeAll}
         >
@@ -346,47 +357,64 @@ export function ProjectDashboard() {
           )}
           {analyzing ? 'Analyzing...' : 'Analyze All'}
         </Button>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           disabled={documents.length === 0}
           onClick={() => navigate(`/project/${projectId}/search`)}
         >
           <Search className="h-4 w-4 mr-2" />
           Keyword Search
         </Button>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           disabled={documents.length === 0}
           onClick={() => navigate(`/project/${projectId}/ngrams`)}
         >
           <Hash className="h-4 w-4 mr-2" />
           N-gram Analysis
         </Button>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           disabled={documents.length === 0}
           onClick={() => navigate(`/project/${projectId}/visualize`)}
         >
           <PieChart className="h-4 w-4 mr-2" />
           Visualizations
         </Button>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
+          onClick={() => setShowCollectionManager(true)}
+        >
+          <Folder className="h-4 w-4 mr-2" />
+          Collections
+        </Button>
+        <Button
+          variant="outline"
           disabled={documents.length === 0}
           onClick={() => setShowExportModal(true)}
         >
           <Download className="h-4 w-4 mr-2" />
           Export
         </Button>
-        
+
+        {/* Selection-based actions */}
         {selectedIds.size > 0 && (
-          <Button
-            variant="destructive"
-            onClick={() => handleDeleteDocuments(Array.from(selectedIds))}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete ({selectedIds.size})
-          </Button>
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setShowSaveToCollection(true)}
+            >
+              <FolderPlus className="h-4 w-4 mr-2" />
+              Add to Collection ({selectedIds.size})
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleDeleteDocuments(Array.from(selectedIds))}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete ({selectedIds.size})
+            </Button>
+          </>
         )}
       </div>
 
@@ -477,6 +505,29 @@ export function ProjectDashboard() {
         projectId={projectId!}
         projectName={project?.name || 'project'}
         documentCount={documents.length}
+      />
+
+      {/* Collection Manager Modal */}
+      <CollectionManager
+        open={showCollectionManager}
+        onClose={() => setShowCollectionManager(false)}
+        projectId={projectId!}
+      />
+
+      {/* Save to Collection Dialog */}
+      <SaveToCollectionDialog
+        open={showSaveToCollection}
+        onClose={() => setShowSaveToCollection(false)}
+        projectId={projectId!}
+        documentIds={Array.from(selectedIds)}
+        onSaved={() => setSelectedIds(new Set())}
+      />
+
+      {/* Profile Editor Modal */}
+      <ProfileEditor
+        open={showProfileEditor}
+        onClose={() => setShowProfileEditor(false)}
+        projectId={projectId!}
       />
     </div>
   )
