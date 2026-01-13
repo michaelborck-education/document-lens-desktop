@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download, Folder, FolderPlus, GitCompare } from 'lucide-react'
+import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download, Folder, FolderPlus, GitCompare, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -12,6 +12,7 @@ import { CollectionManager } from '@/components/CollectionManager'
 import { SaveToCollectionDialog } from '@/components/SaveToCollectionDialog'
 import { ProfileSelector } from '@/components/ProfileSelector'
 import { ProfileEditor } from '@/components/ProfileEditor'
+import { ImportBundleDialog } from '@/components/ImportBundleDialog'
 import {
   importDocuments,
   deleteDocuments,
@@ -58,6 +59,7 @@ export function ProjectDashboard() {
   const [showCollectionManager, setShowCollectionManager] = useState(false)
   const [showSaveToCollection, setShowSaveToCollection] = useState(false)
   const [showProfileEditor, setShowProfileEditor] = useState(false)
+  const [showImportBundle, setShowImportBundle] = useState(false)
 
   useEffect(() => {
     if (projectId) {
@@ -347,6 +349,13 @@ export function ProjectDashboard() {
         </Button>
         <Button
           variant="outline"
+          onClick={() => setShowImportBundle(true)}
+        >
+          <Package className="h-4 w-4 mr-2" />
+          Import Bundle
+        </Button>
+        <Button
+          variant="outline"
           disabled={documents.length === 0 || analyzing}
           onClick={handleAnalyzeAll}
         >
@@ -387,6 +396,13 @@ export function ProjectDashboard() {
         >
           <Folder className="h-4 w-4 mr-2" />
           Collections
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => navigate(`/project/${projectId}/compare`)}
+        >
+          <GitCompare className="h-4 w-4 mr-2" />
+          Compare
         </Button>
         <Button
           variant="outline"
@@ -528,6 +544,14 @@ export function ProjectDashboard() {
         open={showProfileEditor}
         onClose={() => setShowProfileEditor(false)}
         projectId={projectId!}
+      />
+
+      {/* Import Bundle Dialog */}
+      <ImportBundleDialog
+        open={showImportBundle}
+        onClose={() => setShowImportBundle(false)}
+        projectId={projectId!}
+        onImported={loadDocuments}
       />
     </div>
   )

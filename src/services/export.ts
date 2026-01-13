@@ -10,6 +10,14 @@ import JSZip from 'jszip'
 import type { DocumentRecord } from './documents'
 import type { BatchKeywordSearchResult } from './analysis'
 import type { NgramAnalysisResult } from './ngrams'
+import type { Collection } from './collections'
+import type { AnalysisProfile, ProfileConfig } from './profiles'
+import type {
+  BundleManifest,
+  BundleDocumentData,
+  BundleCollectionData,
+  BundleProfileData
+} from './import'
 
 // ============================================================================
 // Types
@@ -526,4 +534,311 @@ export async function exportFullProject(
   // 5. Generate and download ZIP
   const zipBlob = await zip.generateAsync({ type: 'blob' })
   downloadBlob(zipBlob, `${safeName}-export-${timestamp}.zip`)
+}
+
+// ============================================================================
+// .lens Bundle Export
+// ============================================================================
+
+export interface LensBundleOptions {
+  includeText: boolean
+  includeAnalysis: boolean
+  includeCollections: boolean
+  includeProfiles: boolean
+  includePdfs: boolean
+}
+
+export interface LensBundleProgress {
+  phase: 'documents' | 'collections' | 'profiles' | 'pdfs' | 'packaging'
+  current: number
+  total: number
+  currentItem: string
+}
+
+/**
+ * Get estimated bundle size before creating
+ */
+export async function estimateBundleSize(
+  projectId: string,
+  options: LensBundleOptions
+): Promise<{ size: number; documentCount: number }> {
+  let estimatedSize = 1024 // Base manifest size
+
+  // Get documents
+  const documents = await window.electron.dbQuery<DocumentRecord>(
+    'SELECT * FROM documents WHERE project_id = ?',
+    [projectId]
+  )
+
+  const documentCount = documents.length
+
+  for (const doc of documents) {
+    // Estimate JSON metadata size (approx 500 bytes per document)
+    estimatedSize += 500
+
+    if (options.includeText && doc.extracted_text) {
+      estimatedSize += doc.extracted_text.length
+    }
+
+    if (options.includeAnalysis) {
+      // Rough estimate for analysis results
+      estimatedSize += 2000
+    }
+
+    if (options.includePdfs && doc.file_size) {
+      estimatedSize += doc.file_size
+    }
+  }
+
+  // Collections (roughly 200 bytes each)
+  if (options.includeCollections) {
+    const collections = await window.electron.dbQuery<{ count: number }>(
+      'SELECT COUNT(*) as count FROM collections WHERE project_id = ?',
+      [projectId]
+    )
+    estimatedSize += (collections[0]?.count || 0) * 200
+  }
+
+  // Profiles (roughly 1KB each)
+  if (options.includeProfiles) {
+    const profiles = await window.electron.dbQuery<{ count: number }>(
+      'SELECT COUNT(*) as count FROM analysis_profiles WHERE project_id = ?',
+      [projectId]
+    )
+    estimatedSize += (profiles[0]?.count || 0) * 1024
+  }
+
+  return { size: estimatedSize, documentCount }
+}
+
+/**
+ * Export a project as a .lens bundle
+ */
+export async function exportLensBundle(
+  projectId: string,
+  projectName: string,
+  options: LensBundleOptions,
+  onProgress?: (progress: LensBundleProgress) => void
+): Promise<void> {
+  const zip = new JSZip()
+  const safeName = sanitizeFilename(projectName)
+
+  // Get app version
+  const appVersion = await window.electron.getVersion()
+
+  // Get all documents
+  const documents = await window.electron.dbQuery<DocumentRecord>(
+    'SELECT * FROM documents WHERE project_id = ?',
+    [projectId]
+  )
+
+  // Create manifest
+  const manifest: BundleManifest = {
+    version: '1.0',
+    format: 'lens-bundle',
+    created_at: new Date().toISOString(),
+    source: {
+      project_id: projectId,
+      project_name: projectName,
+      app_version: appVersion
+    },
+    contents: {
+      documents: documents.length,
+      collections: 0,
+      profiles: 0,
+      includes_text: options.includeText,
+      includes_analysis: options.includeAnalysis,
+      includes_pdfs: options.includePdfs
+    }
+  }
+
+  // Export documents
+  const docsFolder = zip.folder('documents')
+  let docIndex = 0
+
+  for (const doc of documents) {
+    docIndex++
+    onProgress?.({
+      phase: 'documents',
+      current: docIndex,
+      total: documents.length,
+      currentItem: doc.filename
+    })
+
+    // Get analysis results if needed
+    let analysisResults: Record<string, unknown> | null = null
+
+    if (options.includeAnalysis) {
+      const analysisRows = await window.electron.dbQuery<{
+        analysis_type: string
+        results: string
+      }>(
+        'SELECT analysis_type, results FROM analysis_results WHERE document_id = ?',
+        [doc.id]
+      )
+
+      if (analysisRows.length > 0) {
+        analysisResults = {}
+        for (const row of analysisRows) {
+          try {
+            analysisResults[row.analysis_type] = JSON.parse(row.results)
+          } catch {
+            // Skip invalid JSON
+          }
+        }
+      }
+    }
+
+    // Build document data
+    const docData: BundleDocumentData = {
+      id: doc.id,
+      filename: doc.filename,
+      file_path: doc.file_path,
+      file_size: doc.file_size,
+      file_hash: doc.file_hash,
+      content_type: doc.content_type,
+      company_name: doc.company_name,
+      report_year: doc.report_year,
+      industry: doc.industry,
+      country: doc.country,
+      report_type: doc.report_type,
+      custom_tags: doc.custom_tags,
+      custom_metadata: doc.custom_metadata,
+      extracted_text: options.includeText ? doc.extracted_text : null,
+      extracted_pages: options.includeText ? doc.extracted_pages : null,
+      pdf_metadata: doc.pdf_metadata,
+      inferred_metadata: doc.inferred_metadata,
+      analysis_status: doc.analysis_status,
+      analysis_results: analysisResults,
+      created_at: doc.created_at,
+      analyzed_at: doc.analyzed_at
+    }
+
+    docsFolder?.file(`${doc.id}.json`, JSON.stringify(docData, null, 2))
+  }
+
+  // Export collections
+  if (options.includeCollections) {
+    const collections = await window.electron.dbQuery<Collection>(
+      'SELECT * FROM collections WHERE project_id = ?',
+      [projectId]
+    )
+
+    manifest.contents.collections = collections.length
+
+    const collsFolder = zip.folder('collections')
+    let collIndex = 0
+
+    for (const coll of collections) {
+      collIndex++
+      onProgress?.({
+        phase: 'collections',
+        current: collIndex,
+        total: collections.length,
+        currentItem: coll.name
+      })
+
+      // Get document IDs in collection
+      const docIds = await window.electron.dbQuery<{ document_id: string }>(
+        'SELECT document_id FROM collection_documents WHERE collection_id = ?',
+        [coll.id]
+      )
+
+      const collData: BundleCollectionData = {
+        id: coll.id,
+        name: coll.name,
+        description: coll.description,
+        filter_criteria: coll.filter_criteria,
+        document_ids: docIds.map(d => d.document_id),
+        created_at: coll.created_at
+      }
+
+      collsFolder?.file(`${coll.id}.json`, JSON.stringify(collData, null, 2))
+    }
+  }
+
+  // Export profiles
+  if (options.includeProfiles) {
+    const profiles = await window.electron.dbQuery<AnalysisProfile>(
+      'SELECT * FROM analysis_profiles WHERE project_id = ?',
+      [projectId]
+    )
+
+    manifest.contents.profiles = profiles.length
+
+    const profsFolder = zip.folder('profiles')
+    let profIndex = 0
+
+    for (const prof of profiles) {
+      profIndex++
+      onProgress?.({
+        phase: 'profiles',
+        current: profIndex,
+        total: profiles.length,
+        currentItem: prof.name
+      })
+
+      let config: ProfileConfig
+      try {
+        config = JSON.parse(prof.config)
+      } catch {
+        continue  // Skip invalid profiles
+      }
+
+      const profData: BundleProfileData = {
+        id: prof.id,
+        name: prof.name,
+        description: prof.description,
+        config: config,
+        is_active: prof.is_active,
+        created_at: prof.created_at
+      }
+
+      profsFolder?.file(`${prof.id}.json`, JSON.stringify(profData, null, 2))
+    }
+  }
+
+  // Export PDFs (optional - can be very large)
+  if (options.includePdfs) {
+    const pdfsFolder = zip.folder('pdfs')
+    let pdfIndex = 0
+
+    for (const doc of documents) {
+      pdfIndex++
+      onProgress?.({
+        phase: 'pdfs',
+        current: pdfIndex,
+        total: documents.length,
+        currentItem: doc.filename
+      })
+
+      try {
+        const fileBuffer = await window.electron.readFile(doc.file_path)
+        pdfsFolder?.file(doc.filename, fileBuffer)
+      } catch (error) {
+        console.warn(`Could not include PDF ${doc.filename}:`, error)
+        // Continue without this PDF - it may have been deleted
+      }
+    }
+  }
+
+  // Add manifest
+  zip.file('manifest.json', JSON.stringify(manifest, null, 2))
+
+  // Package
+  onProgress?.({
+    phase: 'packaging',
+    current: 1,
+    total: 1,
+    currentItem: 'Creating bundle...'
+  })
+
+  const timestamp = formatDate(new Date())
+  const zipBlob = await zip.generateAsync({
+    type: 'blob',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 6 }
+  })
+
+  downloadBlob(zipBlob, `${safeName}-${timestamp}.lens`)
 }

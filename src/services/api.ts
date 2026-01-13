@@ -241,6 +241,69 @@ class ApiClient {
       }),
     })
   }
+
+  // Semantic analysis endpoints
+
+  /**
+   * Analyze sentiment of text
+   */
+  async analyzeSentiment(text: string): Promise<SentimentResponse> {
+    return this.request<SentimentResponse>('/semantic/sentiment', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    })
+  }
+
+  /**
+   * Map text to defined domains
+   */
+  async mapDomains(text: string, domains: string[]): Promise<DomainMappingResponse> {
+    return this.request<DomainMappingResponse>('/semantic/domain-mapping', {
+      method: 'POST',
+      body: JSON.stringify({ text, domains }),
+    })
+  }
+
+  /**
+   * Detect structural mismatch (thematic dislocation)
+   */
+  async detectStructuralMismatch(
+    text: string,
+    expectedStructure?: string[]
+  ): Promise<StructuralMismatchResponse> {
+    return this.request<StructuralMismatchResponse>('/semantic/structural-mismatch', {
+      method: 'POST',
+      body: JSON.stringify({
+        text,
+        expected_structure: expectedStructure,
+      }),
+    })
+  }
+
+  /**
+   * Batch sentiment analysis for multiple documents
+   */
+  async analyzeSentimentBatch(
+    documents: Array<{ id: string; text: string }>
+  ): Promise<BatchSentimentResponse> {
+    return this.request<BatchSentimentResponse>('/semantic/sentiment/batch', {
+      method: 'POST',
+      body: JSON.stringify({ documents }),
+    })
+  }
+
+  /**
+   * Batch domain mapping for multiple documents
+   */
+  async mapDomainsBatch(
+    documents: Array<{ id: string; text: string }>,
+    domains: string[]
+  ): Promise<BatchDomainMappingResponse> {
+    return this.request<BatchDomainMappingResponse>('/semantic/domain-mapping/batch', {
+      method: 'POST',
+      body: JSON.stringify({ documents, domains }),
+    })
+  }
 }
 
 // Custom error class
@@ -426,6 +489,64 @@ export interface WordAnalysisResponse {
     count: number
     frequency: number
   }>
+}
+
+// Semantic analysis response types
+
+export interface SentimentResponse {
+  sentiment: 'positive' | 'negative' | 'neutral' | 'mixed'
+  score: number  // -1 to 1
+  confidence: number  // 0 to 1
+  aspects?: Array<{
+    aspect: string
+    sentiment: 'positive' | 'negative' | 'neutral'
+    score: number
+  }>
+}
+
+export interface DomainMappingResponse {
+  mappings: Array<{
+    domain: string
+    score: number  // 0 to 1
+    confidence: number
+    relevant_excerpts?: string[]
+  }>
+  primary_domain: string
+  coverage: Record<string, number>  // percentage of text for each domain
+}
+
+export interface StructuralMismatchResponse {
+  has_mismatch: boolean
+  mismatch_score: number  // 0 to 1, higher = more mismatch
+  sections: Array<{
+    section: string
+    expected_topic?: string
+    actual_topic: string
+    alignment_score: number
+  }>
+  summary: string
+}
+
+export interface BatchSentimentResponse {
+  results: Array<{
+    id: string
+    sentiment: SentimentResponse
+  }>
+  aggregate: {
+    average_score: number
+    distribution: Record<string, number>
+  }
+}
+
+export interface BatchDomainMappingResponse {
+  results: Array<{
+    id: string
+    mapping: DomainMappingResponse
+  }>
+  aggregate: {
+    domain_coverage: Record<string, number>
+    primary_domains: Record<string, number>
+  }
 }
 
 // Export singleton instance

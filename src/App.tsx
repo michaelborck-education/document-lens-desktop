@@ -10,6 +10,7 @@ import { NgramAnalysis } from './pages/NgramAnalysis'
 import { Visualizations } from './pages/Visualizations'
 import { KeywordLists } from './pages/KeywordLists'
 import { Settings } from './pages/Settings'
+import { ComparativeAnalysis } from './pages/ComparativeAnalysis'
 import { api } from './services/api'
 import { seedFrameworkKeywords } from './services/keywords'
 
@@ -94,6 +95,7 @@ function App() {
           <Route path="project/:projectId/search" element={<KeywordSearch />} />
           <Route path="project/:projectId/ngrams" element={<NgramAnalysis />} />
           <Route path="project/:projectId/visualize" element={<Visualizations />} />
+          <Route path="project/:projectId/compare" element={<ComparativeAnalysis />} />
           <Route path="keywords" element={<KeywordLists />} />
           <Route path="settings" element={<Settings />} />
         </Route>
