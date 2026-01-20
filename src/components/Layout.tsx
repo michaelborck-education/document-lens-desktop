@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { FolderOpen, Settings, Home, Tags } from 'lucide-react'
+import { FolderOpen, Settings, Home, Tags, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function Layout() {
@@ -9,6 +9,7 @@ export function Layout() {
     { path: '/', icon: Home, label: 'Projects' },
     { path: '/keywords', icon: Tags, label: 'Keyword Lists' },
     { path: '/settings', icon: Settings, label: 'Settings' },
+    { path: '/help', icon: HelpCircle, label: 'Help' },
   ]
 
   return (

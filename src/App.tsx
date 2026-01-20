@@ -11,6 +11,7 @@ import { Visualizations } from './pages/Visualizations'
 import { KeywordLists } from './pages/KeywordLists'
 import { Settings } from './pages/Settings'
 import { ComparativeAnalysis } from './pages/ComparativeAnalysis'
+import { Help } from './pages/Help'
 import { api } from './services/api'
 import { seedFrameworkKeywords } from './services/keywords'
 
@@ -99,6 +100,7 @@ function App() {
           <Route path="keywords" element={<KeywordLists />} />
           <Route path="settings" element={<Settings />} />
         </Route>
+        <Route path="help/:section?" element={<Help />} />
       </Routes>
     </div>
   )
