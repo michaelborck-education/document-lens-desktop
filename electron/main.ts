@@ -78,9 +78,12 @@ app.whenReady().then(async () => {
   // Initialize database
   initDatabase()
 
+  // Create window FIRST so user sees the app immediately
+  createWindow()
+
   // Initialize backend manager
   backendManager = new BackendManager()
-  
+
   // Try to start backend (in production). If it fails, the app still works
   // for local features (keyword search, visualizations, export)
   if (app.isPackaged) {
@@ -91,8 +94,6 @@ app.whenReady().then(async () => {
       console.log('App will run in offline mode - local features still available')
     }
   }
-
-  createWindow()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
