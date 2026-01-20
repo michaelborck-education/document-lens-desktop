@@ -270,13 +270,17 @@ export function Help() {
                   blockquote: ({ node, ...props }) => (
                     <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-3" {...props} />
                   ),
-                  code: ({ node, inline, ...props }) => {
-                    if (inline) {
+                  code: ({ node, className, children, ...props }) => {
+                    // Check if this is inline code (no className means inline)
+                    const isInline = !className
+                    if (isInline) {
                       return (
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground" {...props} />
+                        <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground" {...props}>
+                          {children}
+                        </code>
                       )
                     }
-                    return <code {...props} />
+                    return <code className={className} {...props}>{children}</code>
                   },
                   pre: ({ node, ...props }) => (
                     <pre className="bg-muted p-4 rounded-lg overflow-auto my-3" {...props} />
