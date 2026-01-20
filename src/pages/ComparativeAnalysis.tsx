@@ -11,6 +11,7 @@ import { ArrowLeft, GitCompare, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { HelpButton } from '@/components/HelpButton'
 import {
   Select,
   SelectContent,
@@ -165,7 +166,10 @@ export function ComparativeAnalysis() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Comparative Analysis</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Comparative Analysis</h1>
+            <HelpButton section="analysis-workflows" tooltip="Learn about comparative analysis" />
+          </div>
           <p className="text-muted-foreground">
             Compare metrics between two document collections
           </p>

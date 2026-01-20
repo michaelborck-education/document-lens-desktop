@@ -13,6 +13,7 @@ import { SaveToCollectionDialog } from '@/components/SaveToCollectionDialog'
 import { ProfileSelector } from '@/components/ProfileSelector'
 import { ProfileEditor } from '@/components/ProfileEditor'
 import { ImportBundleDialog } from '@/components/ImportBundleDialog'
+import { HelpButton } from '@/components/HelpButton'
 import {
   importDocuments,
   deleteDocuments,
@@ -366,44 +367,63 @@ export function ProjectDashboard() {
           )}
           {analyzing ? 'Analyzing...' : 'Analyze All'}
         </Button>
-        <Button
-          variant="outline"
-          disabled={documents.length === 0}
-          onClick={() => navigate(`/project/${projectId}/search`)}
-        >
-          <Search className="h-4 w-4 mr-2" />
-          Keyword Search
-        </Button>
-        <Button
-          variant="outline"
-          disabled={documents.length === 0}
-          onClick={() => navigate(`/project/${projectId}/ngrams`)}
-        >
-          <Hash className="h-4 w-4 mr-2" />
-          N-gram Analysis
-        </Button>
-        <Button
-          variant="outline"
-          disabled={documents.length === 0}
-          onClick={() => navigate(`/project/${projectId}/visualize`)}
-        >
-          <PieChart className="h-4 w-4 mr-2" />
-          Visualizations
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => setShowCollectionManager(true)}
-        >
-          <Folder className="h-4 w-4 mr-2" />
-          Collections
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => navigate(`/project/${projectId}/compare`)}
-        >
-          <GitCompare className="h-4 w-4 mr-2" />
-          Compare
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            disabled={documents.length === 0}
+            onClick={() => navigate(`/project/${projectId}/search`)}
+          >
+            <Search className="h-4 w-4 mr-2" />
+            Keyword Search
+          </Button>
+          <HelpButton section="user-guide" tooltip="Learn about keyword search" />
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            disabled={documents.length === 0}
+            onClick={() => navigate(`/project/${projectId}/ngrams`)}
+          >
+            <Hash className="h-4 w-4 mr-2" />
+            N-gram Analysis
+          </Button>
+          <HelpButton section="analysis-workflows" tooltip="Learn about N-gram analysis" />
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            disabled={documents.length === 0}
+            onClick={() => navigate(`/project/${projectId}/visualize`)}
+          >
+            <PieChart className="h-4 w-4 mr-2" />
+            Visualizations
+          </Button>
+          <HelpButton section="user-guide" tooltip="Learn about visualizations" />
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            onClick={() => setShowCollectionManager(true)}
+          >
+            <Folder className="h-4 w-4 mr-2" />
+            Collections
+          </Button>
+          <HelpButton section="user-guide" tooltip="Learn about virtual collections" />
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/project/${projectId}/compare`)}
+          >
+            <GitCompare className="h-4 w-4 mr-2" />
+            Compare
+          </Button>
+          <HelpButton section="analysis-workflows" tooltip="Learn about comparative analysis" />
+        </div>
         <Button
           variant="outline"
           disabled={documents.length === 0}

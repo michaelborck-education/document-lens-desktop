@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { KeywordSelector } from '@/components/KeywordSelector'
+import { HelpButton } from '@/components/HelpButton'
 import {
   searchKeywordsLocal,
   type BatchKeywordSearchResult,
@@ -181,7 +182,10 @@ export function KeywordSearch() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Keyword Search</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Keyword Search</h1>
+            <HelpButton section="user-guide" tooltip="Learn about keyword search" />
+          </div>
           <p className="text-muted-foreground">
             Search across {documents.length} documents
           </p>

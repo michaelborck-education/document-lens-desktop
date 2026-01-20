@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { HelpButton } from '@/components/HelpButton'
 import {
   WordCloud,
   KeywordBarChart,
@@ -280,7 +281,10 @@ export function Visualizations() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Visualizations</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Visualizations</h1>
+            <HelpButton section="user-guide" tooltip="Learn about visualizations" />
+          </div>
           <p className="text-muted-foreground">
             Explore keyword patterns across {documents.length} documents
           </p>

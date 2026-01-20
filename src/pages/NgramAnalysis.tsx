@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { HelpButton } from '@/components/HelpButton'
 import {
   analyzeNgrams,
   getNgramContexts,
@@ -204,7 +205,10 @@ export function NgramAnalysis() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">N-gram Analysis</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">N-gram Analysis</h1>
+            <HelpButton section="analysis-workflows" tooltip="Learn about N-gram analysis" />
+          </div>
           <p className="text-muted-foreground">
             Extract frequent phrases from {documents.length} documents
           </p>

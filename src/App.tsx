@@ -12,6 +12,7 @@ import { KeywordLists } from './pages/KeywordLists'
 import { Settings } from './pages/Settings'
 import { ComparativeAnalysis } from './pages/ComparativeAnalysis'
 import { Help } from './pages/Help'
+import { WelcomeDialog } from './components/WelcomeDialog'
 import { api } from './services/api'
 import { seedFrameworkKeywords } from './services/keywords'
 
@@ -60,6 +61,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background">
+      <WelcomeDialog />
+
       {backendStatus === 'offline' && (
         <div className="bg-amber-500 text-amber-950 px-4 py-2 text-sm">
           <div className="max-w-screen-xl mx-auto flex items-center justify-between">

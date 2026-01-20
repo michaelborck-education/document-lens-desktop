@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { ArrowLeft, Search } from 'lucide-react'
+import { ArrowLeft, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -15,10 +15,33 @@ const HELP_SECTIONS = [
 
 export function Help() {
   const { section = 'user-guide' } = useParams<{ section?: string }>()
+  const navigate = useNavigate()
   const [content, setContent] = useState('')
+  const [allContent, setAllContent] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<Array<{ section: string; matches: number; preview: string }>>([])
 
+  // Load all documentation on mount for search
+  useEffect(() => {
+    const loadAllDocs = async () => {
+      const docs: Record<string, string> = {}
+      for (const sec of HELP_SECTIONS) {
+        try {
+          const response = await fetch(`/docs/${sec.id}.md`)
+          if (response.ok) {
+            docs[sec.id] = await response.text()
+          }
+        } catch (err) {
+          console.error(`Failed to load ${sec.id}:`, err)
+        }
+      }
+      setAllContent(docs)
+    }
+    loadAllDocs()
+  }, [])
+
+  // Load current section
   useEffect(() => {
     setLoading(true)
     setContent('')
@@ -40,6 +63,64 @@ export function Help() {
       })
   }, [section])
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + ? to open help
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === '?') {
+        navigate('/help')
+      }
+      // Cmd/Ctrl + / for search focus (or just / on help page)
+      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+        e.preventDefault()
+        const searchInput = document.querySelector('[data-search-input]') as HTMLInputElement
+        searchInput?.focus()
+      }
+      // Escape to clear search
+      if (e.key === 'Escape' && searchQuery) {
+        setSearchQuery('')
+        setSearchResults([])
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [navigate, searchQuery])
+
+  // Search implementation
+  const performSearch = (query: string) => {
+    setSearchQuery(query)
+
+    if (query.trim().length < 2) {
+      setSearchResults([])
+      return
+    }
+
+    const results: Array<{ section: string; matches: number; preview: string }> = []
+    const lowerQuery = query.toLowerCase()
+
+    Object.entries(allContent).forEach(([secId, text]) => {
+      const matches = (text.match(new RegExp(lowerQuery, 'gi')) || []).length
+      if (matches > 0) {
+        // Find a preview snippet around first match
+        const index = text.toLowerCase().indexOf(lowerQuery)
+        const start = Math.max(0, index - 50)
+        const end = Math.min(text.length, index + query.length + 50)
+        const preview = text.substring(start, end).replace(/\n/g, ' ')
+
+        results.push({
+          section: secId,
+          matches,
+          preview: `...${preview}...`
+        })
+      }
+    })
+
+    // Sort by most matches
+    results.sort((a, b) => b.matches - a.matches)
+    setSearchResults(results)
+  }
+
   // Simple search highlighting in future - for now just show all content
   const displayContent = content
 
@@ -56,17 +137,27 @@ export function Help() {
           <h1 className="text-2xl font-bold">Help & Documentation</h1>
         </div>
 
-        {/* Search (placeholder for future implementation) */}
-        <div className="flex items-center gap-2 max-w-md">
-          <Search className="h-4 w-4 text-muted-foreground" />
+        {/* Search */}
+        <div className="flex items-center gap-2 max-w-md relative">
+          <Search className="h-4 w-4 text-muted-foreground absolute left-2" />
           <Input
-            placeholder="Search documentation..."
+            placeholder="Search documentation... (Cmd/Ctrl + /)"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 text-sm"
-            disabled
+            onChange={(e) => performSearch(e.target.value)}
+            data-search-input
+            className="h-8 text-sm pl-8"
           />
-          <span className="text-xs text-muted-foreground">(Coming soon)</span>
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery('')
+                setSearchResults([])
+              }}
+              className="absolute right-2 hover:opacity-70"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -107,6 +198,39 @@ export function Help() {
 
         {/* Content Area */}
         <main className="flex-1 p-8 max-w-4xl">
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <p className="text-sm font-semibold mb-3">
+                Found {searchResults.reduce((sum, r) => sum + r.matches, 0)} results in {searchResults.length} section(s):
+              </p>
+              <div className="space-y-2">
+                {searchResults.map((result) => (
+                  <Link
+                    key={result.section}
+                    to={`/help/${result.section}`}
+                    onClick={() => setSearchQuery('')}
+                    className="block p-2 hover:bg-muted rounded transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-primary">
+                          {HELP_SECTIONS.find(s => s.id === result.section)?.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {result.preview}
+                        </p>
+                      </div>
+                      <span className="text-xs bg-primary/10 px-2 py-1 rounded ml-2 flex-shrink-0">
+                        {result.matches} match{result.matches > 1 ? 'es' : ''}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div className="animate-pulse space-y-4">
               <div className="h-8 bg-muted rounded w-48" />
