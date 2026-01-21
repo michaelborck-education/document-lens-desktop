@@ -112,38 +112,12 @@ export async function importDocument(
       }
     }
     
-    // Read file and send to API for processing
+    // Send file path to API for processing (backend reads file directly)
     onProgress?.('Processing PDF...')
-    
-    // Create a File object from the path
-    // Note: In Electron, we need to read the file through IPC
-    const fileBuffer = await window.electron.readFile(filePath)
-    
-    // Detect content type from filename extension
-    const ext = filename.toLowerCase().split('.').pop()
-    const contentTypes: Record<string, string> = {
-      'pdf': 'application/pdf',
-      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'txt': 'text/plain',
-      'md': 'text/markdown',
-      'json': 'application/json'
-    }
-    const contentType = contentTypes[ext || ''] || 'application/octet-stream'
-    
-    // Convert ArrayBuffer to Uint8Array for proper File construction
-    // (ArrayBuffer from IPC may need this conversion)
-    const uint8Array = new Uint8Array(fileBuffer)
-    console.log('[Documents] ArrayBuffer received, byte length:', fileBuffer.byteLength)
-    console.log('[Documents] Uint8Array created, length:', uint8Array.length)
-    
-    // Create a Blob first, then convert to File (more reliable across environments)
-    const blob = new Blob([uint8Array], { type: contentType })
-    const file = new File([blob], filename, { type: contentType })
-    console.log('[Documents] Created file:', filename, 'size:', file.size, 'type:', file.type)
-    
-    // Process through API
-    const apiResult = await api.processFile(file, { include_extracted_text: true })
+    console.log('[Documents] Sending file path to API:', filePath)
+
+    // Process through API - pass file path directly, backend reads the file
+    const apiResult = await api.processFilePath(filePath, { include_extracted_text: true })
     
     // Extract metadata from filename and API response
     const reportYear = apiResult.inferred?.probable_year || extractYearFromFilename(filename)

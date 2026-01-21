@@ -98,43 +98,24 @@ class ApiClient {
     return this.request<HealthResponse>('/health')
   }
 
-  // File processing - uses base64 encoding to avoid multipart parsing issues
-  async processFile(
-    file: File,
+  // File processing - pass file path directly to backend (most efficient for local apps)
+  async processFilePath(
+    filePath: string,
     options: ProcessFileOptions = {}
   ): Promise<ProcessFileResponse> {
     await this.ensureInitialized()
-    const url = `${this.baseUrl}/files/upload-base64`
+    const url = `${this.baseUrl}/files/upload-path`
 
-    console.log('[API] processFile called with:', file.name, 'size:', file.size, 'type:', file.type)
+    console.log('[API] processFilePath called with:', filePath)
 
-    // Read file as ArrayBuffer and convert to base64 efficiently
-    const arrayBuffer = await file.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
-
-    // Convert to base64 using chunks to avoid blocking UI
-    const chunkSize = 65536 // 64KB chunks
-    const chunks: string[] = []
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length))
-      chunks.push(String.fromCharCode.apply(null, Array.from(chunk)))
-    }
-    const base64Content = btoa(chunks.join(''))
-
-    console.log('[API] File converted to base64, length:', base64Content.length)
-
-    // Build JSON request body
+    // Build JSON request body - just pass the path, backend reads the file
     const requestBody = {
-      files: [{
-        filename: file.name,
-        content_base64: base64Content,
-        content_type: file.type || 'application/pdf'
-      }],
+      files: [{ file_path: filePath }],
       include_extracted_text: options.include_extracted_text || false,
       analysis_type: 'full'
     }
 
-    console.log('[API] Sending base64 request to:', url)
+    console.log('[API] Sending file path request to:', url)
 
     // Make the request with a timeout (5 minutes for large PDFs)
     const controller = new AbortController()
@@ -158,7 +139,7 @@ class ApiClient {
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('[API] Base64 request failed:', response.status, errorText)
+      console.error('[API] File path request failed:', response.status, errorText)
       let detail = 'Request failed'
       try {
         const errorJson = JSON.parse(errorText)
@@ -186,7 +167,84 @@ class ApiClient {
       size: fileResult.size,
       extracted_text: fileResult.extracted_text,
       metadata: fileResult.metadata,
-      // The backend doesn't have 'inferred' in this endpoint, so we leave it undefined
+      inferred: undefined
+    }
+  }
+
+  // Legacy method for File objects (kept for compatibility)
+  async processFile(
+    file: File,
+    options: ProcessFileOptions = {}
+  ): Promise<ProcessFileResponse> {
+    // This method is kept for backwards compatibility but shouldn't be needed
+    // when using processFilePath. Falls back to base64 encoding.
+    await this.ensureInitialized()
+    const url = `${this.baseUrl}/files/upload-base64`
+
+    console.log('[API] processFile (legacy) called with:', file.name)
+
+    const arrayBuffer = await file.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
+
+    // Convert to base64 using chunks
+    const chunkSize = 65536
+    const chunks: string[] = []
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length))
+      chunks.push(String.fromCharCode.apply(null, Array.from(chunk)))
+    }
+    const base64Content = btoa(chunks.join(''))
+
+    const requestBody = {
+      files: [{
+        filename: file.name,
+        content_base64: base64Content,
+        content_type: file.type || 'application/pdf'
+      }],
+      include_extracted_text: options.include_extracted_text || false,
+      analysis_type: 'full'
+    }
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 300000)
+
+    let response: Response
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      })
+    } finally {
+      clearTimeout(timeoutId)
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      let detail = 'Request failed'
+      try {
+        const errorJson = JSON.parse(errorText)
+        detail = errorJson.detail || detail
+      } catch {
+        detail = errorText || detail
+      }
+      throw new ApiError(response.status, detail)
+    }
+
+    const apiResponse: ProcessFilesApiResponse = await response.json()
+    const fileResult = apiResponse.results?.individual_files?.[0]
+
+    if (!fileResult) {
+      throw new ApiError(500, 'No file results returned from API')
+    }
+
+    return {
+      filename: fileResult.filename,
+      content_type: fileResult.content_type,
+      size: fileResult.size,
+      extracted_text: fileResult.extracted_text,
+      metadata: fileResult.metadata,
       inferred: undefined
     }
   }
