@@ -98,49 +98,56 @@ class ApiClient {
     return this.request<HealthResponse>('/health')
   }
 
-  // File processing - accepts either File or raw bytes with filename
+  // File processing - uses base64 encoding to avoid multipart parsing issues
   async processFile(
     file: File,
     options: ProcessFileOptions = {}
   ): Promise<ProcessFileResponse> {
     await this.ensureInitialized()
-    const url = `${this.baseUrl}/files`
+    const url = `${this.baseUrl}/files/upload-base64`
 
     console.log('[API] processFile called with:', file.name, 'size:', file.size, 'type:', file.type)
 
-    // Build FormData with the file directly (simpler approach for Electron compatibility)
-    const formData = new FormData()
-    formData.append('files', file, file.name)
+    // Read file as ArrayBuffer and convert to base64
+    const arrayBuffer = await file.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
 
-    // Add form fields - FastAPI expects lowercase 'true'/'false' strings for booleans
-    if (options.include_extracted_text) {
-      formData.append('include_extracted_text', 'true')
+    // Convert to base64
+    let binary = ''
+    for (let i = 0; i < uint8Array.length; i++) {
+      binary += String.fromCharCode(uint8Array[i])
+    }
+    const base64Content = btoa(binary)
+
+    console.log('[API] File converted to base64, length:', base64Content.length)
+
+    // Build JSON request body
+    const requestBody = {
+      files: [{
+        filename: file.name,
+        content_base64: base64Content,
+        content_type: file.type || 'application/pdf'
+      }],
+      include_extracted_text: options.include_extracted_text || false,
+      analysis_type: 'full'
     }
 
-    // Debug: Log FormData entries
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof Blob) {
-        const blobValue = value as Blob
-        console.log(`[API] FormData entry: ${key} = Blob(size=${blobValue.size}, type=${blobValue.type})`)
-      } else {
-        console.log(`[API] FormData entry: ${key} = ${value}`)
-      }
-    }
-
-    console.log('[API] Sending request to:', url)
+    console.log('[API] Sending base64 request to:', url)
 
     // Make the request
     const response = await fetch(url, {
       method: 'POST',
-      body: formData,
-      // Don't set Content-Type - browser will set it with boundary
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
     })
-    
+
     console.log('[API] Response status:', response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('[API] FormData request failed:', response.status, errorText)
+      console.error('[API] Base64 request failed:', response.status, errorText)
       let detail = 'Request failed'
       try {
         const errorJson = JSON.parse(errorText)
@@ -153,14 +160,14 @@ class ApiClient {
 
     // Backend returns a nested response, extract the first file's result
     const apiResponse: ProcessFilesApiResponse = await response.json()
-    
+
     // Get the first file result
     const fileResult = apiResponse.results?.individual_files?.[0]
-    
+
     if (!fileResult) {
       throw new ApiError(500, 'No file results returned from API')
     }
-    
+
     // Map to the expected response format
     return {
       filename: fileResult.filename,

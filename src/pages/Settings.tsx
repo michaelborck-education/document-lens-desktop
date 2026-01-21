@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -295,17 +295,20 @@ export function Settings() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="showWelcomeDialog"
+              checked={showWelcomeDialog}
+              onCheckedChange={(checked) => toggleWelcomeDialog(checked === true)}
+            />
             <div className="space-y-0.5">
-              <label className="text-sm font-medium">Show Welcome Dialog</label>
+              <label htmlFor="showWelcomeDialog" className="text-sm font-medium cursor-pointer">
+                Show Welcome Dialog
+              </label>
               <p className="text-xs text-muted-foreground">
                 Display the welcome dialog when the app starts
               </p>
             </div>
-            <Switch
-              checked={showWelcomeDialog}
-              onCheckedChange={toggleWelcomeDialog}
-            />
           </div>
         </CardContent>
       </Card>
