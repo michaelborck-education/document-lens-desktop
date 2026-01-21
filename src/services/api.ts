@@ -108,16 +108,18 @@ class ApiClient {
 
     console.log('[API] processFile called with:', file.name, 'size:', file.size, 'type:', file.type)
 
-    // Read file as ArrayBuffer and convert to base64
+    // Read file as ArrayBuffer and convert to base64 efficiently
     const arrayBuffer = await file.arrayBuffer()
     const uint8Array = new Uint8Array(arrayBuffer)
 
-    // Convert to base64
-    let binary = ''
-    for (let i = 0; i < uint8Array.length; i++) {
-      binary += String.fromCharCode(uint8Array[i])
+    // Convert to base64 using chunks to avoid blocking UI
+    const chunkSize = 65536 // 64KB chunks
+    const chunks: string[] = []
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length))
+      chunks.push(String.fromCharCode.apply(null, Array.from(chunk)))
     }
-    const base64Content = btoa(binary)
+    const base64Content = btoa(chunks.join(''))
 
     console.log('[API] File converted to base64, length:', base64Content.length)
 
@@ -134,14 +136,23 @@ class ApiClient {
 
     console.log('[API] Sending base64 request to:', url)
 
-    // Make the request
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    })
+    // Make the request with a timeout (5 minutes for large PDFs)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 300000) // 5 minute timeout
+
+    let response: Response
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      })
+    } finally {
+      clearTimeout(timeoutId)
+    }
 
     console.log('[API] Response status:', response.status)
 
