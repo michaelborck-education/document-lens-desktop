@@ -85,8 +85,22 @@ jobs:
           import sys
           import os
           import argparse
+          import tempfile
 
           print("Starting Document Lens API...", file=sys.stderr, flush=True)
+
+          # Set up temp directory for PyInstaller bundle
+          # This is critical for multipart form parsing with large files
+          if getattr(sys, 'frozen', False):
+              # Running in PyInstaller bundle - ensure temp directory is writable
+              # Use system temp dir, not the bundle's _MEIPASS
+              system_temp = tempfile.gettempdir()
+              app_temp = os.path.join(system_temp, 'document-lens-temp')
+              os.makedirs(app_temp, exist_ok=True)
+              os.environ['TMPDIR'] = app_temp
+              os.environ['TEMP'] = app_temp
+              os.environ['TMP'] = app_temp
+              print(f"Temp directory set to: {app_temp}", file=sys.stderr, flush=True)
 
           # Set up NLTK data path for PyInstaller bundle
           if getattr(sys, 'frozen', False):
@@ -251,7 +265,27 @@ jobs:
               exit 1
             fi
 
-            echo "File upload test passed! Multipart parsing is working."
+            echo "Small file upload test passed!"
+
+            # Test larger file (2MB) to verify temp file handling
+            echo "Testing larger file upload (2MB)..."
+            LARGE_FILE="${RUNNER_TEMP}/large-test.txt"
+            dd if=/dev/zero bs=1024 count=2048 2>/dev/null | tr '\0' 'a' > "$LARGE_FILE"
+
+            LARGE_RESULT=$(curl -s --max-time 60 -X POST "http://127.0.0.1:19999/files" \
+              -F "files=@$LARGE_FILE;type=text/plain" \
+              -F "include_extracted_text=true")
+            echo "Large file result: ${LARGE_RESULT:0:200}..."
+
+            if echo "$LARGE_RESULT" | grep -q "error parsing the body"; then
+              echo "Large file upload test FAILED!"
+              echo "=== Server log ==="
+              cat server.log || true
+              kill $PID 2>/dev/null || true
+              exit 1
+            fi
+
+            echo "Large file upload test passed! Multipart parsing working for larger files."
           else
             echo "Skipping file upload test on Windows (verified locally)"
           fi

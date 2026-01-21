@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, Lightbulb, Play, X } from 'lucide-react'
+import { BookOpen, Lightbulb, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -11,37 +12,44 @@ import {
 } from '@/components/ui/dialog'
 
 /**
- * Welcome dialog shown to first-time users
- * Checks localStorage for 'hasSeenWelcome' flag
+ * Welcome dialog shown on startup unless user has disabled it
+ * Controlled by 'showWelcomeDialog' in localStorage
  */
 export function WelcomeDialog() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const [dontShowAgain, setDontShowAgain] = useState(false)
 
   useEffect(() => {
-    // Check if user has seen welcome dialog
-    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome')
-    if (!hasSeenWelcome) {
+    // Check if user has disabled welcome dialog
+    const showWelcome = localStorage.getItem('showWelcomeDialog')
+    // Show dialog unless explicitly set to 'false'
+    if (showWelcome !== 'false') {
       setOpen(true)
-      // Mark as seen
-      localStorage.setItem('hasSeenWelcome', 'true')
     }
   }, [])
 
-  const handleStartTour = () => {
+  const handleClose = () => {
+    // Save preference if "Don't show again" is checked
+    if (dontShowAgain) {
+      localStorage.setItem('showWelcomeDialog', 'false')
+    }
     setOpen(false)
+  }
+
+  const handleStartTour = () => {
+    handleClose()
     // Navigate to first workflow example
     navigate('/')
-    // Could add more tour logic here in future
   }
 
   const handleReadDocs = () => {
-    setOpen(false)
+    handleClose()
     navigate('/help/user-guide')
   }
 
   const handleSkip = () => {
-    setOpen(false)
+    handleClose()
   }
 
   return (
@@ -100,8 +108,23 @@ export function WelcomeDialog() {
           </button>
         </div>
 
+        <div className="flex items-center gap-2 pt-2 border-t">
+          <Checkbox
+            id="dontShowAgain"
+            checked={dontShowAgain}
+            onCheckedChange={(checked) => setDontShowAgain(checked === true)}
+          />
+          <label
+            htmlFor="dontShowAgain"
+            className="text-xs text-muted-foreground cursor-pointer"
+          >
+            Don't show this again
+          </label>
+        </div>
+
         <p className="text-xs text-muted-foreground text-center mt-2">
-          Access help anytime via the Help button in the sidebar
+          Access help anytime via the Help button in the sidebar.
+          You can re-enable this dialog in Settings.
         </p>
       </DialogContent>
     </Dialog>

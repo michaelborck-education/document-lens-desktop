@@ -12,10 +12,12 @@ import {
   RefreshCw,
   AlertTriangle,
   FolderOpen,
+  Lightbulb,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
 import {
   Dialog,
   DialogContent,
@@ -61,6 +63,9 @@ export function Settings() {
   const [clearConfirmText, setClearConfirmText] = useState('')
   const [clearing, setClearing] = useState(false)
 
+  // Welcome dialog setting
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState(true)
+
   useEffect(() => {
     loadSettings()
     loadAppVersion()
@@ -68,7 +73,22 @@ export function Settings() {
     loadStats()
     loadCountries()
     loadIndustries()
+    loadWelcomeDialogSetting()
   }, [])
+
+  const loadWelcomeDialogSetting = () => {
+    const setting = localStorage.getItem('showWelcomeDialog')
+    setShowWelcomeDialog(setting !== 'false')
+  }
+
+  const toggleWelcomeDialog = (enabled: boolean) => {
+    setShowWelcomeDialog(enabled)
+    if (enabled) {
+      localStorage.removeItem('showWelcomeDialog')
+    } else {
+      localStorage.setItem('showWelcomeDialog', 'false')
+    }
+  }
 
   const loadSettings = async () => {
     try {
@@ -262,6 +282,33 @@ export function Settings() {
         <SettingsIcon className="h-6 w-6" />
         <h1 className="text-2xl font-bold">Settings</h1>
       </div>
+
+      {/* General Settings */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lightbulb className="h-5 w-5" />
+            General Settings
+          </CardTitle>
+          <CardDescription>
+            Application behavior and preferences
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <label className="text-sm font-medium">Show Welcome Dialog</label>
+              <p className="text-xs text-muted-foreground">
+                Display the welcome dialog when the app starts
+              </p>
+            </div>
+            <Switch
+              checked={showWelcomeDialog}
+              onCheckedChange={toggleWelcomeDialog}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Backend Configuration */}
       <Card className="mb-6">
