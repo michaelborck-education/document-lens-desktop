@@ -1,9 +1,15 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { FolderOpen, Settings, Home, Tags, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useState, useEffect } from 'react'
 
 export function Layout() {
   const location = useLocation()
+  const [appVersion, setAppVersion] = useState<string>('')
+
+  useEffect(() => {
+    window.electron?.getVersion().then(setAppVersion).catch(() => {})
+  }, [])
 
   const navItems = [
     { path: '/', icon: Home, label: 'Projects' },
@@ -53,7 +59,7 @@ export function Layout() {
 
         {/* Version */}
         <div className="p-4 border-t text-xs text-muted-foreground">
-          Document Lens Desktop v0.1.0
+          Document Lens Desktop {appVersion ? `v${appVersion}` : ''}
         </div>
       </aside>
 

@@ -105,31 +105,18 @@ class ApiClient {
   ): Promise<ProcessFileResponse> {
     await this.ensureInitialized()
     const url = `${this.baseUrl}/files`
-    
+
     console.log('[API] processFile called with:', file.name, 'size:', file.size, 'type:', file.type)
-    
-    // Read file content as ArrayBuffer for debugging
-    const fileArrayBuffer = await file.arrayBuffer()
-    console.log('[API] File ArrayBuffer size:', fileArrayBuffer.byteLength)
-    
-    // Verify first bytes (PDF should start with %PDF)
-    const firstBytes = new Uint8Array(fileArrayBuffer.slice(0, 10))
-    const firstBytesStr = String.fromCharCode(...firstBytes)
-    console.log('[API] First bytes:', firstBytesStr)
-    
-    // Create a fresh Blob from the ArrayBuffer to ensure clean data
-    const blob = new Blob([fileArrayBuffer], { type: file.type || 'application/pdf' })
-    console.log('[API] Created Blob, size:', blob.size, 'type:', blob.type)
-    
-    // Build FormData with the blob
+
+    // Build FormData with the file directly (simpler approach for Electron compatibility)
     const formData = new FormData()
-    formData.append('files', blob, file.name)
-    
+    formData.append('files', file, file.name)
+
     // Add form fields - FastAPI expects lowercase 'true'/'false' strings for booleans
     if (options.include_extracted_text) {
       formData.append('include_extracted_text', 'true')
     }
-    
+
     // Debug: Log FormData entries
     for (const [key, value] of formData.entries()) {
       if (value instanceof Blob) {
@@ -139,7 +126,7 @@ class ApiClient {
         console.log(`[API] FormData entry: ${key} = ${value}`)
       }
     }
-    
+
     console.log('[API] Sending request to:', url)
 
     // Make the request
