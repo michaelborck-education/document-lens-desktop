@@ -47,3 +47,6 @@ document-lens-backend/
 # Temporary files
 tmp/
 temp/
+
+# Test samples (local PDFs for testing)
+samples/
