@@ -18,6 +18,7 @@
     "build:win": "npm run build:vite && electron-builder --win",
     "build:linux": "npm run build:vite && electron-builder --linux",
     "build:all": "npm run build:vite && electron-builder --mac --win --linux",
+    "build:manual": "./manual/build-manual.sh",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src electron --ext .ts,.tsx",

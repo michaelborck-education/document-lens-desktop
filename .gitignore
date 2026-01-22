@@ -50,3 +50,7 @@ temp/
 
 # Test samples (local PDFs for testing)
 samples/
+
+# Manual build artifacts
+manual/build/
+Document-Lens-User-Manual.pdf
