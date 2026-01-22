@@ -1,6 +1,6 @@
 {
   "name": "document-lens-desktop",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Cross-platform Electron desktop app for batch PDF analysis. Built for sustainability researchers to analyze corporate reports using TCFD, GRI, SDGs, and SASB framework keywords.",
   "main": "dist-electron/main.js",
   "author": "Michael Borck",

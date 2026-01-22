@@ -493,19 +493,31 @@ export function ProjectDashboard() {
               ))}
             </div>
           ) : documents.length === 0 ? (
-            <div 
+            <div
               className="text-center py-12 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors"
               onClick={() => handleImportFiles()}
             >
               <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h2 className="text-lg font-medium mb-2">No documents yet</h2>
               <p className="text-muted-foreground mb-4">
-                Drag and drop PDF files here, or click to browse
+                Drag and drop PDF files here, or use the buttons below
               </p>
-              <Button>
-                <Upload className="h-4 w-4 mr-2" />
-                Import PDFs
-              </Button>
+              <div className="flex items-center justify-center gap-2">
+                <Button>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import PDFs
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowAddFromLibrary(true)
+                  }}
+                >
+                  <Library className="h-4 w-4 mr-2" />
+                  Add from Library
+                </Button>
+              </div>
             </div>
           ) : (
             <DocumentTable
