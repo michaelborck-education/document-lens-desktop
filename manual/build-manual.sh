@@ -103,19 +103,19 @@ $CHAPTER_LIST
 
 format:
   pdf:
-    documentclass: scrreprt
-    papersize: a4
+    pdf-engine: typst
     toc: true
     toc-depth: 3
     number-sections: true
-    colorlinks: true
-    linkcolor: blue
-    urlcolor: blue
-    geometry:
-      - top=25mm
-      - bottom=25mm
-      - left=25mm
-      - right=25mm
+    papersize: a4
+    margin:
+      top: 25mm
+      bottom: 25mm
+      left: 25mm
+      right: 25mm
+    mainfont: "Libertinus Serif"
+    sansfont: "Libertinus Sans"
+    monofont: "DejaVu Sans Mono"
 EOF
 
 echo ""
