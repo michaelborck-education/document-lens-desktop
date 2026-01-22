@@ -8,7 +8,6 @@
 import JSZip from 'jszip'
 import { v4 as uuidv4 } from 'uuid'
 import type { DocumentRecord } from './documents'
-import type { Collection } from './collections'
 import type { AnalysisProfile, ProfileConfig } from './profiles'
 
 // ============================================================================
@@ -26,7 +25,6 @@ export interface BundleManifest {
   }
   contents: {
     documents: number
-    collections: number
     profiles: number
     includes_text: boolean
     includes_analysis: boolean
@@ -56,15 +54,6 @@ export interface BundleDocumentData {
   analysis_results: Record<string, unknown> | null
   created_at: string
   analyzed_at: string | null
-}
-
-export interface BundleCollectionData {
-  id: string
-  name: string
-  description: string | null
-  filter_criteria: string | null
-  document_ids: string[]
-  created_at: string
 }
 
 export interface BundleProfileData {
@@ -99,7 +88,6 @@ export interface ImportPreview {
       existingDocumentId?: string
     }>
   }
-  collections: BundleCollectionData[]
   profiles: BundleProfileData[]
   estimatedSize: number
 }
@@ -108,7 +96,6 @@ export interface ImportResult {
   success: boolean
   documentsImported: number
   documentsSkipped: number
-  collectionsImported: number
   profilesImported: number
   errors: string[]
   bundleImportId: string
@@ -205,17 +192,6 @@ export async function previewBundle(
     }
   }
 
-  // Read collections
-  const collections: BundleCollectionData[] = []
-  const collectionsFolder = zip.folder('collections')
-  if (collectionsFolder) {
-    const collectionFiles = collectionsFolder.filter((_, file) => file.name.endsWith('.json'))
-    for (const collFile of collectionFiles) {
-      const collText = await collFile.async('text')
-      collections.push(JSON.parse(collText))
-    }
-  }
-
   // Read profiles
   const profiles: BundleProfileData[] = []
   const profilesFolder = zip.folder('profiles')
@@ -238,7 +214,6 @@ export async function previewBundle(
       duplicates: duplicateCount,
       items: documents
     },
-    collections,
     profiles,
     estimatedSize: stats.size
   }
@@ -256,7 +231,6 @@ export async function importBundle(
   targetProjectId: string,
   options: {
     importDocuments: boolean
-    importCollections: boolean
     importProfiles: boolean
     skipDuplicates: boolean
   },
@@ -265,7 +239,6 @@ export async function importBundle(
   const errors: string[] = []
   let documentsImported = 0
   let documentsSkipped = 0
-  let collectionsImported = 0
   let profilesImported = 0
 
   // Create bundle import record
@@ -332,34 +305,6 @@ export async function importBundle(
       }
     }
 
-    // Import collections
-    if (options.importCollections) {
-      const collectionsFolder = zip.folder('collections')
-      if (collectionsFolder) {
-        const collectionFiles = collectionsFolder.filter((_, file) => file.name.endsWith('.json'))
-
-        for (const collFile of collectionFiles) {
-          try {
-            const collText = await collFile.async('text')
-            const collData = JSON.parse(collText) as BundleCollectionData
-
-            // Map old document IDs to new ones
-            const mappedDocIds = collData.document_ids
-              .map(oldId => documentIdMap.get(oldId))
-              .filter((id): id is string => id !== undefined)
-
-            // Create collection with mapped document IDs
-            await importCollection(targetProjectId, collData, mappedDocIds)
-            collectionsImported++
-
-          } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error'
-            errors.push(`Collection import failed: ${message}`)
-          }
-        }
-      }
-    }
-
     // Import profiles
     if (options.importProfiles) {
       const profilesFolder = zip.folder('profiles')
@@ -401,8 +346,8 @@ export async function importBundle(
 
     onProgress?.({
       phase: 'complete',
-      current: documentsImported + collectionsImported + profilesImported,
-      total: documentsImported + collectionsImported + profilesImported,
+      current: documentsImported + profilesImported,
+      total: documentsImported + profilesImported,
       currentItem: 'Import complete',
       status: 'completed'
     })
@@ -411,7 +356,6 @@ export async function importBundle(
       success: errors.length === 0,
       documentsImported,
       documentsSkipped,
-      collectionsImported,
       profilesImported,
       errors,
       bundleImportId
@@ -434,7 +378,6 @@ export async function importBundle(
       success: false,
       documentsImported,
       documentsSkipped,
-      collectionsImported,
       profilesImported,
       errors,
       bundleImportId
@@ -510,41 +453,6 @@ async function importDocument(
         [analysisId, newId, analysisType, JSON.stringify(results)]
       )
     }
-  }
-
-  return newId
-}
-
-/**
- * Import a collection with mapped document IDs
- */
-async function importCollection(
-  projectId: string,
-  collData: BundleCollectionData,
-  mappedDocIds: string[]
-): Promise<string> {
-  const newId = uuidv4()
-
-  // Insert collection
-  await window.electron.dbRun(
-    `INSERT INTO collections (id, project_id, name, description, filter_criteria)
-     VALUES (?, ?, ?, ?, ?)`,
-    [
-      newId,
-      projectId,
-      collData.name,
-      collData.description,
-      collData.filter_criteria
-    ]
-  )
-
-  // Add documents to collection
-  for (const docId of mappedDocIds) {
-    await window.electron.dbRun(
-      `INSERT OR IGNORE INTO collection_documents (collection_id, document_id)
-       VALUES (?, ?)`,
-      [newId, docId]
-    )
   }
 
   return newId

@@ -7,7 +7,7 @@ import { BACKEND_URL } from './backend-manager'
 let db: Database.Database | null = null
 
 const SCHEMA = `
--- Projects (collections of documents)
+-- Projects (collections of documents to analyze together)
 CREATE TABLE IF NOT EXISTS projects (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -16,10 +16,10 @@ CREATE TABLE IF NOT EXISTS projects (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Documents within projects
+-- Documents (PDF library - independent of projects)
 CREATE TABLE IF NOT EXISTS documents (
     id TEXT PRIMARY KEY,
-    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    project_id TEXT REFERENCES projects(id) ON DELETE SET NULL,  -- DEPRECATED: use project_documents instead
     filename TEXT NOT NULL,
     file_path TEXT NOT NULL,
     file_hash TEXT NOT NULL,
@@ -42,6 +42,14 @@ CREATE TABLE IF NOT EXISTS documents (
     analysis_status TEXT DEFAULT 'pending',  -- pending, analyzing, completed, failed
     analyzed_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Project-Document relationship (many-to-many: documents can belong to multiple projects)
+CREATE TABLE IF NOT EXISTS project_documents (
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (project_id, document_id)
 );
 
 -- Cached analysis results
@@ -154,6 +162,7 @@ CREATE TABLE IF NOT EXISTS bundle_imports (
 CREATE INDEX IF NOT EXISTS idx_documents_project ON documents(project_id);
 CREATE INDEX IF NOT EXISTS idx_documents_year ON documents(report_year);
 CREATE INDEX IF NOT EXISTS idx_documents_company ON documents(company_name);
+CREATE INDEX IF NOT EXISTS idx_documents_hash ON documents(file_hash);
 CREATE INDEX IF NOT EXISTS idx_analysis_document ON analysis_results(document_id);
 CREATE INDEX IF NOT EXISTS idx_keyword_results_project ON keyword_results(project_id);
 CREATE INDEX IF NOT EXISTS idx_collections_project ON collections(project_id);
@@ -162,6 +171,8 @@ CREATE INDEX IF NOT EXISTS idx_collection_docs_document ON collection_documents(
 CREATE INDEX IF NOT EXISTS idx_profiles_project ON analysis_profiles(project_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_active ON analysis_profiles(project_id, is_active);
 CREATE INDEX IF NOT EXISTS idx_bundle_imports_project ON bundle_imports(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_docs_project ON project_documents(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_docs_document ON project_documents(document_id);
 `
 
 const DEFAULT_COUNTRIES = [
@@ -338,10 +349,48 @@ export function initDatabase(): Database.Database {
   // Create schema
   db.exec(SCHEMA)
 
+  // Migrate existing project_id relationships to junction table
+  migrateProjectDocuments(db)
+
   // Seed default data if needed
   seedDefaultData(db)
 
   return db
+}
+
+/**
+ * Migrate existing document-project relationships from the old project_id column
+ * to the new project_documents junction table (many-to-many).
+ * This allows documents to belong to multiple projects.
+ */
+function migrateProjectDocuments(database: Database.Database) {
+  // Check if migration is needed (are there documents with project_id not yet in junction table?)
+  const unmigrated = database.prepare(`
+    SELECT d.id as document_id, d.project_id
+    FROM documents d
+    WHERE d.project_id IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM project_documents pd
+      WHERE pd.document_id = d.id AND pd.project_id = d.project_id
+    )
+  `).all() as Array<{ document_id: string; project_id: string }>
+
+  if (unmigrated.length > 0) {
+    console.log(`Migrating ${unmigrated.length} document-project relationships to junction table...`)
+
+    const insertRelation = database.prepare(`
+      INSERT OR IGNORE INTO project_documents (project_id, document_id) VALUES (?, ?)
+    `)
+
+    const migrate = database.transaction((relations: typeof unmigrated) => {
+      for (const rel of relations) {
+        insertRelation.run(rel.project_id, rel.document_id)
+      }
+    })
+
+    migrate(unmigrated)
+    console.log('Migration complete.')
+  }
 }
 
 function seedDefaultData(database: Database.Database) {

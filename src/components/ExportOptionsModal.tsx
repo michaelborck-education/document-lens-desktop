@@ -58,7 +58,6 @@ export function ExportOptionsModal({
   // Bundle export options
   const [bundleIncludeText, setBundleIncludeText] = useState(true)
   const [bundleIncludeAnalysis, setBundleIncludeAnalysis] = useState(true)
-  const [bundleIncludeCollections, setBundleIncludeCollections] = useState(true)
   const [bundleIncludeProfiles, setBundleIncludeProfiles] = useState(true)
   const [bundleIncludePdfs, setBundleIncludePdfs] = useState(false)
   const [bundleEstimate, setBundleEstimate] = useState<{ size: number; documentCount: number } | null>(null)
@@ -72,7 +71,6 @@ export function ExportOptionsModal({
       const options: LensBundleOptions = {
         includeText: bundleIncludeText,
         includeAnalysis: bundleIncludeAnalysis,
-        includeCollections: bundleIncludeCollections,
         includeProfiles: bundleIncludeProfiles,
         includePdfs: bundleIncludePdfs,
       }
@@ -87,7 +85,6 @@ export function ExportOptionsModal({
     projectId,
     bundleIncludeText,
     bundleIncludeAnalysis,
-    bundleIncludeCollections,
     bundleIncludeProfiles,
     bundleIncludePdfs,
   ])
@@ -118,7 +115,6 @@ export function ExportOptionsModal({
         const options: LensBundleOptions = {
           includeText: bundleIncludeText,
           includeAnalysis: bundleIncludeAnalysis,
-          includeCollections: bundleIncludeCollections,
           includeProfiles: bundleIncludeProfiles,
           includePdfs: bundleIncludePdfs,
         }
@@ -322,15 +318,6 @@ export function ExportOptionsModal({
                       }
                     />
                     Analysis results (readability, writing quality, word analysis)
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={bundleIncludeCollections}
-                      onCheckedChange={(checked) =>
-                        setBundleIncludeCollections(checked === true)
-                      }
-                    />
-                    Collections (document groupings)
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <Checkbox

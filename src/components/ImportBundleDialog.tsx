@@ -9,7 +9,6 @@ import {
   Package,
   Loader2,
   FileText,
-  Folder,
   Settings2,
   AlertTriangle,
   CheckCircle2,
@@ -64,7 +63,6 @@ export function ImportBundleDialog({
 
   // Import options
   const [importDocuments, setImportDocuments] = useState(true)
-  const [importCollections, setImportCollections] = useState(true)
   const [importProfiles, setImportProfiles] = useState(true)
   const [skipDuplicates, setSkipDuplicates] = useState(true)
 
@@ -79,7 +77,6 @@ export function ImportBundleDialog({
     setLoading(false)
     setError(null)
     setImportDocuments(true)
-    setImportCollections(true)
     setImportProfiles(true)
     setSkipDuplicates(true)
     setProgress(null)
@@ -124,7 +121,6 @@ export function ImportBundleDialog({
         projectId,
         {
           importDocuments,
-          importCollections,
           importProfiles,
           skipDuplicates,
         },
@@ -157,7 +153,7 @@ export function ImportBundleDialog({
             Import .lens Bundle
           </DialogTitle>
           <DialogDescription>
-            Import documents, collections, and profiles from a shared bundle
+            Import documents and profiles from a shared bundle
           </DialogDescription>
         </DialogHeader>
 
@@ -238,28 +234,6 @@ export function ImportBundleDialog({
                     </div>
                   </label>
 
-                  {/* Collections */}
-                  {preview.collections.length > 0 && (
-                    <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50">
-                      <Checkbox
-                        checked={importCollections}
-                        onCheckedChange={(checked) => setImportCollections(checked === true)}
-                        className="mt-0.5"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <Folder className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            {preview.collections.length} Collections
-                          </span>
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {preview.collections.map(c => c.name).join(', ')}
-                        </div>
-                      </div>
-                    </label>
-                  )}
-
                   {/* Profiles */}
                   {preview.profiles.length > 0 && (
                     <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50">
@@ -320,7 +294,7 @@ export function ImportBundleDialog({
                 </Button>
                 <Button
                   onClick={handleImport}
-                  disabled={!importDocuments && !importCollections && !importProfiles}
+                  disabled={!importDocuments && !importProfiles}
                 >
                   <Package className="h-4 w-4 mr-2" />
                   Import
@@ -380,12 +354,6 @@ export function ImportBundleDialog({
                   <div className="flex justify-between text-muted-foreground">
                     <span>Duplicates skipped:</span>
                     <span>{result.documentsSkipped}</span>
-                  </div>
-                )}
-                {result.collectionsImported > 0 && (
-                  <div className="flex justify-between">
-                    <span>Collections imported:</span>
-                    <span className="font-medium">{result.collectionsImported}</span>
                   </div>
                 )}
                 {result.profilesImported > 0 && (

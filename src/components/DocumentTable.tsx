@@ -9,6 +9,7 @@ import {
   ChevronUp,
   ChevronDown,
   Eye,
+  FolderMinus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -24,6 +25,7 @@ interface DocumentTableProps {
   onSelectionChange: (ids: Set<string>) => void
   onEdit: (document: DocumentRecord) => void
   onDelete: (documentIds: string[]) => void
+  onRemoveFromProject?: (documentIds: string[]) => void
   onOpenFile: (document: DocumentRecord) => void
 }
 
@@ -34,6 +36,7 @@ export function DocumentTable({
   onSelectionChange,
   onEdit,
   onDelete,
+  onRemoveFromProject,
   onOpenFile,
 }: DocumentTableProps) {
   const [sortField, setSortField] = useState<SortField>('created_at')
@@ -244,6 +247,18 @@ export function DocumentTable({
                           <ExternalLink className="h-4 w-4" />
                           Open PDF
                         </button>
+                        {onRemoveFromProject && (
+                          <button
+                            className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted"
+                            onClick={() => {
+                              onRemoveFromProject([doc.id])
+                              setContextMenu(null)
+                            }}
+                          >
+                            <FolderMinus className="h-4 w-4" />
+                            Remove from Project
+                          </button>
+                        )}
                         <button
                           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-muted"
                           onClick={() => {
@@ -252,7 +267,7 @@ export function DocumentTable({
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
-                          Delete
+                          Delete from Library
                         </button>
                       </div>
                     </>

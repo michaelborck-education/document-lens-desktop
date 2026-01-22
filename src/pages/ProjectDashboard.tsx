@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download, Folder, FolderPlus, GitCompare, Package } from 'lucide-react'
+import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download, Package, Library, FolderMinus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -8,15 +8,16 @@ import { DocumentTable } from '@/components/DocumentTable'
 import { DocumentMetadataModal } from '@/components/DocumentMetadataModal'
 import { ImportProgressDialog } from '@/components/ImportProgressDialog'
 import { ExportOptionsModal } from '@/components/ExportOptionsModal'
-import { CollectionManager } from '@/components/CollectionManager'
-import { SaveToCollectionDialog } from '@/components/SaveToCollectionDialog'
 import { ProfileSelector } from '@/components/ProfileSelector'
 import { ProfileEditor } from '@/components/ProfileEditor'
 import { ImportBundleDialog } from '@/components/ImportBundleDialog'
+import { AddFromLibraryDialog } from '@/components/AddFromLibraryDialog'
 import { HelpButton } from '@/components/HelpButton'
 import {
   importDocuments,
   deleteDocuments,
+  removeDocumentFromProject,
+  getProjectDocuments,
   type DocumentRecord,
   type ImportProgress,
   type ImportResult,
@@ -57,10 +58,9 @@ export function ProjectDashboard() {
   // Modal state
   const [editingDocument, setEditingDocument] = useState<DocumentRecord | null>(null)
   const [showExportModal, setShowExportModal] = useState(false)
-  const [showCollectionManager, setShowCollectionManager] = useState(false)
-  const [showSaveToCollection, setShowSaveToCollection] = useState(false)
   const [showProfileEditor, setShowProfileEditor] = useState(false)
   const [showImportBundle, setShowImportBundle] = useState(false)
+  const [showAddFromLibrary, setShowAddFromLibrary] = useState(false)
 
   useEffect(() => {
     if (projectId) {
@@ -86,10 +86,7 @@ export function ProjectDashboard() {
   const loadDocuments = async () => {
     try {
       setLoading(true)
-      const result = await window.electron.dbQuery<DocumentRecord>(
-        'SELECT * FROM documents WHERE project_id = ? ORDER BY created_at DESC',
-        [projectId]
-      )
+      const result = await getProjectDocuments(projectId!)
       setDocuments(result)
     } catch (error) {
       console.error('Failed to load documents:', error)
@@ -150,12 +147,33 @@ export function ProjectDashboard() {
     }
   }
 
+  const handleRemoveFromProject = async (documentIds: string[]) => {
+    const count = documentIds.length
+    const message = count === 1
+      ? 'Remove this document from the project?\n\nThe document will remain in your library and can be added to other projects.'
+      : `Remove ${count} documents from the project?\n\nThey will remain in your library and can be added to other projects.`
+
+    if (!confirm(message)) {
+      return
+    }
+
+    try {
+      for (const docId of documentIds) {
+        await removeDocumentFromProject(docId, projectId!)
+      }
+      setSelectedIds(new Set())
+      loadDocuments()
+    } catch (error) {
+      console.error('Failed to remove documents:', error)
+    }
+  }
+
   const handleDeleteDocuments = async (documentIds: string[]) => {
     const count = documentIds.length
     const message = count === 1
-      ? 'Are you sure you want to delete this document?'
-      : `Are you sure you want to delete ${count} documents?`
-    
+      ? 'Permanently delete this document from the library?\n\nThis will remove it from ALL projects and cannot be undone.'
+      : `Permanently delete ${count} documents from the library?\n\nThis will remove them from ALL projects and cannot be undone.`
+
     if (!confirm(message)) {
       return
     }
@@ -350,6 +368,13 @@ export function ProjectDashboard() {
         </Button>
         <Button
           variant="outline"
+          onClick={() => setShowAddFromLibrary(true)}
+        >
+          <Library className="h-4 w-4 mr-2" />
+          Add from Library
+        </Button>
+        <Button
+          variant="outline"
           onClick={() => setShowImportBundle(true)}
         >
           <Package className="h-4 w-4 mr-2" />
@@ -402,28 +427,6 @@ export function ProjectDashboard() {
           </Button>
           <HelpButton section="user-guide" tooltip="Learn about visualizations" />
         </div>
-
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            onClick={() => setShowCollectionManager(true)}
-          >
-            <Folder className="h-4 w-4 mr-2" />
-            Collections
-          </Button>
-          <HelpButton section="user-guide" tooltip="Learn about virtual collections" />
-        </div>
-
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/project/${projectId}/compare`)}
-          >
-            <GitCompare className="h-4 w-4 mr-2" />
-            Compare
-          </Button>
-          <HelpButton section="analysis-workflows" tooltip="Learn about comparative analysis" />
-        </div>
         <Button
           variant="outline"
           disabled={documents.length === 0}
@@ -437,18 +440,18 @@ export function ProjectDashboard() {
         {selectedIds.size > 0 && (
           <>
             <Button
-              variant="secondary"
-              onClick={() => setShowSaveToCollection(true)}
+              variant="outline"
+              onClick={() => handleRemoveFromProject(Array.from(selectedIds))}
             >
-              <FolderPlus className="h-4 w-4 mr-2" />
-              Add to Collection ({selectedIds.size})
+              <FolderMinus className="h-4 w-4 mr-2" />
+              Remove from Project ({selectedIds.size})
             </Button>
             <Button
               variant="destructive"
               onClick={() => handleDeleteDocuments(Array.from(selectedIds))}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete ({selectedIds.size})
+              Delete from Library ({selectedIds.size})
             </Button>
           </>
         )}
@@ -512,6 +515,7 @@ export function ProjectDashboard() {
               onSelectionChange={setSelectedIds}
               onEdit={setEditingDocument}
               onDelete={handleDeleteDocuments}
+              onRemoveFromProject={handleRemoveFromProject}
               onOpenFile={handleOpenFile}
             />
           )}
@@ -543,22 +547,6 @@ export function ProjectDashboard() {
         documentCount={documents.length}
       />
 
-      {/* Collection Manager Modal */}
-      <CollectionManager
-        open={showCollectionManager}
-        onClose={() => setShowCollectionManager(false)}
-        projectId={projectId!}
-      />
-
-      {/* Save to Collection Dialog */}
-      <SaveToCollectionDialog
-        open={showSaveToCollection}
-        onClose={() => setShowSaveToCollection(false)}
-        projectId={projectId!}
-        documentIds={Array.from(selectedIds)}
-        onSaved={() => setSelectedIds(new Set())}
-      />
-
       {/* Profile Editor Modal */}
       <ProfileEditor
         open={showProfileEditor}
@@ -572,6 +560,14 @@ export function ProjectDashboard() {
         onClose={() => setShowImportBundle(false)}
         projectId={projectId!}
         onImported={loadDocuments}
+      />
+
+      {/* Add From Library Dialog */}
+      <AddFromLibraryDialog
+        open={showAddFromLibrary}
+        onClose={() => setShowAddFromLibrary(false)}
+        projectId={projectId!}
+        onAdded={loadDocuments}
       />
     </div>
   )

@@ -10,12 +10,10 @@ import JSZip from 'jszip'
 import type { DocumentRecord } from './documents'
 import type { BatchKeywordSearchResult } from './analysis'
 import type { NgramAnalysisResult } from './ngrams'
-import type { Collection } from './collections'
 import type { AnalysisProfile, ProfileConfig } from './profiles'
 import type {
   BundleManifest,
   BundleDocumentData,
-  BundleCollectionData,
   BundleProfileData
 } from './import'
 
@@ -543,13 +541,12 @@ export async function exportFullProject(
 export interface LensBundleOptions {
   includeText: boolean
   includeAnalysis: boolean
-  includeCollections: boolean
   includeProfiles: boolean
   includePdfs: boolean
 }
 
 export interface LensBundleProgress {
-  phase: 'documents' | 'collections' | 'profiles' | 'pdfs' | 'packaging'
+  phase: 'documents' | 'profiles' | 'pdfs' | 'packaging'
   current: number
   total: number
   currentItem: string
@@ -588,15 +585,6 @@ export async function estimateBundleSize(
     if (options.includePdfs && doc.file_size) {
       estimatedSize += doc.file_size
     }
-  }
-
-  // Collections (roughly 200 bytes each)
-  if (options.includeCollections) {
-    const collections = await window.electron.dbQuery<{ count: number }>(
-      'SELECT COUNT(*) as count FROM collections WHERE project_id = ?',
-      [projectId]
-    )
-    estimatedSize += (collections[0]?.count || 0) * 200
   }
 
   // Profiles (roughly 1KB each)
@@ -644,7 +632,6 @@ export async function exportLensBundle(
     },
     contents: {
       documents: documents.length,
-      collections: 0,
       profiles: 0,
       includes_text: options.includeText,
       includes_analysis: options.includeAnalysis,
@@ -715,46 +702,6 @@ export async function exportLensBundle(
     }
 
     docsFolder?.file(`${doc.id}.json`, JSON.stringify(docData, null, 2))
-  }
-
-  // Export collections
-  if (options.includeCollections) {
-    const collections = await window.electron.dbQuery<Collection>(
-      'SELECT * FROM collections WHERE project_id = ?',
-      [projectId]
-    )
-
-    manifest.contents.collections = collections.length
-
-    const collsFolder = zip.folder('collections')
-    let collIndex = 0
-
-    for (const coll of collections) {
-      collIndex++
-      onProgress?.({
-        phase: 'collections',
-        current: collIndex,
-        total: collections.length,
-        currentItem: coll.name
-      })
-
-      // Get document IDs in collection
-      const docIds = await window.electron.dbQuery<{ document_id: string }>(
-        'SELECT document_id FROM collection_documents WHERE collection_id = ?',
-        [coll.id]
-      )
-
-      const collData: BundleCollectionData = {
-        id: coll.id,
-        name: coll.name,
-        description: coll.description,
-        filter_criteria: coll.filter_criteria,
-        document_ids: docIds.map(d => d.document_id),
-        created_at: coll.created_at
-      }
-
-      collsFolder?.file(`${coll.id}.json`, JSON.stringify(collData, null, 2))
-    }
   }
 
   // Export profiles

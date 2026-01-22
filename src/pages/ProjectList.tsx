@@ -28,13 +28,13 @@ export function ProjectList() {
   const loadProjects = async () => {
     try {
       setLoading(true)
-      // Load projects with document count
+      // Load projects with document count (using junction table)
       const result = await window.electron.dbQuery<Project>(`
-        SELECT 
+        SELECT
           p.*,
-          COUNT(d.id) as document_count
+          COUNT(pd.document_id) as document_count
         FROM projects p
-        LEFT JOIN documents d ON d.project_id = p.id
+        LEFT JOIN project_documents pd ON pd.project_id = p.id
         GROUP BY p.id
         ORDER BY p.updated_at DESC
       `)

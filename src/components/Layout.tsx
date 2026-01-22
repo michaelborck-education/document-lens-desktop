@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { FolderOpen, Settings, Home, Tags, HelpCircle } from 'lucide-react'
+import { FolderOpen, Settings, Home, Tags, HelpCircle, Library } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 
@@ -13,6 +13,7 @@ export function Layout() {
 
   const navItems = [
     { path: '/', icon: Home, label: 'Projects' },
+    { path: '/library', icon: Library, label: 'Document Library' },
     { path: '/keywords', icon: Tags, label: 'Keyword Lists' },
     { path: '/settings', icon: Settings, label: 'Settings' },
     { path: '/help', icon: HelpCircle, label: 'Help' },
