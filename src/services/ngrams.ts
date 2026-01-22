@@ -126,7 +126,7 @@ async function analyzeDocumentNgrams(
       topK,
       filterTerms
     )
-    ngrams = response.ngrams
+    ngrams = response.top_ngrams
   } catch (error) {
     // Fallback to local extraction
     console.warn('API n-gram analysis failed, using local extraction:', error)

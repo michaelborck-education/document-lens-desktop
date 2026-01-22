@@ -55,6 +55,7 @@ export interface ElectronAPI {
   readFile: (filePath: string) => Promise<ArrayBuffer>
   getFileStats: (filePath: string) => Promise<{ size: number; mtime: number }>
   computeFileHash: (filePath: string) => Promise<string>
+  writeFile: (filePath: string, data: ArrayBuffer | string) => Promise<{ success: boolean }>
 
   // Event listeners
   onUpdateAvailable: (callback: () => void) => () => void

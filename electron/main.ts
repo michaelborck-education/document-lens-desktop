@@ -254,3 +254,17 @@ ipcMain.handle('fs:computeFileHash', async (_, filePath: string) => {
     throw error
   }
 })
+
+ipcMain.handle('fs:writeFile', async (_, filePath: string, data: ArrayBuffer | string) => {
+  try {
+    if (typeof data === 'string') {
+      fs.writeFileSync(filePath, data, 'utf-8')
+    } else {
+      fs.writeFileSync(filePath, Buffer.from(data))
+    }
+    return { success: true }
+  } catch (error) {
+    console.error('File write error:', error)
+    throw error
+  }
+})

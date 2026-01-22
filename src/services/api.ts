@@ -536,12 +536,11 @@ export interface BatchKeywordSearchResponse {
 }
 
 export interface NgramResponse {
-  ngrams: Array<{
+  top_ngrams: Array<{
     phrase: string
     count: number
   }>
   n: number
-  total_ngrams: number
 }
 
 export interface WordAnalysisResponse {

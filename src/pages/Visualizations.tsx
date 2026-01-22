@@ -52,11 +52,33 @@ export function Visualizations() {
   const radarChartRef = useRef<HTMLDivElement>(null)
   const groupedBarRef = useRef<HTMLDivElement>(null)
 
+  // LocalStorage key for persisting keyword selection
+  const storageKey = `visualization-keywords-${projectId}`
+
   useEffect(() => {
     if (projectId) {
       loadDocuments()
     }
   }, [projectId])
+
+  // Load saved keywords after documents are loaded
+  useEffect(() => {
+    if (!loading && documents.length > 0 && !searchResults) {
+      const saved = localStorage.getItem(storageKey)
+      if (saved) {
+        try {
+          const { keywords, listName } = JSON.parse(saved)
+          if (keywords?.length > 0) {
+            // Auto-run analysis with saved keywords
+            handleKeywordSelect(keywords, listName || 'Saved Selection')
+          }
+        } catch (e) {
+          console.warn('Failed to load saved keywords:', e)
+          localStorage.removeItem(storageKey)
+        }
+      }
+    }
+  }, [loading, documents.length])
 
   const loadDocuments = async () => {
     try {
@@ -77,6 +99,13 @@ export function Visualizations() {
     setSelectedKeywords(keywords)
     setSelectedListName(listName)
     setShowKeywordSelector(false)
+
+    // Save to localStorage for persistence
+    if (keywords.length > 0) {
+      localStorage.setItem(storageKey, JSON.stringify({ keywords, listName }))
+    } else {
+      localStorage.removeItem(storageKey)
+    }
 
     if (keywords.length === 0 || documents.length === 0) {
       setSearchResults(null)
