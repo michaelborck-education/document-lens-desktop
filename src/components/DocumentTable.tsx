@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Eye,
   FolderMinus,
+  BarChart3,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -27,6 +28,7 @@ interface DocumentTableProps {
   onDelete: (documentIds: string[]) => void
   onRemoveFromProject?: (documentIds: string[]) => void
   onOpenFile: (document: DocumentRecord) => void
+  onViewStats?: (document: DocumentRecord) => void
 }
 
 export function DocumentTable({
@@ -38,6 +40,7 @@ export function DocumentTable({
   onDelete,
   onRemoveFromProject,
   onOpenFile,
+  onViewStats,
 }: DocumentTableProps) {
   const [sortField, setSortField] = useState<SortField>('created_at')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
@@ -247,6 +250,18 @@ export function DocumentTable({
                           <ExternalLink className="h-4 w-4" />
                           Open PDF
                         </button>
+                        {onViewStats && (
+                          <button
+                            className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted"
+                            onClick={() => {
+                              onViewStats(doc)
+                              setContextMenu(null)
+                            }}
+                          >
+                            <BarChart3 className="h-4 w-4" />
+                            View Stats
+                          </button>
+                        )}
                         {onRemoveFromProject && (
                           <button
                             className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted"

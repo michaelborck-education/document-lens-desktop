@@ -22,6 +22,7 @@ import {
   type NgramProgress,
 } from '@/services/ngrams'
 import { exportNgramResults } from '@/services/export'
+import { DocumentFilter } from '@/components/DocumentFilter'
 import type { DocumentRecord } from '@/services/documents'
 
 export function NgramAnalysis() {
@@ -30,6 +31,15 @@ export function NgramAnalysis() {
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
   const [progress, setProgress] = useState<NgramProgress | null>(null)
+
+  // Document filter - null means all documents
+  const [filteredDocIds, setFilteredDocIds] = useState<string[] | null>(null)
+
+  // Get filtered documents based on selection
+  const activeDocuments = useMemo(() => {
+    if (filteredDocIds === null) return documents
+    return documents.filter((d) => filteredDocIds.includes(d.id))
+  }, [documents, filteredDocIds])
 
   // Analysis parameters
   const [ngramType, setNgramType] = useState<2 | 3>(2)
@@ -69,7 +79,7 @@ export function NgramAnalysis() {
   }
 
   const runAnalysis = async () => {
-    if (documents.length === 0) return
+    if (activeDocuments.length === 0) return
 
     setAnalyzing(true)
     setProgress(null)
@@ -85,7 +95,7 @@ export function NgramAnalysis() {
         .filter((t) => t.length > 0)
 
       const analysisResults = await analyzeNgrams(
-        documents,
+        activeDocuments,
         ngramType,
         topK,
         filters.length > 0 ? filters : undefined,
@@ -210,7 +220,8 @@ export function NgramAnalysis() {
             <HelpButton section="analysis-workflows" tooltip="Learn about N-gram analysis" />
           </div>
           <p className="text-muted-foreground">
-            Extract frequent phrases from {documents.length} documents
+            Extract frequent phrases from {activeDocuments.length} document{activeDocuments.length !== 1 ? 's' : ''}
+            {filteredDocIds !== null && ` (filtered from ${documents.length})`}
           </p>
         </div>
       </div>
@@ -219,6 +230,15 @@ export function NgramAnalysis() {
       <Card className="mb-6">
         <CardContent className="pt-6">
           <div className="space-y-4">
+            {/* Document Filter */}
+            <div className="flex items-center gap-4">
+              <DocumentFilter
+                documents={documents}
+                selectedIds={filteredDocIds}
+                onChange={setFilteredDocIds}
+              />
+            </div>
+
             {/* N-gram Type Toggle */}
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium">N-gram Type:</span>
@@ -275,7 +295,7 @@ export function NgramAnalysis() {
             <div className="flex items-center gap-4">
               <Button
                 onClick={runAnalysis}
-                disabled={analyzing || documents.length === 0}
+                disabled={analyzing || activeDocuments.length === 0}
               >
                 {analyzing ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

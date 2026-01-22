@@ -12,6 +12,7 @@ import { ProfileSelector } from '@/components/ProfileSelector'
 import { ProfileEditor } from '@/components/ProfileEditor'
 import { ImportBundleDialog } from '@/components/ImportBundleDialog'
 import { AddFromLibraryDialog } from '@/components/AddFromLibraryDialog'
+import { DocumentAnalysisPanel } from '@/components/DocumentAnalysisPanel'
 import { HelpButton } from '@/components/HelpButton'
 import {
   importDocuments,
@@ -61,6 +62,7 @@ export function ProjectDashboard() {
   const [showProfileEditor, setShowProfileEditor] = useState(false)
   const [showImportBundle, setShowImportBundle] = useState(false)
   const [showAddFromLibrary, setShowAddFromLibrary] = useState(false)
+  const [statsDocument, setStatsDocument] = useState<DocumentRecord | null>(null)
 
   useEffect(() => {
     if (projectId) {
@@ -529,6 +531,7 @@ export function ProjectDashboard() {
               onDelete={handleDeleteDocuments}
               onRemoveFromProject={handleRemoveFromProject}
               onOpenFile={handleOpenFile}
+              onViewStats={setStatsDocument}
             />
           )}
         </CardContent>
@@ -580,6 +583,12 @@ export function ProjectDashboard() {
         onClose={() => setShowAddFromLibrary(false)}
         projectId={projectId!}
         onAdded={loadDocuments}
+      />
+
+      {/* Document Analysis Panel */}
+      <DocumentAnalysisPanel
+        document={statsDocument}
+        onClose={() => setStatsDocument(null)}
       />
     </div>
   )

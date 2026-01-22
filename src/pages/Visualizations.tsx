@@ -29,6 +29,7 @@ import {
   type GroupedBarDataPoint,
 } from '@/components/charts'
 import { KeywordSelector } from '@/components/KeywordSelector'
+import { DocumentFilter } from '@/components/DocumentFilter'
 import { searchKeywordsLocal, type BatchKeywordSearchResult } from '@/services/analysis'
 import type { DocumentRecord } from '@/services/documents'
 
@@ -37,6 +38,9 @@ export function Visualizations() {
   const [documents, setDocuments] = useState<DocumentRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
+
+  // Document filter - null means all documents
+  const [filteredDocIds, setFilteredDocIds] = useState<string[] | null>(null)
 
   // Keyword selection
   const [showKeywordSelector, setShowKeywordSelector] = useState(false)
@@ -54,6 +58,12 @@ export function Visualizations() {
 
   // LocalStorage key for persisting keyword selection
   const storageKey = `visualization-keywords-${projectId}`
+
+  // Get filtered documents based on selection
+  const activeDocuments = useMemo(() => {
+    if (filteredDocIds === null) return documents
+    return documents.filter((d) => filteredDocIds.includes(d.id))
+  }, [documents, filteredDocIds])
 
   useEffect(() => {
     if (projectId) {
@@ -107,19 +117,31 @@ export function Visualizations() {
       localStorage.removeItem(storageKey)
     }
 
-    if (keywords.length === 0 || documents.length === 0) {
+    if (keywords.length === 0 || activeDocuments.length === 0) {
       setSearchResults(null)
       return
     }
 
     setAnalyzing(true)
     try {
-      const results = await searchKeywordsLocal(documents, keywords, 100)
+      const results = await searchKeywordsLocal(activeDocuments, keywords, 100)
       setSearchResults(results)
     } catch (error) {
       console.error('Analysis failed:', error)
     } finally {
       setAnalyzing(false)
+    }
+  }
+
+  // Re-run analysis when filter changes (if keywords are already selected)
+  const handleFilterChange = (newIds: string[] | null) => {
+    setFilteredDocIds(newIds)
+    // Re-run analysis with current keywords if any
+    if (selectedKeywords.length > 0) {
+      // Small delay to let state update
+      setTimeout(() => {
+        handleKeywordSelect(selectedKeywords, selectedListName)
+      }, 0)
     }
   }
 
@@ -315,15 +337,21 @@ export function Visualizations() {
             <HelpButton section="user-guide" tooltip="Learn about visualizations" />
           </div>
           <p className="text-muted-foreground">
-            Explore keyword patterns across {documents.length} documents
+            Explore keyword patterns across {activeDocuments.length} document{activeDocuments.length !== 1 ? 's' : ''}
+            {filteredDocIds !== null && ` (filtered from ${documents.length})`}
           </p>
         </div>
       </div>
 
-      {/* Keyword Selection */}
+      {/* Analysis Controls */}
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
+            <DocumentFilter
+              documents={documents}
+              selectedIds={filteredDocIds}
+              onChange={handleFilterChange}
+            />
             <Button onClick={() => setShowKeywordSelector(true)}>
               Select Framework Keywords
             </Button>
