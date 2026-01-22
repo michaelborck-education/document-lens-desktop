@@ -28,7 +28,7 @@ export function Help() {
       const docs: Record<string, string> = {}
       for (const sec of HELP_SECTIONS) {
         try {
-          const response = await fetch(`/docs/${sec.id}.md`)
+          const response = await fetch(`./docs/${sec.id}.md`)
           if (response.ok) {
             docs[sec.id] = await response.text()
           }
@@ -47,7 +47,7 @@ export function Help() {
     setContent('')
 
     // Load markdown file from public/docs directory
-    fetch(`/docs/${section}.md`)
+    fetch(`./docs/${section}.md`)
       .then(response => {
         if (!response.ok) throw new Error('File not found')
         return response.text()
