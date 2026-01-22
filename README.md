@@ -21,11 +21,13 @@ Document Lens Desktop enables researchers to:
 ## Features
 
 ### Core Features
-- Project/collection management for organizing document batches
+- Project-based organization with document library (documents can belong to multiple projects)
 - Drag-and-drop PDF import with auto-metadata detection
 - Pre-built keyword lists for TCFD (~68), SDGs (~412), GRI (~118), and SASB (~108) frameworks
 - Custom keyword list creation with CSV import support
 - Cross-document keyword search with context highlighting
+- Quick Filter for ad-hoc document subset analysis
+- Individual document statistics (word count, readability scores, top keywords)
 - N-gram analysis (bigrams and trigrams)
 - Cross-framework comparison with radar charts
 

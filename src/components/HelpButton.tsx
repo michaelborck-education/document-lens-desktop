@@ -18,7 +18,7 @@ interface HelpButtonProps {
  * Context-specific help button that links to relevant documentation
  *
  * Usage:
- * <HelpButton section="user-guide" anchor="#virtual-collections" tooltip="Learn about collections" />
+ * <HelpButton section="user-guide" tooltip="Learn about document library" />
  */
 export function HelpButton({ section = 'user-guide', tooltip = 'View help' }: HelpButtonProps) {
   return (

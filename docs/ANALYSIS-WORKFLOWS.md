@@ -13,10 +13,9 @@ Compare sustainability reporting maturity across years: Did companies strengthen
 
 **Project**: "Climate Report Trends"
 
-**Collections**:
-- "2022 Reports" (15 documents)
-- "2023 Reports" (18 documents)
-- "2024 Reports" (20 documents)
+**Documents**: Import all reports, add metadata:
+- Company name
+- Report year (2022, 2023, 2024)
 
 **Profiles**:
 - "TCFD Climate Risk" (active):
@@ -25,14 +24,11 @@ Compare sustainability reporting maturity across years: Did companies strengthen
 
 ### Steps
 
-#### 1. Create Collections
+#### 1. Import & Tag Documents
 ```
-Collections → New Collection
-→ Name: "2022 Reports"
-→ Select all 2022 PDFs
-→ Save
-
-Repeat for 2023 and 2024
+Project → Import PDFs → Select all reports
+For each document:
+  → Edit metadata → Set report_year (2022, 2023, 2024)
 ```
 
 #### 2. Set Up Profile
@@ -46,58 +42,35 @@ Profiles → New Profile
 
 #### 3. Keyword Search by Year
 ```
-Keyword Search
-→ Collection: "2022 Reports"
-→ Run search
-→ Note: "net zero" appears in 3/15 documents (20%)
-→ Export results
+Keyword Search → Run on all documents
+→ Export results to CSV
+→ In Excel, filter by report_year column
 
-Repeat for 2023: 8/18 documents (44%)
-Repeat for 2024: 16/20 documents (80%)
+2022: "net zero" appears in 3/15 documents (20%)
+2023: 8/18 documents (44%)
+2024: 16/20 documents (80%)
 ```
 
 **Finding**: Net zero commitments mentioned 4x more frequently in 2024 vs 2022
 
-#### 4. Visualize Trend
+#### 4. Visualize with Quick Filter
 ```
-Visualizations
-→ View "Keyword Frequency" across years
-→ Export chart showing increasing mention of:
-  - Net zero targets
-  - Science-based targets
-  - Climate governance
-```
+Visualizations page
+→ Use Quick Filter → Select only 2022 documents
+→ Note keyword distribution
+→ Change Quick Filter to 2024 documents
+→ Compare keyword distribution
 
-#### 5. Comparative Analysis
-```
-Comparative Analysis
-→ Collection A: "2022 Reports"
-→ Collection B: "2024 Reports"
-→ Compare tabs:
-
-Sentiment: 2022 = 40% positive, 2024 = 75% positive
-  → Companies sound more confident about climate action
-
-Keywords: 2022 mentions emissions 150x, 2024 mentions 400x
-  → Increased focus on measurement
-
-Domains: 2024 scores higher on Metrics & Targets
-  → Companies setting more quantified targets
-
-Writing Quality: Both similar readability
-  → Clarity hasn't changed, just depth
+Export both charts for comparison
 ```
 
-#### 6. Export Report
+#### 5. N-gram Analysis by Year
 ```
-Project → Export
-→ Include:
-  ☑ Collections
-  ☑ Profiles
-  ☑ Analysis Results
-  ☑ Extracted Text
-→ Share .lens file with stakeholders
-→ They can verify findings independently
+N-gram Analysis
+→ Use Quick Filter → Select 2022 documents
+→ Run analysis → Note common phrases
+→ Change Quick Filter to 2024 documents
+→ Compare phrase evolution
 ```
 
 ### Key Insights
@@ -117,82 +90,47 @@ Compare how different regional markets approach sustainability reporting.
 
 **Project**: "Global Sustainability Reporting"
 
-**Collections**:
-- "EU Companies" (12 documents) - European registered
-- "US Companies" (15 documents) - US-headquartered
-- "APAC Companies" (10 documents) - Australia, Japan, Singapore
+**Documents**: Import all reports with metadata:
+- Company name
+- Country/Region (EU, US, APAC)
 
 **Profiles**:
 - "GRI Full" (active):
   - All GRI keywords
   - All domains
-  - Sentiment analysis enabled
 
 ### Steps
 
 #### 1. Import & Organize
 ```
-Import 37 PDFs with company region metadata
-Collections → New Collection → "EU Companies"
-→ Select documents with region="EU"
-→ Repeat for US and APAC
+Import 37 PDFs with region metadata:
+→ Edit each document → Set country or add "EU", "US", "APAC" to company name
 ```
 
-#### 2. Keyword Analysis by Region
+#### 2. Regional Analysis with Quick Filter
 ```
-Keyword Search
-→ Collection: "EU Companies"
-→ Search for GRI keywords
-→ Note high emphasis on:
-  - Human rights
-  - Supply chain governance
-  - Environmental compliance
-→ Export
+Keyword Search → Run on all documents
+→ Export results
 
-Repeat for US: Higher emphasis on energy efficiency, innovation
-Repeat for APAC: Mixed, some companies weak on disclosure
-```
-
-#### 3. Regional Comparisons
-
-**EU vs US**
-```
-Comparative Analysis
-→ Collection A: "EU Companies"
-→ Collection B: "US Companies"
-
-Sentiment: Similar (both ~60% positive)
-
-Keywords:
-  EU: Environmental (200x), Human Rights (80x)
-  US: Energy (250x), Innovation (120x)
-  → EU stronger on ESG breadth, US on energy
-
-Domains:
-  EU: Well-balanced across all domains
-  US: Heavy on Strategy & Metrics, lighter on Governance
-  → EU more holistic approach
-
-Writing: US slightly more technical language
+Visualizations page:
+→ Quick Filter → Select only EU companies
+→ Export chart
+→ Quick Filter → Select only US companies
+→ Export chart
+→ Quick Filter → Select only APAC companies
+→ Export chart
 ```
 
-**EU vs APAC**
+#### 3. Compare Results
 ```
-Comparative Analysis
-→ Collection A: "EU Companies"
-→ Collection B: "APAC Companies"
+EU findings:
+- High emphasis on: Human rights, Supply chain governance, Environmental compliance
 
-Sentiment: EU (65% positive), APAC (45% positive)
-→ APAC companies more cautious/realistic tone
+US findings:
+- Higher emphasis on: Energy efficiency, Innovation
 
-Keywords: EU mentions sustainability 3x more often
-→ Stronger alignment with regional regulations (CSRD)
-
-Domains: EU scores higher on Risk Management
-→ Better awareness of climate risks
-
-Writing: APAC reports shorter (8th vs 9th grade level)
-→ Possible translation issue or simpler approach
+APAC findings:
+- Mixed, some companies weak on disclosure
 ```
 
 #### 4. Key Findings
@@ -200,84 +138,56 @@ Writing: APAC reports shorter (8th vs 9th grade level)
 - **US**: Market-driven, efficiency/innovation focus, less governance detail
 - **APAC**: Emerging maturity, variable disclosure, fewer net zero targets
 
-#### 5. Report
-```
-Export → Create report comparing:
-- Regulatory environment impact
-- Regional disclosure standards
-- Competitive positioning
-- Investor expectations
-```
-
 ---
 
 ## Workflow 3: Company Deep-Dive Across Years
 
 ### Goal
-Understand one company's sustainability evolution: How has [Company]'s reporting changed?
+Understand one company's sustainability evolution: How has Nike's reporting changed?
 
 ### Setup
 
 **Project**: "Nike Sustainability Journey"
 
-**Collections**:
-- "Nike 2020" (1 document)
-- "Nike 2021" (1 document)
-- "Nike 2022" (1 document)
-- "Nike 2023" (1 document)
+**Documents**:
+- Nike 2020 Sustainability Report
+- Nike 2021 Sustainability Report
+- Nike 2022 Sustainability Report
+- Nike 2023 Sustainability Report
 
-**Profiles**:
+**Profile**:
 - "SASB + GRI Combined":
   - Keywords: Labor practices, environmental impact, governance, supply chain, innovation
   - Domains: All
-  - Sentiment analysis enabled
 
 ### Steps
 
-#### 1. Single-Company Collections
+#### 1. Import Company Reports
 ```
-Collections → New
-→ Name: "Nike 2020"
-→ Add Nike's 2020 sustainability report
-→ Save
-
-Repeat for 2021, 2022, 2023
+Import 4 Nike sustainability reports
+Edit each → Set report_year (2020, 2021, 2022, 2023)
 ```
 
-#### 2. Keyword Trends
+#### 2. View Individual Document Stats
 ```
-Keyword Search
-→ Collection: "Nike 2020"
-→ Search all keywords
-→ Results: Labor practices mentioned 120x, environmental 90x, etc.
+For each document:
+→ Click "..." menu → View Stats
+→ Note word count, readability, top keywords
 
-Export results
-
-Repeat for each year
-→ Create timeline showing keyword evolution
+Compare evolution:
+2020: 45,000 words, Grade 10 reading level
+2023: 62,000 words, Grade 9 reading level
+→ Reports getting longer and more accessible
 ```
 
-#### 3. Deep Analysis: 2020 vs 2023
+#### 3. Keyword Trends
 ```
-Comparative Analysis
-→ Collection A: "Nike 2020"
-→ Collection B: "Nike 2023"
+Keyword Search → Run search
+→ Export results
+→ Filter by document to see year-over-year changes
 
-Sentiment: 2020 (50% positive), 2023 (70% positive)
-→ More confident tone
-
-Keywords:
-  - "Sustainable materials" 25x → 120x (4.8x increase!)
-  - "Carbon neutral" 5x → 45x (9x increase!)
-  - "Worker welfare" 80x → 140x (1.75x increase)
-  → Clear strategic shift toward environmental impact
-
-Domains:
-  - 2020: Balanced
-  - 2023: Heavy on Metrics & Strategy
-  → Company now leading on measurement
-
-Writing: Consistent readability, more professional
+"Sustainable materials": 25 mentions (2020) → 120 mentions (2023)
+"Carbon neutral": 5 mentions (2020) → 45 mentions (2023)
 ```
 
 #### 4. Interpretation
@@ -285,17 +195,6 @@ Writing: Consistent readability, more professional
 - Increased measurement/target-setting
 - "Sustainable materials" becoming core strategy
 - More confident public messaging
-
-#### 5. Create Report
-```
-Show progression:
-- 2020: Compliance-focused ("worker welfare")
-- 2021: Transition year (new commitments)
-- 2022: Execution phase (metrics rising)
-- 2023: Leadership narrative (confidence up)
-
-Hypothesis: Regulatory/investor pressure drove shift
-```
 
 ---
 
@@ -308,60 +207,49 @@ Analyze how well boards are addressing governance issues highlighted by SASB fra
 
 **Project**: "SASB Governance Review"
 
-**Collections**:
-- "Financial Services" (8 companies)
-- "Technology" (7 companies)
-- "Manufacturing" (6 companies)
+**Documents**: Import reports from multiple industries with metadata:
+- Industry (Financial Services, Technology, Manufacturing)
 
 **Profile**:
 - "SASB Governance" (active):
   - Keywords: Board composition, executive compensation, risk oversight, audit committee, shareholder rights
   - Domain: Governance only
-  - Other analysis types disabled (for speed)
 
 ### Steps
 
-#### 1. Governance-Only Collections
+#### 1. Industry-Specific Analysis
 ```
-Collections grouped by industry (SASB material issues vary by sector)
+Visualizations page:
+→ Quick Filter → Select Financial Services companies only
+→ View keyword distribution
+→ Export chart
+
+→ Quick Filter → Select Technology companies only
+→ View keyword distribution
+→ Export chart
+
+Compare results
 ```
 
 #### 2. Governance Keyword Search
 ```
-Keyword Search
-→ Collection: "Financial Services"
-→ Run SASB governance keywords
+Keyword Search → Run on all documents
 
 Results show:
-- "Board composition" mentioned in 7/8 (87%)
+Financial Services:
+- "Board composition" in 7/8 (87%)
 - "Risk oversight" in 5/8 (62%)
 - "Audit committee" in 8/8 (100%)
-- "Shareholder rights" in 3/8 (37%)
 
-Finding: All discuss audit, but few discuss shareholder engagement
+Technology:
+- "Board diversity" mentioned 120x
+- "Compensation" mentioned 80x
 ```
 
-#### 3. Inter-Sector Comparison
-```
-Comparative Analysis
-→ Collection A: "Financial Services"
-→ Collection B: "Technology"
-
-Keywords:
-- Financial: "Audit committee" 85x, "Risk oversight" 45x
-- Tech: "Board diversity" 120x, "Compensation" 80x
-→ Tech emphasizes diversity, Finance emphasizes risk
-
-Governance focus differs by sector as expected
-```
-
-#### 4. Governance Gaps
-```
-Export results showing:
-- Which governance topics each company addresses
-- Comparative strength on different governance dimensions
-- Gaps where companies lag peers
-```
+#### 3. Findings
+- Financial: Emphasizes audit and risk oversight
+- Tech: Emphasizes diversity and compensation
+- Governance focus differs by sector as expected
 
 ---
 
@@ -374,8 +262,7 @@ Compare how the same reports address different frameworks' requirements.
 
 **Project**: "Framework Analysis"
 
-**Collections**:
-- "All Company Reports" (25 documents)
+**Documents**: 25 company reports
 
 **Profiles** (create 3 separate ones):
 - "TCFD Focus": TCFD keywords only
@@ -430,14 +317,6 @@ SASB Coverage:
 - **GRI**: Environmental reporting well-developed, social less comprehensive
 - **SASB**: Governance topics ubiquitous, but SASB not driving strategy
 
-#### 5. Recommendation Report
-```
-For regulators/investors:
-- Companies understand frameworks conceptually
-- Weak on quantified commitments
-- Need better integration with strategy/targets
-```
-
 ---
 
 ## Workflow 6: M&A Due Diligence
@@ -449,41 +328,39 @@ Quickly assess sustainability/governance health of acquisition target.
 
 **Project**: "Acme Corp - Acquisition Due Diligence"
 
-**Collections**:
-- "Acme 3-Year Reports" (3 documents) - Last 3 sustainability reports
+**Documents**: Last 3 sustainability reports from target company
 
-**Profiles**:
+**Profile**:
 - "Acquisition Risk Assessment":
   - Keywords: Governance, risk management, compliance, environmental liabilities, litigation
   - Domains: Governance, Risk Management
-  - Analysis: Sentiment (tone indicates confidence/concern)
 
 ### Steps
 
 #### 1. Import Target's Reports
 ```
 Import last 3 years of sustainability reports
-Group into single collection: "Acme 3-Year Reports"
+Edit metadata → Add report_year
 ```
 
 #### 2. Quick Red Flag Scan
 ```
-Keyword Search
-→ High frequency of: "risk", "litigation", "compliance" = potential issues
-→ Sentiment analysis: Negative tone = defensive posture
+Keyword Search → Run
+→ Look for high frequency of: "risk", "litigation", "compliance"
+→ High mentions = potential issues
 
-Run searches:
+Results:
 - "Litigation": Found in 2/3 reports → Red flag
 - "Environmental liability": Found in 1/3 reports → Potential cost
 - "Governance changes": Found 3x → Instability?
 ```
 
-#### 3. Trend Analysis
+#### 3. View Stats for Each Year
 ```
-Visualizations
-→ Are governance mentions increasing (good) or decreasing (bad)?
-→ Is sentiment getting more positive (improving) or negative (declining)?
-→ Are environmental/social commitments strengthening?
+For each document → View Stats
+→ Check sentiment trend
+→ Check readability trend
+→ Are reports getting more or less transparent?
 ```
 
 #### 4. Due Diligence Report
@@ -497,7 +374,6 @@ Recommendation:
 - Conduct environmental site assessment
 - Review litigation history
 - Request full governance documentation
-- Sensitivity: $X million potential liability
 ```
 
 ---
@@ -511,8 +387,7 @@ Determine which ESG issues matter most to your industry peers.
 
 **Project**: "Energy Sector Materiality"
 
-**Collections**:
-- "All Energy Companies" (20 reports from energy sector)
+**Documents**: 20 reports from energy sector
 
 **Profiles** (create multiple):
 - "Climate Materiality": Climate, emissions, energy efficiency
@@ -549,22 +424,7 @@ High consensus = table stakes, must address
 Low consensus = differentiator, optional
 ```
 
-#### 3. Materiality Matrix
-```
-Create matrix:
-         Low Frequency | High Frequency
-Low Consensus |   Ignore   | Emerging
-High Consensus| Table      | Critical
-              | Stakes     |
-
-Position each ESG issue:
-Climate risks: High/High → CRITICAL (must address)
-Board diversity: High/High → CRITICAL
-Labor practices: Medium/High → Important but less discussed
-Community: Low/Low → Nice-to-have
-```
-
-#### 4. Strategic Implications
+#### 3. Strategic Implications
 ```
 - Allocate resources to critical materiality items
 - Monitor emerging issues
@@ -585,62 +445,44 @@ Hypothesis: Companies in mandatory disclosure jurisdictions (EU-CSRD) set more a
 
 **Project**: "Disclosure Standards Study"
 
-**Collections**:
-- "EU Companies (Mandatory)" (25 reports)
-- "US Companies (Voluntary)" (25 reports)
+**Documents**:
+- 25 EU company reports (tagged with region=EU)
+- 25 US company reports (tagged with region=US)
 
-**Profiles**:
+**Profile**:
 - "Climate Target Analysis": Keywords focused on net zero, carbon reduction, renewable energy, science-based targets
 
 ### Steps
 
 #### 1. Target-Setting Frequency
 ```
-Keyword Search
-→ Collection: "EU Companies"
-→ Search for target keywords
+Keyword Search → Run on all documents
+→ Export results
+
+Use Quick Filter for EU companies:
 → 24/25 (96%) have quantified targets
 → Average 8.3 targets per company
 
-Keyword Search
-→ Collection: "US Companies"
-→ Search for target keywords
+Use Quick Filter for US companies:
 → 18/25 (72%) have quantified targets
 → Average 4.2 targets per company
 
 Finding: Mandatory disclosure correlates with more targets
 ```
 
-#### 2. Target Specificity
+#### 2. N-gram Analysis by Region
 ```
-Manual review of target details:
-- EU: Typically science-based, 2030 + 2050 roadmap
-- US: More varied, some vague ("reduce emissions significantly")
+N-gram Analysis
+→ Quick Filter → EU companies
+→ Common phrases: "science-based targets", "2030 reduction", "net zero 2050"
+
+→ Quick Filter → US companies
+→ Common phrases: "reduce emissions", "environmental goals", "sustainability initiatives"
 
 EU targets more specific and science-aligned
 ```
 
-#### 3. Comparative Analysis
-```
-Comparative Analysis
-→ Collection A: "EU Companies"
-→ Collection B: "US Companies"
-
-Keywords:
-- EU: "Net zero" 340x, "Science-based" 280x, "2050" 210x
-- US: "Net zero" 95x, "Reduce emissions" 150x, "2050" 60x
-→ EU much more explicit on net zero science-based pathway
-
-Sentiment:
-- EU: Confident about targets
-- US: More cautious tone
-
-Writing:
-- EU: More technical language (indicates serious analysis)
-- US: More marketing language
-```
-
-#### 4. Paper Structure
+#### 3. Paper Structure
 ```
 Introduction: Research question
 Methods: 50 reports, 2 regions, keyword analysis
@@ -648,14 +490,13 @@ Results: Data showing EU leads on target-setting
 Discussion: Regulatory mandate drives disclosure quality
 Conclusion: Policy works - mandatory disclosure improves targets
 
-Appendix: .lens bundle with all data, profiles, analysis
+Appendix: Export .lens bundle with all data, profiles, analysis
 → Allows peer verification and extension
 ```
 
-#### 5. Publish with Reproducibility
+#### 4. Publish with Reproducibility
 ```
 Export .lens bundle with:
-✓ All collections
 ✓ All profiles
 ✓ All analysis results
 ✓ Extracted text
@@ -671,41 +512,39 @@ Publish alongside paper
 
 ### When to Use Each Analysis Type
 
-| Analysis | Best For | Time | Complexity |
-|----------|----------|------|-----------|
-| Keyword Search | Quick scans, trend spotting | 5 min | Low |
-| Collections | Organizing large datasets | 10-30 min | Low |
-| Comparative | Understanding differences | 15-30 min | Medium |
-| Visualizations | Presenting to stakeholders | 10 min | Low |
-| N-gram Analysis | Deep linguistic analysis | 20 min | High |
-| Profiles + Switch | Multi-lens research | Varies | Medium |
+| Analysis | Best For |
+|----------|----------|
+| Keyword Search | Quick scans, finding specific terms |
+| Quick Filter | Ad-hoc subset analysis |
+| View Stats | Individual document deep-dive |
+| Visualizations | Pattern recognition, presentations |
+| N-gram Analysis | Language patterns, common phrases |
+| Profile Switching | Multi-framework research |
 
 ### Analysis Checklist
 
 Before starting research:
 - [ ] Define research question clearly
-- [ ] Organize documents into collections
+- [ ] Import documents with consistent metadata
 - [ ] Create profile(s) matching framework(s)
-- [ ] Run pilot analysis on small subset
-- [ ] Document methodology for reproducibility
+- [ ] Test analysis on small subset (use Quick Filter)
+- [ ] Document your methodology for reproducibility
 - [ ] Plan export/sharing strategy
-- [ ] Identify when backend/offline affects results
 
 ### Collaboration Tips
 
 When sharing .lens bundles:
-- Include detailed collection descriptions
+- Include detailed document metadata
 - Name profiles clearly ("TCFD Focus" vs "GRI Focus")
-- Write quick README about your methodology
-- Version your bundles (v1, v2) if iterating
 - Export with analysis results + profiles for reproducibility
+- Version your bundles (v1, v2) if iterating
 
 ---
 
 ## Next Steps
 
 1. Start with Workflow 1 (Year-over-Year) - simplest entry point
-2. Move to Workflow 2 (Regional) - manageable complexity
+2. Move to Workflow 2 (Regional) - uses Quick Filter for comparison
 3. Try Workflow 7 (Materiality) - directly useful for strategy
 4. Explore others based on your research needs
 

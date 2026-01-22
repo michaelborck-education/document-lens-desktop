@@ -7,13 +7,14 @@ A desktop application for batch PDF analysis of corporate reports using research
 1. [Quick Start](#quick-start)
 2. [Core Concepts](#core-concepts)
 3. [Basic Workflow](#basic-workflow)
-4. [Virtual Collections](#virtual-collections)
-5. [Analysis Profiles](#analysis-profiles)
-6. [Keyword Search](#keyword-search)
-7. [Comparative Analysis](#comparative-analysis)
-8. [Visualizations](#visualizations)
-9. [Data Export](#data-export)
-10. [Collaboration](#collaboration)
+4. [Document Library](#document-library)
+5. [Quick Filter](#quick-filter)
+6. [Document Analysis](#document-analysis)
+7. [Analysis Profiles](#analysis-profiles)
+8. [Keyword Search](#keyword-search)
+9. [Visualizations](#visualizations)
+10. [Data Export](#data-export)
+11. [Collaboration](#collaboration)
 
 ---
 
@@ -25,45 +26,61 @@ A desktop application for batch PDF analysis of corporate reports using research
 - Click **Create**
 
 ### 2. Import Documents (PDFs)
-- Inside your project, click **"Import Documents"**
-- Select one or more PDF files
+- Inside your project, click **"Import PDFs"** or drag files into the drop zone
+- Alternatively, click **"Add from Library"** to use documents already in your library
 - App automatically extracts text and stores metadata
 - Documents appear in the project dashboard
 
 ### 3. Start Analyzing
 - Click **"Keyword Search"** to find framework keywords
 - Click **"Visualizations"** to see keyword frequency
-- Click **"Settings"** to configure the backend API
+- Click **"N-gram Analysis"** to find common phrases
+- Use **Quick Filter** on any analysis page to focus on specific documents
 
 ---
 
 ## Core Concepts
 
-### Virtual Collections
-**What**: Logical groupings of documents within a project.
+### Document Library
+**What**: A central repository of all PDFs you've imported into Document Lens.
 
-**Why**: Organize documents by year, region, company, or analysis theme without duplicating files.
+**Why**: Documents can be reused across multiple projects without duplicating files. Import once, use everywhere.
+
+**Key Points**:
+- Access via **"Document Library"** from the home screen
+- One document can belong to multiple projects
+- Delete from library removes from all projects
+- Remove from project keeps document in library
+
+### Projects
+**What**: Organizational containers for grouping related documents together.
+
+**Why**: Separate different research efforts, time periods, or themes.
 
 **Examples**:
-- Year-based: "2023 Reports", "2024 Reports"
-- Region-based: "EU Companies", "Asia-Pacific"
-- Theme-based: "Climate Reports", "Energy Transition"
+- "2024 Climate Reports"
+- "Banking Sector Analysis"
+- "Regional Comparison Study"
+
+### Quick Filter
+**What**: Ad-hoc filtering on analysis pages to include/exclude specific documents.
+
+**Why**: Analyze any subset of your project's documents without creating separate projects.
+
+**Use Cases**:
+- Compare just 3 specific companies
+- Analyze only documents from 2023
+- Focus on documents that mention certain topics
 
 ### Analysis Profiles
 **What**: Saved sets of keyword searches and domain settings for repeated analysis.
 
-**Why**: Reuse the same analysis configuration across different document collections without reconfiguring every time.
+**Why**: Reuse the same analysis configuration across different projects.
 
 **Examples**:
 - "TCFD Climate Risks" - TCFD keywords + climate domain focus
 - "SDG Mapping" - SDG keywords + all domains
 - "Board Governance" - SASB governance keywords + governance domain
-
-### Research Lens (Active Profile)
-Only one profile is "active" per project. This profile's settings are used by default in:
-- Keyword Search page
-- Comparative Analysis
-- N-gram Analysis
 
 ---
 
@@ -73,119 +90,189 @@ Only one profile is "active" per project. This profile's settings are used by de
 
 **Step 1: Create Project**
 ```
-Projects → New Project → Name: "2024 Climate Reports"
+Home → New Project → Name: "2024 Climate Reports"
 ```
 
 **Step 2: Import Documents**
 ```
-Project Dashboard → Import Documents → Select 10 PDFs
+Project Dashboard → Import PDFs → Select 10 PDFs
 Wait for extraction complete (shows progress bar)
+
+Or: Add from Library → Select existing documents
 ```
 
-**Step 3: Create Virtual Collections** (optional, but recommended)
+**Step 3: Add Document Metadata** (optional, but recommended)
 ```
-Collections → New Collection
-- Name: "Europe 2024"
-- Description: "EU-domiciled companies"
-- Select documents from dashboard (auto-filters by region metadata)
-- Save Collection
-```
-
-**Step 4: Set Up Analysis Profile**
-```
-Profiles → New Profile
-- Name: "TCFD Climate Analysis"
-- Select TCFD keywords:
-  ☑ Climate risks
-  ☑ Physical risks
-  ☑ Transition risks
-  ☑ Governance
-- Select domains:
-  ☑ Governance
-  ☑ Strategy
-  ☑ Risk Management
-  ☑ Metrics & Targets
-- Make Active (star icon)
+Click document row → Edit → Add metadata:
+- Company name
+- Report year
+- Industry
+- Country
 ```
 
-**Step 5: Run Analysis**
+**Step 4: Run Keyword Search**
 ```
-Keyword Search → (Uses active profile)
-→ Shows keyword occurrences by document
+Keyword Search → Select framework (e.g., TCFD)
+→ Click keywords to search for
+→ View results showing which documents contain keywords
 → Export results as CSV/Excel
 ```
 
-**Step 6: Compare Collections**
+**Step 5: Use Quick Filter for Subset Analysis**
 ```
-Comparative Analysis
-→ Select Collection A: "Europe 2024"
-→ Select Collection B: "Asia-Pacific 2024"
-→ Click "Compare Collections"
-→ See side-by-side metrics:
-  - Sentiment distribution
-  - Keyword coverage
-  - Domain distribution
-  - Writing quality scores
+Visualizations → Click "All Documents" dropdown
+→ Select "Select specific documents..."
+→ Check the 3 companies you want to compare
+→ Apply → Analysis updates to show only those documents
+```
+
+**Step 6: View Individual Document Stats**
+```
+Documents tab → Click "..." menu on document row
+→ "View Stats"
+→ See word count, readability scores, top keywords
 ```
 
 ---
 
-## Virtual Collections
+## Document Library
 
-### Creating a Collection
+### Accessing the Library
+1. From home screen, click **"Document Library"**
+2. Or click **"Library"** in the sidebar
 
-#### Method 1: From Dashboard (Recommended)
-1. Go to project **Collections** tab
-2. Click **"New Collection"**
-3. Enter name & description
-4. **Manually select documents** from the list
-5. (Optional) Add filter criteria for documentation
-6. Click **Create**
+### Library Features
 
-#### Method 2: From Filtered View (Future)
-1. Go to **Keyword Search** or **Documents** tab
-2. Apply filters (e.g., year=2023, company="Acme")
-3. See 15 matching documents
-4. Click **"Save as Collection"**
-5. Name it, confirm documents, create
+**View All Documents**
+- See every PDF you've ever imported
+- Search/filter by filename, company, year
+- Sort by any column
 
-### Using Collections
+**Add to Projects**
+- Select documents → **"Add to Project"**
+- Choose one or more projects
+- Documents remain in library and appear in projects
 
-**View Collection Details**
+**Remove vs Delete**
+- **Remove from Project**: Document stays in library, removed from one project
+- **Delete from Library**: Permanently removes document from everywhere
+
+### Importing New Documents
+
+**Method 1: Import to Project**
 ```
-Collections → Click collection name
-→ See all documents in collection
-→ Add/remove documents
-→ Run analysis on just this collection
-```
-
-**Analyze Within a Collection**
-```
-Keyword Search → Filter by Collection: "Europe 2024"
-→ Search runs only on documents in that collection
-→ Faster, more focused results
+Project Dashboard → Import PDFs
+Documents added to both library AND current project
 ```
 
-**Export Collection**
+**Method 2: Import to Library Only**
 ```
-Collections → Right-click collection
-→ Export as .lens bundle
-→ Choose options:
-  ☐ Include extracted text
-  ☐ Include analysis results
-  ☐ Include original PDFs
-→ Share with colleagues
+Document Library → Import PDFs
+Documents added to library, can assign to projects later
 ```
 
-### Collection Use Cases
+### Document Metadata
 
-| Use Case | Collection Strategy | Benefits |
-|----------|-------------------|----------|
-| **Year-over-year analysis** | Create yearly collections (2022, 2023, 2024) | Compare trends across years |
-| **Regional analysis** | Group by geography (EU, APAC, Americas) | Identify regional differences |
-| **Company deep-dive** | Create separate collections per company | Focus on one company at a time |
-| **Framework focus** | "Climate Reports", "Energy Reports" | Themed research |
-| **Quality testing** | "Pilot" collection with small sample | Test analysis before full dataset |
+Each document can have:
+- **Filename**: Auto-detected from PDF
+- **Company Name**: For organizing by company
+- **Report Year**: For temporal analysis
+- **Industry**: For sector comparisons
+- **Country**: For regional analysis
+- **Report Type**: (e.g., Annual Report, Sustainability Report)
+
+---
+
+## Quick Filter
+
+### What Is Quick Filter?
+
+Quick Filter lets you analyze a subset of documents without modifying your project. Available on:
+- Visualizations page
+- N-gram Analysis page
+
+### Using Quick Filter
+
+1. Navigate to **Visualizations** or **N-gram Analysis**
+2. Click the **filter dropdown** (shows "All Documents" by default)
+3. Select **"Select specific documents..."**
+4. In the dialog, check the documents you want to include
+5. Click **Apply Filter**
+6. Analysis re-runs with only selected documents
+
+### Quick Filter vs Projects
+
+| Feature | Quick Filter | Projects |
+|---------|--------------|----------|
+| Scope | Temporary, per-session | Permanent organization |
+| Storage | Not saved | Saved to database |
+| Use case | Ad-hoc exploration | Ongoing research |
+| Sharing | Not exportable | Exportable in bundles |
+
+### When to Use Quick Filter
+
+**Good for:**
+- "Let me just check these 3 documents quickly"
+- "What if I exclude the outlier company?"
+- "Compare documents from a single year"
+
+**Better as a Project:**
+- Repeated analysis on same subset
+- Need to share with colleagues
+- Part of your research methodology
+
+---
+
+## Document Analysis
+
+### Viewing Individual Document Stats
+
+1. Go to your project's **Documents** tab
+2. Find the document you want to analyze
+3. Click the **"..."** menu (three dots) on that row
+4. Select **"View Stats"**
+
+### Available Metrics
+
+**Text Statistics**
+- Word count
+- Sentence count
+- Paragraph count
+- Average sentence length
+
+**Readability Scores**
+- Flesch Reading Ease (0-100, higher = easier to read)
+- Flesch-Kincaid Grade Level
+- Gunning Fog Index
+
+**Writing Quality**
+- Vocabulary richness (unique words / total words)
+- Passive voice ratio
+
+**Top Words**
+- Most frequently used words in the document
+- Excludes common stop words
+
+### Interpreting Readability
+
+| Flesch Score | Difficulty | Typical Audience |
+|--------------|------------|------------------|
+| 90-100 | Very Easy | 5th grade |
+| 80-89 | Easy | 6th grade |
+| 70-79 | Fairly Easy | 7th grade |
+| 60-69 | Standard | 8th-9th grade |
+| 50-59 | Fairly Difficult | College |
+| 30-49 | Difficult | College graduate |
+| 0-29 | Very Difficult | Professional |
+
+### Running Analysis
+
+Documents must be analyzed before stats are available:
+1. Go to project **Analysis** section
+2. Click **"Run Analysis"**
+3. Select analysis types (text metrics, readability, etc.)
+4. Analysis runs on all documents in project
+5. Stats now available via "View Stats"
 
 ---
 
@@ -211,25 +298,8 @@ For each framework:
 ☑ Select specific keywords to search for
 ```
 
-5. Select analysis domains:
-```
-Domains (affects domain mapping analysis):
-☑ Governance
-☑ Strategy
-☑ Risk Management
-☑ Metrics & Targets
-☑ (Add custom domains)
-```
-
-6. Choose analysis types:
-```
-☑ Sentiment Analysis (if backend available)
-☑ Domain Mapping
-☑ Keyword Coverage
-☑ Writing Quality
-```
-
-7. Save profile
+5. Select analysis domains
+6. Save profile
 
 ### Making a Profile Active
 
@@ -238,11 +308,7 @@ Profiles → Click profile name
 → Click "Make Active" (star icon)
 ```
 
-**Result**: This profile's settings are now used by default in:
-- Keyword Search
-- Comparative Analysis
-- N-gram Analysis
-- Exports
+**Result**: This profile's settings are now used by default in Keyword Search.
 
 ### Profile Examples
 
@@ -250,9 +316,8 @@ Profiles → Click profile name
 ```
 Name: "TCFD Climate Analysis"
 Frameworks: TCFD only
-  Keywords: climate risks, physical risks, transition risks, emissions
+Keywords: climate risks, physical risks, transition risks, emissions
 Domains: Governance, Strategy, Risk Management, Metrics
-Use: For climate-focused reports
 ```
 
 #### Profile 2: Holistic Sustainability
@@ -261,16 +326,6 @@ Name: "Full Sustainability"
 Frameworks: TCFD + GRI + SDGs
 Keywords: All (30+ keywords across frameworks)
 Domains: All
-Use: For comprehensive analysis across all reports
-```
-
-#### Profile 3: Governance Deep-Dive
-```
-Name: "Board Governance"
-Frameworks: SASB (governance focus)
-Keywords: Board composition, executive compensation, risk oversight
-Domains: Governance only
-Use: For governance-focused research
 ```
 
 ---
@@ -280,11 +335,10 @@ Use: For governance-focused research
 ### Basic Search
 
 1. Go to **Keyword Search**
-2. (Optional) Select a collection to limit search scope
-3. Your active profile's keywords are pre-selected
-4. Modify keyword selection if needed:
+2. Your active profile's keywords are pre-selected
+3. Modify keyword selection if needed:
    - Check/uncheck keywords to include/exclude
-5. Click **"Search"**
+4. Click **"Search"**
 
 ### Results
 
@@ -301,7 +355,6 @@ Click "Export Results"
 → Choose format:
   • CSV (Excel-compatible)
   • JSON (for programmatic use)
-  • PDF (formatted report)
 → File downloads
 ```
 
@@ -310,114 +363,45 @@ Click "Export Results"
 Find common phrases in your documents:
 
 1. Go to **N-gram Analysis**
-2. Select collection (optional)
+2. (Optional) Use Quick Filter to select specific documents
 3. Choose n-gram size:
    - 2-grams: "climate risk", "carbon emissions"
-   - 3-grams: "climate risk management", "net zero emissions target"
-4. Set minimum frequency (e.g., "appear in at least 3 documents")
+   - 3-grams: "climate risk management", "net zero target"
+4. Set minimum frequency
 5. Click **"Analyze"**
 
 Results show most common phrases, helping identify:
-- How language differs between reports
 - Common talking points
 - Emerging terminology
-
----
-
-## Comparative Analysis
-
-### Purpose
-Compare how two document collections differ in:
-- Sentiment tone
-- Keyword emphasis
-- Domain focus
-- Writing quality
-
-### How to Compare
-
-1. Go to **Comparative Analysis**
-2. Select **Collection A**: "Europe 2024"
-3. Select **Collection B**: "Asia-Pacific 2024"
-4. Click **"Compare Collections"**
-
-Wait for analysis (shows progress bar). Results display in tabs:
-
-#### Sentiment Tab
-- **Distribution Chart**: Positive/Negative/Neutral sentiment mix
-- **Average Score**: Side-by-side comparison
-
-*Interpretation*: Are European reports more positive about climate action than Asian reports?
-
-#### Keywords Tab
-- **Coverage Comparison**: How many documents in each collection mention key terms
-- **Bar Chart**: Side-by-side keyword prevalence
-
-*Interpretation*: Do Asian reports emphasize emissions more than Europeans?
-
-#### Domains Tab
-- **Radar Chart**: Multi-dimensional view of domain focus
-- **Bar Chart**: Absolute domain coverage
-
-*Interpretation*: Do governance reports focus on different domains?
-
-#### Writing Quality Tab
-- **Readability Scores**: Flesch-Kincaid, complexity metrics
-- **Writing Metrics**: Average sentence length, vocabulary diversity
-
-*Interpretation*: Which collection uses clearer language?
-
-### Interpreting Results
-
-**Scenario**: Comparing "Climate Leaders" vs "Laggards" collections
-
-```
-Sentiment: Leaders = 65% positive, Laggards = 30% positive
-→ Interpretation: Leaders frame sustainability more positively
-
-Keywords: Leaders mention "net zero" 250x, Laggards 50x
-→ Interpretation: Leaders prioritize net zero commitment
-
-Domains: Leaders score high on Metrics, Laggards on Governance
-→ Interpretation: Leaders measure progress; laggards still building governance
-
-Writing: Leaders = 8th grade level, Laggards = 10th grade
-→ Interpretation: Leaders communicate more accessibly
-```
+- How language differs between documents
 
 ---
 
 ## Visualizations
 
-### Keyword Frequency
-Visual: Word cloud or bar chart
+### Available Charts
 
-Shows most frequently mentioned keywords across selected documents.
+**Keyword Frequency**
+- Word cloud or bar chart showing most mentioned keywords
+- Use: Quick overview of document focus
 
-**Use**: Quick overview of document focus
+**Keywords x Documents Heatmap**
+- Grid showing which keywords appear in which documents
+- Use: Identify patterns across your corpus
 
-### Domain Distribution
-Visual: Pie or donut chart
+### Using Quick Filter with Visualizations
 
-Shows how space is allocated across domains (Governance, Strategy, Risk Management, Metrics).
+1. Go to Visualizations page
+2. Click filter dropdown → "Select specific documents..."
+3. Pick which documents to include
+4. Charts update to show only those documents
 
-**Use**: Understand report structure
+### Exporting Charts
 
-### Sentiment Distribution
-Visual: Stacked bar chart
-
-Shows sentiment breakdown per document or per collection.
-
-**Use**: Compare tone across reports
-
-### Timeline Analysis
-Visual: Line chart
-
-Shows keyword frequency trends over time (if documents are dated).
-
-**Use**: Track how emphasis changes year-over-year
-
-### Custom Comparisons
-Create side-by-side visualizations of any metrics.
+Each chart has an export button:
+- PNG: High-quality image
+- SVG: Vector format for publications
+- CSV: Raw data for further analysis
 
 ---
 
@@ -428,7 +412,7 @@ Create side-by-side visualizations of any metrics.
 #### 1. CSV / Excel
 Best for: Spreadsheet analysis, data science workflows
 
-Contains: Document-level data with keywords, sentiment, domain scores
+Contains: Document-level data with keywords, metrics
 
 #### 2. JSON
 Best for: API integration, programmatic analysis
@@ -439,7 +423,7 @@ Contains: Structured data for custom tools
 Best for: Sharing with colleagues, reproducibility
 
 Contents:
-- Collections configuration
+- Project configuration
 - Profiles configuration
 - Document metadata
 - Analysis results
@@ -450,16 +434,15 @@ Contents:
 
 ## Collaboration
 
-### Share Collections & Profiles
+### Share Projects & Profiles
 
 #### Step 1: Export Bundle
 ```
 Project Dashboard → Export Project
-→ Select format:
-  ☑ Collections: Include all your collections
-  ☑ Profiles: Include all your analysis profiles
+→ Select options:
+  ☑ Profiles: Include your analysis profiles
   ☐ Analysis Results: Include cached analysis
-  ☐ Extracted Text: Include PDF text (smaller than PDFs)
+  ☐ Extracted Text: Include PDF text
   ☐ PDF Files: Include original PDFs (larger file)
 → Click Export → .lens file downloads
 ```
@@ -472,69 +455,39 @@ Project Dashboard → Export Project
 #### Step 3: Colleague Imports
 ```
 Their Document Lens App
-→ Project Dashboard
+→ Home screen
 → "Import Bundle"
 → Select your .lens file
-→ App shows preview:
-  - Collections to import
-  - Profiles to import
-  - Documents (with matching PDFs by content hash)
+→ Preview shows what will import
 → Click "Import"
-→ Collections & profiles now in their app
+→ Project & profiles now in their app
 ```
-
-### Workflow Example: Research Team
-
-**Researcher A (Lead)**
-1. Creates project "2024 Climate Survey"
-2. Imports 50 PDFs from major companies
-3. Creates collections: "EU Companies", "US Companies", "Asian Companies"
-4. Creates profile: "TCFD Climate Analysis"
-5. Runs analysis on each collection
-6. Exports bundle (with text, without PDFs)
-→ Sends to Research Team
-
-**Researcher B (Team Member)**
-1. Imports the .lens bundle
-2. Sees A's collections and profile
-3. Checks A's analysis results
-4. Creates own collection: "Energy Transition Leaders"
-5. (Optional) Creates own profile: "Energy Focus"
-6. Compares A's collections with own collection
-7. Exports findings as bundle
-→ Sends back to A
-
-**Researcher A (Review)**
-1. Imports B's bundle
-2. Sees B's findings side-by-side with original
-3. Both teams now synchronized
-4. Create summary report with all findings
 
 ### Privacy & Offline
 
 - **No cloud required**: All processing happens locally
 - **No login**: No accounts needed
 - **No data sharing**: Only bundles you explicitly create
-- **Complete privacy**: PDFs never leave your machine unless you explicitly include them in export
+- **Complete privacy**: PDFs never leave your machine unless you explicitly include them
 
 ---
 
 ## Tips & Best Practices
 
 ### Organization
-- Use collections to organize by **domain** (company, region, time period)
-- Use profiles to organize by **research lens** (framework, focus area)
-- One profile per research question typically
+- Use meaningful project names
+- Add metadata to documents (company, year) for better filtering
+- Use Quick Filter for ad-hoc analysis, projects for permanent organization
 
 ### Performance
 - Large projects (1000+ documents) may be slower
-- Use collections to subset documents before analysis
+- Use Quick Filter to subset documents during analysis
 - Disable unused domains in profiles to speed up analysis
 
 ### Quality
-- Start with small pilot collection to test profile
+- Start with small dataset to test your workflow
 - Verify results manually (keyword search shows context)
-- Document your methodology (profile settings) for reproducibility
+- Document your methodology for reproducibility
 
 ### Collaboration
 - Always export with profiles included
@@ -545,46 +498,32 @@ Their Document Lens App
 
 ## Troubleshooting
 
-### "Backend Offline" Message
-**Problem**: Backend API not responding
-
-**Solution**:
-1. Go to **Settings**
-2. Check **Backend URL** (should be `http://127.0.0.1:8765`)
-3. Click **"Test Connection"**
-4. If error: Contact admin or check backend service
-
 ### Search Returns No Results
 **Problem**: Keywords don't match documents
 
 **Possible causes**:
-1. Keywords not actually in documents (manually review collection)
+1. Keywords not actually in documents (manually review)
 2. Profile has wrong keywords selected
-3. Collection filter is too restrictive
 
 **Solution**:
 1. View original PDF to verify content
 2. Edit profile to include relevant keywords
-3. Broaden collection filter or select all documents
-
-### Comparison Won't Run
-**Problem**: "Compare Collections" button disabled
-
-**Possible causes**:
-1. Haven't selected 2 different collections
-2. Collections empty (no documents)
-
-**Solution**:
-1. Ensure Collection A ≠ Collection B
-2. Add documents to empty collections
 
 ### Slow Performance
 **Problem**: Analysis taking too long
 
 **Solution**:
-1. Reduce collection size (use filters/subsets)
+1. Reduce document count with Quick Filter
 2. Disable unused domains in profile
-3. Ensure backend is running and responsive
+3. Run analysis in smaller batches
+
+### Document Stats Not Available
+**Problem**: "View Stats" shows no analysis
+
+**Solution**:
+1. Run analysis first: Analysis → Run Analysis
+2. Wait for analysis to complete
+3. Stats now available
 
 ---
 
@@ -592,15 +531,15 @@ Their Document Lens App
 
 | Term | Definition |
 |------|-----------|
-| **Collection** | Logical subset of documents within a project |
+| **Project** | Container for organizing related documents |
+| **Document Library** | Central repository of all imported PDFs |
+| **Quick Filter** | Temporary filter to analyze subset of documents |
 | **Profile** | Saved analysis configuration (keywords, domains, settings) |
 | **Active Profile** | Currently selected profile used by default in searches |
 | **Framework** | Research framework (TCFD, GRI, SDGs, SASB) |
 | **Domain** | Subject area (Governance, Strategy, Risk, Metrics) |
 | **Bundle** | .lens ZIP file for sharing projects with colleagues |
-| **Semantic Analysis** | AI analysis (sentiment, domain mapping) requiring backend |
-| **Keyword Search** | Local text matching (works offline) |
-| **Sentiment** | Document tone (Positive, Negative, Neutral) |
+| **N-gram** | Common phrase (2-gram: "climate risk", 3-gram: "net zero target") |
 
 ---
 
@@ -611,7 +550,7 @@ Their Document Lens App
 | `Cmd/Ctrl + N` | New Project |
 | `Cmd/Ctrl + O` | Open Project |
 | `Cmd/Ctrl + E` | Export |
-| `Cmd/Ctrl + S` | Save (auto-saved) |
+| `Cmd/Ctrl + /` | Open Help |
 
 ---
 
@@ -619,4 +558,3 @@ Their Document Lens App
 
 - **Repository**: [GitHub](https://github.com/michaelborck-education/document-lens-desktop)
 - **Issues**: [Report a bug](https://github.com/michaelborck-education/document-lens-desktop/issues)
-- **Backend**: [document-lens API](https://github.com/michaelborck-education/document-lens)

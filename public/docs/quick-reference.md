@@ -12,15 +12,27 @@ Fast lookup for common tasks.
 3. Start importing PDFs
 
 ### Import PDFs
-1. Project Dashboard → **Import Documents**
+1. Project Dashboard → **Import PDFs** (or drag into drop zone)
 2. Select PDF files → **Open**
 3. Wait for extraction (progress bar)
 
-### Create Virtual Collection
-1. **Collections** tab → **New Collection**
-2. Enter name & description
-3. Select documents from list
-4. **Create**
+### Add Documents from Library
+1. Project Dashboard → **Add from Library**
+2. Check documents to include
+3. **Add Selected**
+
+### Use Quick Filter
+1. Go to **Visualizations** or **N-gram Analysis**
+2. Click filter dropdown → **Select specific documents...**
+3. Check documents to include
+4. **Apply Filter**
+5. Analysis re-runs with filtered documents
+
+### View Document Stats
+1. Project Dashboard → **Documents** tab
+2. Find document row → Click **"..."** menu
+3. Select **View Stats**
+4. See word count, readability, top keywords
 
 ### Create Analysis Profile
 1. **Profiles** tab → **New Profile**
@@ -32,26 +44,14 @@ Fast lookup for common tasks.
 
 ### Run Keyword Search
 1. **Keyword Search** page
-2. (Optional) Select collection to filter
-3. Verify keywords are selected
-4. **Search**
-5. View results with document context
-6. **Export** as CSV/JSON/PDF
-
-### Compare Two Collections
-1. **Comparative Analysis** page
-2. Select Collection A & B
-3. **Compare Collections**
-4. View results in tabs:
-   - Sentiment
-   - Keywords
-   - Domains
-   - Writing Quality
+2. Verify keywords are selected
+3. **Search**
+4. View results with document context
+5. **Export** as CSV/JSON
 
 ### Export Project as Bundle
 1. **Export** button (top right)
 2. Select options:
-   - Collections: Include your custom collections
    - Profiles: Include your analysis profiles
    - Analysis Results: Include cached analysis
    - Text: Include extracted PDF text
@@ -63,20 +63,19 @@ Fast lookup for common tasks.
 2. Select .lens file
 3. Preview shows what will import
 4. **Import**
-5. Collections & profiles now available
+5. Project & profiles now available
 
 ### View Visualizations
 1. **Visualizations** page
-2. View available charts:
-   - Keyword frequency (word cloud)
-   - Domain distribution (pie chart)
-   - Sentiment (bar chart)
-   - Trends (line chart)
-3. **Export** chart as image/PDF
+2. (Optional) Use Quick Filter to select documents
+3. View available charts:
+   - Keyword frequency (tag cloud)
+   - Keywords x Documents heatmap
+4. **Export** chart as PNG/SVG/CSV
 
 ### N-gram Analysis
 1. **N-gram Analysis** page
-2. (Optional) Select collection
+2. (Optional) Use Quick Filter to select documents
 3. Choose n-gram size (2, 3, 4 words)
 4. Set minimum frequency threshold
 5. **Analyze**
@@ -87,17 +86,15 @@ Fast lookup for common tasks.
 2. **Make Active** (star icon)
 3. Profile's keywords now used by default
 
-### Edit Collection
-1. **Collections** tab → Click collection
-2. **Add/Remove Documents**
-3. **Update Description**
-4. **Save**
+### Delete Document
+**Remove from Project** (keeps in library):
+1. Documents tab → Click **"..."** menu
+2. **Remove from Project**
 
-### Delete Collection (or Profile)
-1. **Collections** (or **Profiles**) tab
-2. Click collection name
-3. **Delete** button
-4. Confirm
+**Delete from Library** (removes everywhere):
+1. Documents tab → Click **"..."** menu
+2. **Delete from Library**
+3. Confirm
 
 ---
 
@@ -115,51 +112,49 @@ Fast lookup for common tasks.
 
 ## Common Questions
 
-### Q: What's the difference between Collections and Profiles?
+### Q: What's the difference between Quick Filter and Projects?
 
-**Collections** = Document groups
-- "EU Companies", "2023 Reports", "Climate Leaders"
-- Groups which documents to analyze together
+**Quick Filter** = Temporary, per-session filtering
+- Select specific documents for analysis
+- Not saved between sessions
+- Good for ad-hoc exploration
 
-**Profiles** = Analysis settings
-- "TCFD Focus", "GRI Full", "Energy Efficiency"
-- Configures which keywords to search for
+**Projects** = Permanent organization
+- Documents assigned to projects
+- Saved to database
+- Good for ongoing research
+
+### Q: Can a document be in multiple projects?
+
+Yes! Documents live in the central **Document Library** and can be added to any number of projects.
+
+### Q: What's the difference between "Remove from Project" and "Delete from Library"?
+
+- **Remove from Project**: Document stays in library, can be added to other projects
+- **Delete from Library**: Permanently deletes document from everywhere
 
 ### Q: I have 50 PDFs to import. How long will it take?
 
-About **1-2 seconds per PDF** (extraction). So 50 PDFs ≈ 1-2 minutes.
-
-### Q: Can I modify a collection after creation?
-
-Yes! Click collection → **Add/Remove Documents**
+About **1-2 seconds per PDF** (extraction). So 50 PDFs = 1-2 minutes.
 
 ### Q: Can I share my project with a colleague?
 
-Yes! **Export → Collections** (+ other options) → Share the .lens file → They **Import Bundle**
+Yes! **Export → Bundle** (+ options) → Share the .lens file → They **Import Bundle**
 
 ### Q: What if my PDF has scanned images (not extractable text)?
 
 Current version only works with PDFs that have extractable text.
-Workaround: Use OCR tool first, or contact admin about image extraction feature.
+Workaround: Use OCR tool first to create searchable PDF.
 
 ### Q: Can I have multiple active profiles?
 
 No, only one profile is active per project.
 But you can quickly switch by clicking a profile and making it active.
 
-### Q: Do I need the backend for keyword search?
-
-No! Local keyword search works offline.
-Backend is only needed for sentiment analysis & domain mapping.
-
 ### Q: How large can my project be?
 
-Tested with 1000+ documents. Performance degrades but still usable.
-For large projects, use collections to subset documents during analysis.
-
-### Q: Can I export individual documents?
-
-Not yet. You can export keyword search results or full project bundles.
+Tested with 1000+ documents. Performance may slow with very large projects.
+Use Quick Filter to subset documents during analysis for better performance.
 
 ---
 
@@ -167,12 +162,10 @@ Not yet. You can export keyword search results or full project bundles.
 
 | Error | Solution |
 |-------|----------|
-| "Backend Offline" | Check Settings → Test Connection, or proceed with local features |
-| "No results found" | Verify keywords in Settings, check collection filter, review original PDF |
-| "PDF not available" | Check file path, re-import if missing, or use text-only import |
+| "No results found" | Verify keywords in profile, check Quick Filter settings, review original PDF |
+| "PDF not available" | Check file path, re-import if missing |
 | "Database locked" | Close other instances of app, restart |
 | "Import failed" | Verify .lens file is valid, check disk space, restart app |
-| "Comparison won't start" | Ensure you selected 2 different collections with documents |
 
 ---
 
@@ -202,7 +195,7 @@ Yes! Copy the database file to new computer, or Export .lens + Import.
 
 ### Speed Up Large Projects
 
-1. **Use collections**: Don't search all 1000 documents, search a 50-doc collection
+1. **Use Quick Filter**: Don't analyze all 1000 documents, filter to relevant subset
 2. **Disable unused domains**: Fewer domains = faster analysis
 3. **Limit keyword count**: 20 keywords searches faster than 200
 4. **Clear cache**: Settings → Data Management → May help if running slow
@@ -212,50 +205,6 @@ Yes! Copy the database file to new computer, or Export .lens + Import.
 1. Export without PDFs (often 80% of file size)
 2. Export without extracted text (if not needed)
 3. Exclude analysis results (regenerate on import)
-4. Use zipped .lens format
-
----
-
-## Collaboration Templates
-
-### Share-Ready Bundle (Colleague Download)
-
-```
-Export with:
-✓ Collections
-✓ Profiles
-✓ Analysis Results
-✓ Extracted Text
-✗ PDFs (save bandwidth)
-```
-
-File size: Typically 5-50 MB
-
-### Full Reproducibility (Academic/Publication)
-
-```
-Export with:
-✓ Collections
-✓ Profiles
-✓ Analysis Results
-✓ Extracted Text
-✓ PDFs
-```
-
-File size: Can be 500 MB+ (include size warning)
-
-### Configuration Only (Share Settings)
-
-```
-Export with:
-✓ Collections
-✓ Profiles
-✗ Analysis Results
-✗ Extracted Text
-✗ PDFs
-```
-
-File size: Typically < 1 MB
 
 ---
 
@@ -263,170 +212,52 @@ File size: Typically < 1 MB
 
 | Term | Means | Example |
 |------|-------|---------|
-| Project | Top-level container | "Climate Survey 2024" |
-| Collection | Subset of documents | "EU Companies" |
+| Project | Organizational container | "Climate Survey 2024" |
+| Document Library | Central PDF repository | All your imported PDFs |
+| Quick Filter | Temporary document filter | Analyze 3 of 20 documents |
 | Profile | Analysis configuration | "TCFD Focus" |
 | Framework | Research standard | TCFD, GRI, SDGs, SASB |
 | Domain | Subject area | Governance, Strategy, Risk, Metrics |
 | Bundle | .lens ZIP file | "climate-survey-v2.lens" |
-| Semantic | AI analysis (needs backend) | Sentiment, domain mapping |
-| Keyword Search | Text matching (local) | Find "net zero" mentions |
 | N-gram | Common phrase | "climate risk" is a 2-gram |
-
----
-
-## Settings Menu Guide
-
-| Setting | Purpose |
-|---------|---------|
-| **Backend URL** | API endpoint for sentiment/domain analysis |
-| **Test Connection** | Verify backend is reachable |
-| **Database Location** | Where your data is stored locally |
-| **Data Stats** | How many projects/documents/analyses |
-| **Country List** | Available countries for document metadata |
-| **Industry List** | Available industries for document metadata |
-| **Clear All Data** | ⚠️ Delete everything - use carefully |
-
----
-
-## File Formats Explained
-
-### .lens (Bundle)
-- **What**: ZIP file with collections, profiles, documents
-- **Size**: 1 MB - 1 GB (depending on options)
-- **Use**: Share with colleagues, backup, reproducibility
-- **Opened by**: Document Lens (Import Bundle)
-
-### .csv (Spreadsheet)
-- **What**: Comma-separated values
-- **Size**: Small
-- **Use**: Excel analysis, data science workflows
-- **Opened by**: Excel, Python, R, etc.
-
-### .json (Data)
-- **What**: Structured text format
-- **Size**: Medium
-- **Use**: API integration, custom tools
-- **Opened by**: Any text editor, programmatically
-
-### .pdf (Report)
-- **What**: Formatted document
-- **Size**: Medium
-- **Use**: Sharing findings, printing
-- **Opened by**: PDF reader
-
----
-
-## Workflow Decision Tree
-
-```
-START: What do you want to do?
-
-├─→ Analyze one collection?
-│   └─→ Keyword Search (local, fast)
-│       └─→ View results, export CSV
-│
-├─→ Analyze across time?
-│   └─→ Create yearly collections
-│       └─→ Keyword Search each
-│           └─→ Compare results
-│
-├─→ Compare two groups?
-│   └─→ Create collections for each group
-│       └─→ Comparative Analysis (sentiment, keywords, domains)
-│           └─→ Visualize differences
-│
-├─→ Share with colleague?
-│   └─→ Export bundle
-│       └─→ Share .lens file
-│           └─→ They Import Bundle
-│
-├─→ Understand language patterns?
-│   └─→ N-gram Analysis
-│       └─→ Visualize common phrases
-│
-├─→ Research frameworks?
-│   └─→ Create profiles (TCFD, GRI, SASB, SDGs)
-│       └─→ Activate each profile
-│           └─→ Keyword Search with each
-│
-└─→ Need semantic analysis?
-    └─→ Check Backend URL in Settings
-        └─→ Sentiment + Domain Mapping available
-```
 
 ---
 
 ## When to Use Each Feature
 
-| Task | Use | Time |
-|------|-----|------|
-| Quick scan of documents | Keyword Search | 5 min |
-| Find trends over time | Multiple collections + comparisons | 15 min |
-| Understand peer practices | Create collections per company, compare | 20 min |
-| Share findings | Export bundle | 5 min |
-| Deep linguistic analysis | N-gram Analysis | 10 min |
-| Multi-dimensional view | Visualizations | 5 min |
-| Reproducible research | Profile + Bundle + Documentation | 30 min |
-| Academic paper | Full workflow with version control | 1+ hour |
-
----
-
-## Accessibility & Support
-
-### Built-in Help
-- **Settings** page: About section with links
-- **Repository**: GitHub for issues/feature requests
-- **Keyboard shortcuts**: Cmd/Ctrl + / for quick help
-
-### Reporting Issues
-1. Note error message
-2. Note steps to reproduce
-3. Go to [GitHub Issues](https://github.com/michaelborck-education/document-lens-desktop/issues)
-4. Click **New Issue**
-5. Describe problem
-
-### Getting Help
-- Check USER-GUIDE.md for detailed explanations
-- Check ANALYSIS-WORKFLOWS.md for examples
-- Check DOCUMENT-LENS-COLLABORATION.md for backend/sharing info
+| Task | Use | Notes |
+|------|-----|-------|
+| Organize related documents | Projects | Permanent grouping |
+| Ad-hoc analysis of subset | Quick Filter | Temporary, per-session |
+| See individual document stats | View Stats | From document menu |
+| Find keyword occurrences | Keyword Search | Across all project documents |
+| Find common phrases | N-gram Analysis | With optional Quick Filter |
+| Visualize patterns | Visualizations | With optional Quick Filter |
+| Share with colleagues | Export Bundle | .lens file |
 
 ---
 
 ## Pro Tips
 
-### Tip 1: Use Profiles for Different Lenses
-Create multiple profiles per project:
-- "TCFD Focus" - climate risks only
-- "GRI Full" - all ESG
-- "Governance Focus" - SASB governance
+### Tip 1: Use Quick Filter for Exploration
+Before committing to analysis methodology, use Quick Filter to explore different document subsets quickly.
 
-Switch between profiles quickly to see different perspectives.
+### Tip 2: Document Metadata
+Add company name and year to documents - makes filtering and comparison much easier.
 
-### Tip 2: Collection Naming
-Use consistent naming: `[Year]_[Region]_[Focus]`
-- "2024_EU_Climate"
-- "2024_APAC_Governance"
-- "2024_Global_Energy"
+### Tip 3: View Stats for Outliers
+Use "View Stats" to identify unusual documents (very long, very short, difficult to read) that might skew analysis.
 
-### Tip 3: Export Patterns
+### Tip 4: Export Patterns
 - **Collaborate**: Export with Text, without PDFs
 - **Backup**: Export with everything
-- **Share settings**: Export Collections + Profiles only
+- **Share settings**: Export Profiles only
 
-### Tip 4: Pilot Approach
+### Tip 5: Pilot Approach
 Before analyzing 500 documents:
-1. Create test collection with 10 docs
-2. Test profile on small subset
-3. Verify results make sense
-4. Scale to full dataset
-
-### Tip 5: Documentation
-Add notes in collection descriptions:
-- "EU Companies" - "Includes all FTSE100 companies, 2024 reports"
-- "Climate Leaders" - "Companies with net zero targets by 2030"
-
-Help future-you (and colleagues) understand your methodology.
+1. Use Quick Filter to test with 10 docs
+2. Verify results make sense
+3. Scale to full dataset
 
 ---
 
@@ -435,8 +266,6 @@ Help future-you (and colleagues) understand your methodology.
 **Current Version**: Check Settings → About
 
 **Changelog**: [GitHub Releases](https://github.com/michaelborck-education/document-lens-desktop/releases)
-
-**Compatibility**: .lens bundles include app version for compatibility checks
 
 ---
 
