@@ -31,6 +31,19 @@ export interface DatabaseResult {
   lastInsertRowid?: number | bigint
 }
 
+export interface UpdateInfo {
+  version: string
+  releaseDate?: string
+  releaseNotes?: string
+}
+
+export interface UpdateProgress {
+  percent: number
+  bytesPerSecond: number
+  total: number
+  transferred: number
+}
+
 // API exposed to renderer
 const electronAPI = {
   // Dialog
@@ -77,14 +90,39 @@ const electronAPI = {
   writeFile: (filePath: string, data: ArrayBuffer | string): Promise<{ success: boolean }> =>
     ipcRenderer.invoke('fs:writeFile', filePath, data),
 
+  // Auto-updater
+  checkForUpdates: (): Promise<{ updateAvailable: boolean; version?: string; error?: string }> =>
+    ipcRenderer.invoke('updater:checkForUpdates'),
+  downloadUpdate: (): Promise<{ success: boolean; error?: string }> =>
+    ipcRenderer.invoke('updater:downloadUpdate'),
+  installUpdate: (): Promise<void> =>
+    ipcRenderer.invoke('updater:installUpdate'),
+
   // Event listeners for updates
-  onUpdateAvailable: (callback: () => void) => {
-    ipcRenderer.on('update-available', callback)
-    return () => ipcRenderer.removeListener('update-available', callback)
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, info: UpdateInfo) => callback(info)
+    ipcRenderer.on('update-available', handler)
+    return () => ipcRenderer.removeListener('update-available', handler)
   },
-  onUpdateDownloaded: (callback: () => void) => {
-    ipcRenderer.on('update-downloaded', callback)
-    return () => ipcRenderer.removeListener('update-downloaded', callback)
+  onUpdateNotAvailable: (callback: () => void) => {
+    const handler = () => callback()
+    ipcRenderer.on('update-not-available', handler)
+    return () => ipcRenderer.removeListener('update-not-available', handler)
+  },
+  onUpdateDownloadProgress: (callback: (progress: UpdateProgress) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, progress: UpdateProgress) => callback(progress)
+    ipcRenderer.on('update-download-progress', handler)
+    return () => ipcRenderer.removeListener('update-download-progress', handler)
+  },
+  onUpdateDownloaded: (callback: (info: UpdateInfo) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, info: UpdateInfo) => callback(info)
+    ipcRenderer.on('update-downloaded', handler)
+    return () => ipcRenderer.removeListener('update-downloaded', handler)
+  },
+  onUpdateError: (callback: (error: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, error: string) => callback(error)
+    ipcRenderer.on('update-error', handler)
+    return () => ipcRenderer.removeListener('update-error', handler)
   }
 }
 

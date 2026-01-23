@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import { FolderOpen, Settings, Home, Tags, HelpCircle, Library } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
+import { UpdateNotification } from './UpdateNotification'
 
 export function Layout() {
   const location = useLocation()
@@ -57,6 +58,9 @@ export function Layout() {
             })}
           </ul>
         </nav>
+
+        {/* Update notification */}
+        <UpdateNotification />
 
         {/* Version */}
         <div className="p-4 border-t text-xs text-muted-foreground">

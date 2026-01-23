@@ -28,6 +28,26 @@ export interface DatabaseResult {
   lastInsertRowid?: number | bigint
 }
 
+export interface UpdateInfo {
+  version: string
+  releaseDate?: string
+  releaseNotes?: string
+}
+
+export interface UpdateProgress {
+  percent: number
+  bytesPerSecond: number
+  total: number
+  transferred: number
+}
+
+export interface UpdateCheckResult {
+  updateAvailable: boolean
+  version?: string
+  releaseDate?: string
+  error?: string
+}
+
 export interface ElectronAPI {
   // Dialog
   openFileDialog: (options?: DialogOptions) => Promise<OpenDialogResult>
@@ -57,9 +77,17 @@ export interface ElectronAPI {
   computeFileHash: (filePath: string) => Promise<string>
   writeFile: (filePath: string, data: ArrayBuffer | string) => Promise<{ success: boolean }>
 
-  // Event listeners
-  onUpdateAvailable: (callback: () => void) => () => void
-  onUpdateDownloaded: (callback: () => void) => () => void
+  // Auto-updater
+  checkForUpdates: () => Promise<UpdateCheckResult>
+  downloadUpdate: () => Promise<{ success: boolean; error?: string }>
+  installUpdate: () => Promise<void>
+
+  // Update event listeners
+  onUpdateAvailable: (callback: (info: UpdateInfo) => void) => () => void
+  onUpdateNotAvailable: (callback: () => void) => () => void
+  onUpdateDownloadProgress: (callback: (progress: UpdateProgress) => void) => () => void
+  onUpdateDownloaded: (callback: (info: UpdateInfo) => void) => () => void
+  onUpdateError: (callback: (error: string) => void) => () => void
 }
 
 declare global {

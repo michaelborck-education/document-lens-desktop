@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import crypto from 'crypto'
+import { autoUpdater } from 'electron-updater'
 import { initDatabase, getDatabase } from './database'
 import { BackendManager, BACKEND_URL } from './backend-manager'
 
@@ -21,6 +22,10 @@ process.env.VITE_PUBLIC = app.isPackaged
 
 let mainWindow: BrowserWindow | null = null
 let backendManager: BackendManager | null = null
+
+// Configure auto-updater
+autoUpdater.autoDownload = false // Let user decide when to download
+autoUpdater.autoInstallOnAppQuit = true
 
 // Vite dev server URL
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
@@ -73,6 +78,64 @@ function createWindow() {
   }
 }
 
+// Setup auto-updater event handlers
+function setupAutoUpdater() {
+  // Only run auto-updater in production
+  if (!app.isPackaged) {
+    console.log('Skipping auto-updater in development mode')
+    return
+  }
+
+  autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for update...')
+  })
+
+  autoUpdater.on('update-available', (info) => {
+    console.log('Update available:', info.version)
+    mainWindow?.webContents.send('update-available', {
+      version: info.version,
+      releaseDate: info.releaseDate,
+      releaseNotes: info.releaseNotes
+    })
+  })
+
+  autoUpdater.on('update-not-available', () => {
+    console.log('Update not available - app is up to date')
+    mainWindow?.webContents.send('update-not-available')
+  })
+
+  autoUpdater.on('download-progress', (progress) => {
+    console.log(`Download progress: ${progress.percent.toFixed(1)}%`)
+    mainWindow?.webContents.send('update-download-progress', {
+      percent: progress.percent,
+      bytesPerSecond: progress.bytesPerSecond,
+      total: progress.total,
+      transferred: progress.transferred
+    })
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log('Update downloaded:', info.version)
+    mainWindow?.webContents.send('update-downloaded', {
+      version: info.version,
+      releaseDate: info.releaseDate,
+      releaseNotes: info.releaseNotes
+    })
+  })
+
+  autoUpdater.on('error', (error) => {
+    console.error('Auto-updater error:', error)
+    mainWindow?.webContents.send('update-error', error.message)
+  })
+
+  // Check for updates after a short delay (don't block app startup)
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch((error) => {
+      console.error('Failed to check for updates:', error)
+    })
+  }, 3000)
+}
+
 // Initialize app
 app.whenReady().then(async () => {
   // Initialize database
@@ -94,6 +157,9 @@ app.whenReady().then(async () => {
       console.log('App will run in offline mode - local features still available')
     }
   }
+
+  // Setup auto-updater (only runs in production)
+  setupAutoUpdater()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -154,6 +220,42 @@ ipcMain.handle('app:getVersion', () => {
 
 ipcMain.handle('app:getPath', (_, name: string) => {
   return app.getPath(name as any)
+})
+
+// Auto-updater handlers
+ipcMain.handle('updater:checkForUpdates', async () => {
+  if (!app.isPackaged) {
+    return { updateAvailable: false, error: 'Updates only available in production builds' }
+  }
+  try {
+    const result = await autoUpdater.checkForUpdates()
+    return {
+      updateAvailable: result?.updateInfo != null,
+      version: result?.updateInfo?.version,
+      releaseDate: result?.updateInfo?.releaseDate
+    }
+  } catch (error) {
+    console.error('Check for updates failed:', error)
+    return { updateAvailable: false, error: String(error) }
+  }
+})
+
+ipcMain.handle('updater:downloadUpdate', async () => {
+  if (!app.isPackaged) {
+    return { success: false, error: 'Updates only available in production builds' }
+  }
+  try {
+    await autoUpdater.downloadUpdate()
+    return { success: true }
+  } catch (error) {
+    console.error('Download update failed:', error)
+    return { success: false, error: String(error) }
+  }
+})
+
+ipcMain.handle('updater:installUpdate', () => {
+  // This will quit the app and install the update
+  autoUpdater.quitAndInstall(false, true)
 })
 
 // Backend status
