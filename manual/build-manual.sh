@@ -183,7 +183,7 @@ cat > "$BUILD_DIR/manual.typ" << 'TYPSTHEAD'
 
         // Subtitle
         #text(size: 14pt, fill: rgb("#a0aec0"))[
-          Batch PDF Analysis for Sustainability Research
+          Batch PDF Analysis for Research & Compliance
         ]
 
         #v(2.5cm)

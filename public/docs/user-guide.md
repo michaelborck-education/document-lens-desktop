@@ -1,20 +1,6 @@
 # Document Lens User Guide
 
-A desktop application for batch PDF analysis of corporate reports using research frameworks like TCFD, GRI, SDGs, and SASB.
-
-## Table of Contents
-
-1. [Quick Start](#quick-start)
-2. [Core Concepts](#core-concepts)
-3. [Basic Workflow](#basic-workflow)
-4. [Document Library](#document-library)
-5. [Quick Filter](#quick-filter)
-6. [Document Analysis](#document-analysis)
-7. [Analysis Profiles](#analysis-profiles)
-8. [Keyword Search](#keyword-search)
-9. [Visualizations](#visualizations)
-10. [Data Export](#data-export)
-11. [Collaboration](#collaboration)
+A desktop application for batch PDF analysis using domain-specific keyword frameworks. Whether you're analyzing sustainability reports, security audits, financial filings, legal contracts, or academic papers, Document Lens provides the tools you need.
 
 ---
 
@@ -22,7 +8,16 @@ A desktop application for batch PDF analysis of corporate reports using research
 
 ### 1. Create a Project
 - Click **"New Project"** on the home screen
-- Enter project name (e.g., "2024 Sustainability Reports")
+- Enter project name (e.g., "2024 Annual Reports")
+- **Choose a Research Theme** — this determines which keyword frameworks are available:
+  - **Sustainability**: TCFD, GRI, SDGs, SASB frameworks
+  - **Cybersecurity**: NIST CSF, ISO 27001, CIS Controls, MITRE ATT&CK
+  - **Finance**: Financial Ratios, SEC Regulations, Basel III, Risk Metrics
+  - **Healthcare**: Clinical Trials, FDA Regulations, HIPAA, Medical Terms
+  - **Legal**: Contract Terms, Regulatory Language, Compliance Keywords
+  - **Academic**: Research Methods, Statistical Terms, Literature Review
+  - **Project Management**: Agile/Scrum, PMBOK, Risk Management
+  - **General**: Start with custom keywords only
 - Click **Create**
 
 ### 2. Import Documents (PDFs)
@@ -55,12 +50,16 @@ A desktop application for batch PDF analysis of corporate reports using research
 ### Projects
 **What**: Organizational containers for grouping related documents together.
 
-**Why**: Separate different research efforts, time periods, or themes.
+**Why**: Separate different research efforts, time periods, or research domains.
+
+**Key Points**:
+- Each project has a **Research Theme** that determines available keyword frameworks
+- Choose from 8 themes: Sustainability, Cybersecurity, Finance, Healthcare, Legal, Academic, Project Management, or General
 
 **Examples**:
-- "2024 Climate Reports"
-- "Banking Sector Analysis"
-- "Regional Comparison Study"
+- "2024 Climate Reports" (Sustainability theme)
+- "Security Audit Q1" (Cybersecurity theme)
+- "Contract Review 2024" (Legal theme)
 
 ### Quick Filter
 **What**: Ad-hoc filtering on analysis pages to include/exclude specific documents.
@@ -81,6 +80,113 @@ A desktop application for batch PDF analysis of corporate reports using research
 - "TCFD Climate Risks" - TCFD keywords + climate domain focus
 - "SDG Mapping" - SDG keywords + all domains
 - "Board Governance" - SASB governance keywords + governance domain
+
+---
+
+## Research Themes
+
+Research themes let you focus Document Lens on your specific domain. Each theme comes with pre-loaded keyword frameworks designed by experts in that field.
+
+### Available Themes
+
+#### Sustainability
+For ESG reporting, climate disclosures, and corporate sustainability analysis.
+
+| Framework | Description | Keywords |
+|-----------|-------------|----------|
+| **TCFD** | Climate-related Financial Disclosures | Governance, Strategy, Risk Management, Metrics |
+| **GRI** | Global Reporting Initiative Standards | Economic, Environmental, Social indicators |
+| **SDGs** | UN Sustainable Development Goals | All 17 goals with specific indicators |
+| **SASB** | Sustainability Accounting Standards | Industry-specific sustainability metrics |
+
+#### Cybersecurity
+For security audits, compliance assessments, and threat analysis.
+
+| Framework | Description | Keywords |
+|-----------|-------------|----------|
+| **NIST CSF** | Cybersecurity Framework | Identify, Protect, Detect, Respond, Recover |
+| **ISO 27001** | Information Security Management | Organizational, People, Physical, Technical controls |
+| **CIS Controls** | Critical Security Controls | Basic, Foundational, Organizational safeguards |
+| **MITRE ATT&CK** | Adversary Tactics & Techniques | Tactics, Techniques, Threat Intelligence |
+
+#### Finance
+For financial analysis, regulatory compliance, and risk assessment.
+
+| Framework | Description | Keywords |
+|-----------|-------------|----------|
+| **Financial Ratios** | Key Financial Metrics | Profitability, Liquidity, Solvency, Efficiency |
+| **SEC Regulations** | Securities & Exchange Commission | Filings, GAAP, Audit, Corporate Governance |
+| **Basel III** | Banking Regulations | Capital Requirements, Liquidity, Risk Management |
+| **Risk Metrics** | Enterprise Risk Management | Market Risk, Credit Risk, Operational Risk |
+
+#### Healthcare
+For clinical research, regulatory submissions, and healthcare compliance.
+
+| Framework | Description | Keywords |
+|-----------|-------------|----------|
+| **Clinical Trials** | Research Methodology | Trial Phases, Study Design, Endpoints, Regulatory |
+| **FDA Regulations** | Drug & Device Approval | Drug Approval, Manufacturing, Labeling, Inspections |
+| **HIPAA** | Privacy & Security | Privacy Rule, Security Rule, Breach Notification |
+| **Medical Terminology** | Healthcare Terms | Diagnostics, Treatment, Patient Care, Systems |
+
+#### Legal
+For contract analysis, regulatory review, and compliance documentation.
+
+| Framework | Description | Keywords |
+|-----------|-------------|----------|
+| **Contract Terms** | Agreement Language | Core Terms, Standard Clauses, Commercial Terms, IP |
+| **Regulatory Language** | Compliance Terms | Compliance Framework, Due Diligence, Reporting |
+| **Legal Provisions** | Remedies & Disputes | Dispute Resolution, Liability, IP Rights, M&A |
+| **Compliance Keywords** | Ethics & Governance | Ethics, Corporate Governance, Privacy, Employment |
+
+#### Academic Research
+For literature review, methodology analysis, and scholarly work.
+
+| Framework | Description | Keywords |
+|-----------|-------------|----------|
+| **Research Methods** | Study Design | Research Design, Quantitative, Qualitative, Data Collection |
+| **Statistical Terms** | Analysis Methods | Descriptive, Inferential, Advanced Methods, Data Quality |
+| **Literature Review** | Review Process | Review Types, Search, Analysis, Academic Writing |
+| **Citation Analysis** | Impact Assessment | Citation Metrics, Journal Metrics, Collaboration |
+
+#### Project Management
+For project documentation, agile practices, and governance.
+
+| Framework | Description | Keywords |
+|-----------|-------------|----------|
+| **Agile/Scrum** | Agile Methodology | Principles, Scrum Framework, Artifacts, Ceremonies |
+| **PMBOK** | Project Management Body of Knowledge | Process Groups, Knowledge Areas, Planning, Stakeholders |
+| **Risk Management** | Project Risks | Identification, Analysis, Response, Monitoring |
+| **Resource Planning** | Capacity & Budget | Resource Planning, Capacity, Team, Budget |
+
+#### General
+Start with a blank slate — no pre-loaded frameworks. Use this when:
+- Your research domain isn't listed above
+- You want to use only custom keyword lists
+- You're exploring a new area
+
+### Choosing a Theme
+
+When creating a new project, you'll see the theme selector:
+
+1. Click **New Project**
+2. Enter your project name
+3. Click a theme card to select it
+4. Read the description to confirm it matches your needs
+5. Click **Create**
+
+### Switching Themes
+
+Themes are set when you create a project. To use a different theme:
+1. Create a new project with the desired theme
+2. Use **Add from Library** to add your existing documents to the new project
+
+### Using Multiple Themes
+
+If your research spans multiple domains (e.g., healthcare finance), you can:
+1. Create separate projects for each theme
+2. Add the same documents to both projects
+3. Analyze with domain-specific frameworks in each
 
 ---
 
@@ -472,6 +578,79 @@ Their Document Lens App
 
 ---
 
+## Automatic Updates
+
+Document Lens automatically checks for updates when you launch the app, keeping you up-to-date with new features and improvements.
+
+### How Updates Work
+
+1. **Check**: App checks for updates a few seconds after launch
+2. **Notify**: If an update is available, a notification appears in the sidebar
+3. **Download**: Click **Download** to fetch the update (continues in background)
+4. **Install**: When ready, click **Restart & Install** to apply the update
+
+### Update Notification
+
+When an update is available, you'll see a notification in the bottom of the sidebar:
+
+```
+┌─────────────────────────────────┐
+│ ↻ Update available         [x] │
+│   Version 0.9.0 is ready       │
+│   [Download]                   │
+└─────────────────────────────────┘
+```
+
+### During Download
+
+The notification shows download progress:
+
+```
+┌─────────────────────────────────┐
+│ ↓ Downloading update...        │
+│   ████████░░░░░░░░  45%        │
+└─────────────────────────────────┘
+```
+
+### Ready to Install
+
+Once downloaded, you control when to restart:
+
+```
+┌─────────────────────────────────┐
+│ ✓ Update ready to install      │
+│   Version 0.9.0 downloaded     │
+│   [Restart & Install]          │
+└─────────────────────────────────┘
+```
+
+### Update Tips
+
+- **Your work is safe**: Save any work before clicking "Restart & Install"
+- **Dismiss if busy**: Click the X to dismiss — the update stays downloaded
+- **Install later**: Updates install automatically when you quit the app
+- **No data loss**: Your projects, documents, and settings are preserved
+- **Release notes**: Visit GitHub Releases to see what's new in each version
+
+### Troubleshooting Updates
+
+**Update notification doesn't appear**
+- Updates only work in the installed app (not during development)
+- Check your internet connection
+- Try restarting the app
+
+**Download seems stuck**
+- Large updates may take time on slow connections
+- Progress shows in the notification
+- You can continue working while it downloads
+
+**Update fails to install**
+- Restart the app and try again
+- Download the latest version manually from GitHub Releases
+- Check disk space (updates need temporary space)
+
+---
+
 ## Tips & Best Practices
 
 ### Organization
@@ -531,15 +710,17 @@ Their Document Lens App
 
 | Term | Definition |
 |------|-----------|
-| **Project** | Container for organizing related documents |
+| **Project** | Container for organizing related documents with a specific research theme |
+| **Research Theme** | Domain focus (Sustainability, Cybersecurity, Finance, etc.) that determines available frameworks |
 | **Document Library** | Central repository of all imported PDFs |
 | **Quick Filter** | Temporary filter to analyze subset of documents |
 | **Profile** | Saved analysis configuration (keywords, domains, settings) |
 | **Active Profile** | Currently selected profile used by default in searches |
-| **Framework** | Research framework (TCFD, GRI, SDGs, SASB) |
-| **Domain** | Subject area (Governance, Strategy, Risk, Metrics) |
+| **Framework** | Pre-built keyword list for a research domain (e.g., TCFD, NIST CSF, PMBOK) |
+| **Domain** | Subject area within a framework (e.g., Governance, Strategy, Risk, Metrics) |
 | **Bundle** | .lens ZIP file for sharing projects with colleagues |
 | **N-gram** | Common phrase (2-gram: "climate risk", 3-gram: "net zero target") |
+| **Auto-update** | Automatic download and installation of new app versions |
 
 ---
 

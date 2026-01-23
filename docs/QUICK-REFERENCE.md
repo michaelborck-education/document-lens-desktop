@@ -8,8 +8,10 @@ Fast lookup for common tasks.
 
 ### Create New Project
 1. Home screen → **New Project**
-2. Enter name → **Create**
-3. Start importing PDFs
+2. Enter name
+3. **Select a theme** (Sustainability, Cybersecurity, Finance, etc.)
+4. Click **Create**
+5. Start importing PDFs
 
 ### Import PDFs
 1. Project Dashboard → **Import PDFs** (or drag into drop zone)
@@ -98,6 +100,46 @@ Fast lookup for common tasks.
 
 ---
 
+## Research Themes
+
+Each project has a theme that determines available keyword frameworks:
+
+| Theme | Frameworks | Best For |
+|-------|-----------|----------|
+| **Sustainability** | TCFD, GRI, SDGs, SASB | ESG reports, climate disclosures |
+| **Cybersecurity** | NIST CSF, ISO 27001, CIS, MITRE | Security audits, compliance |
+| **Finance** | Financial Ratios, SEC, Basel III | Annual reports, filings |
+| **Healthcare** | Clinical Trials, FDA, HIPAA | Medical research, compliance |
+| **Legal** | Contract Terms, Regulatory, Compliance | Contracts, legal review |
+| **Academic** | Research Methods, Statistics, Literature | Papers, dissertations |
+| **Project Mgmt** | Agile, PMBOK, Risk Management | Project documentation |
+| **General** | None (custom only) | New domains, custom keywords |
+
+**Tip**: Theme is set when creating a project. To change themes, create a new project and add documents from library.
+
+---
+
+## Automatic Updates
+
+### When Update Available
+1. Notification appears in sidebar
+2. Click **Download** to fetch update
+3. Continue working while it downloads
+4. Click **Restart & Install** when ready
+
+### Update States
+
+| State | What It Means | Action |
+|-------|---------------|--------|
+| "Update available" | New version ready | Click Download |
+| "Downloading..." | Fetching update | Wait (shows %) |
+| "Ready to install" | Downloaded, waiting | Click Restart & Install |
+| No notification | You're up to date | Nothing needed |
+
+**Tip**: Updates install automatically when you quit the app if you've downloaded but not installed.
+
+---
+
 ## Keyboard Shortcuts
 
 | Mac | Windows | Action |
@@ -150,6 +192,17 @@ Workaround: Use OCR tool first to create searchable PDF.
 
 No, only one profile is active per project.
 But you can quickly switch by clicking a profile and making it active.
+
+### Q: Can I change a project's theme after creating it?
+
+No, themes are set at creation. To use a different theme:
+1. Create a new project with the desired theme
+2. Use "Add from Library" to add your existing documents
+3. Your documents are now in both projects
+
+### Q: How do I know if an update is available?
+
+A notification appears in the sidebar when updates are available. If you don't see one, you're running the latest version.
 
 ### Q: How large can my project be?
 
@@ -212,14 +265,16 @@ Yes! Copy the database file to new computer, or Export .lens + Import.
 
 | Term | Means | Example |
 |------|-------|---------|
-| Project | Organizational container | "Climate Survey 2024" |
+| Project | Organizational container with a theme | "Climate Survey 2024" |
+| Theme | Research domain focus | Sustainability, Cybersecurity, Finance |
 | Document Library | Central PDF repository | All your imported PDFs |
 | Quick Filter | Temporary document filter | Analyze 3 of 20 documents |
 | Profile | Analysis configuration | "TCFD Focus" |
-| Framework | Research standard | TCFD, GRI, SDGs, SASB |
-| Domain | Subject area | Governance, Strategy, Risk, Metrics |
+| Framework | Pre-built keyword list | TCFD, NIST CSF, PMBOK |
+| Domain | Subject area within framework | Governance, Strategy, Risk |
 | Bundle | .lens ZIP file | "climate-survey-v2.lens" |
 | N-gram | Common phrase | "climate risk" is a 2-gram |
+| Auto-update | Automatic version updates | Notification in sidebar |
 
 ---
 
@@ -263,10 +318,12 @@ Before analyzing 500 documents:
 
 ## Version Info
 
-**Current Version**: Check Settings → About
+**Current Version**: Check Settings → About (or bottom of sidebar)
+
+**Updates**: App checks automatically on launch. Look for notification in sidebar.
 
 **Changelog**: [GitHub Releases](https://github.com/michaelborck-education/document-lens-desktop/releases)
 
 ---
 
-*Last updated: January 2026*
+*Last updated: January 2025*
