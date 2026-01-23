@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS projects (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
+    theme TEXT DEFAULT 'sustainability',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -66,7 +67,8 @@ CREATE TABLE IF NOT EXISTS keyword_lists (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
-    framework TEXT,                  -- tcfd, sdgs, gri, sasb, custom
+    framework TEXT,                  -- tcfd, sdgs, gri, sasb, custom, etc.
+    theme TEXT,                      -- sustainability, cybersecurity, finance, etc.
     list_type TEXT NOT NULL,         -- simple, grouped, weighted
     keywords TEXT NOT NULL,          -- JSON structure
     is_builtin BOOLEAN DEFAULT FALSE,
@@ -255,15 +257,20 @@ interface FrameworkData {
   id: string
   name: string
   description: string
+  theme: string
   list_type: string
   keywords: Record<string, string[]>
 }
 
 const FRAMEWORK_KEYWORDS: FrameworkData[] = [
+  // ============================================
+  // SUSTAINABILITY THEME
+  // ============================================
   {
     id: 'tcfd',
     name: 'TCFD - Climate-related Financial Disclosures',
-    description: "Keywords aligned with TCFD's four pillars for climate-related financial risk disclosure. The Task Force on Climate-related Financial Disclosures provides recommendations for companies to report on climate-related risks and opportunities.",
+    description: "Keywords aligned with TCFD's four pillars for climate-related financial risk disclosure.",
+    theme: 'sustainability',
     list_type: 'grouped',
     keywords: {
       "Governance": ["board oversight", "climate governance", "management role", "climate committee", "board responsibility", "governance structure", "executive compensation", "climate expertise", "board composition", "climate oversight", "management accountability", "climate leadership", "sustainability committee", "risk committee", "board-level review", "management processes"],
@@ -275,7 +282,8 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
   {
     id: 'sdgs',
     name: 'UN Sustainable Development Goals',
-    description: 'Keywords for the 17 UN Sustainable Development Goals adopted in 2015 as part of the 2030 Agenda for Sustainable Development. These goals provide a shared blueprint for peace and prosperity for people and the planet.',
+    description: 'Keywords for the 17 UN Sustainable Development Goals adopted in 2015.',
+    theme: 'sustainability',
     list_type: 'grouped',
     keywords: {
       "SDG 1 - No Poverty": ["poverty", "poverty eradication", "extreme poverty", "poverty line", "social protection", "economic resources", "basic services", "financial inclusion", "microfinance", "vulnerable", "income equality", "wealth distribution", "quality of life", "developing countries", "disadvantaged", "poor and vulnerable", "resources", "social protection systems"],
@@ -300,7 +308,8 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
   {
     id: 'gri',
     name: 'GRI - Global Reporting Initiative Standards',
-    description: "Keywords aligned with GRI Universal, Economic (200 series), Environmental (300 series), and Social (400 series) Standards. GRI provides the world's most widely used standards for sustainability reporting.",
+    description: "Keywords aligned with GRI Economic (200), Environmental (300), and Social (400) Standards.",
+    theme: 'sustainability',
     list_type: 'grouped',
     keywords: {
       "Economic (GRI 200)": ["economic performance", "economic value generated", "economic value distributed", "revenue", "operating costs", "employee wages", "employee benefits", "payments to providers of capital", "payments to government", "community investments", "market presence", "local hiring", "senior management local", "minimum wage", "indirect economic impacts", "infrastructure investments", "services supported", "significant indirect impacts", "procurement practices", "local suppliers", "spending on local suppliers", "anti-corruption", "corruption risk assessment", "corruption training", "confirmed corruption incidents", "anti-competitive behavior", "legal actions anti-competitive", "anti-trust", "monopoly practices", "tax", "tax payments by country", "tax governance"],
@@ -311,7 +320,8 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
   {
     id: 'sasb',
     name: 'SASB - Sustainability Accounting Standards',
-    description: "Keywords across SASB's five sustainability dimensions. SASB Standards identify the sustainability-related risks and opportunities most likely to affect a company's financial condition and operating performance. Now maintained by the ISSB (International Sustainability Standards Board).",
+    description: "Keywords across SASB's five sustainability dimensions, now maintained by the ISSB.",
+    theme: 'sustainability',
     list_type: 'grouped',
     keywords: {
       "Environment": ["ghg emissions", "greenhouse gas emissions", "scope 1 emissions", "scope 2 emissions", "scope 3 emissions", "carbon emissions", "air quality", "air emissions", "air pollutants", "criteria pollutants", "energy management", "energy consumption", "energy efficiency", "grid electricity", "renewable energy", "water management", "water withdrawal", "water consumption", "water discharge", "water stress", "water recycling", "waste management", "hazardous waste", "non-hazardous waste", "waste disposal", "waste diversion", "ecological impacts", "biodiversity impacts", "land use", "habitat", "environmental incidents", "spills", "releases", "remediation", "environmental compliance"],
@@ -319,6 +329,342 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
       "Human Capital": ["labor practices", "fair labor", "employee health", "employee safety", "workplace safety", "occupational health", "employee engagement", "employee satisfaction", "diversity and inclusion", "workforce diversity", "gender diversity", "ethnic diversity", "equal opportunity", "employee development", "training", "talent management", "talent retention", "compensation and benefits", "fair compensation", "benefits", "collective bargaining", "labor relations", "union relations", "labor disputes", "workforce management"],
       "Business Model and Innovation": ["product lifecycle", "lifecycle management", "lifecycle assessment", "product design", "design for environment", "packaging lifecycle", "sustainable packaging", "product end-of-life", "materials sourcing", "raw materials", "sustainable materials", "supply chain management", "supply chain standards", "supplier code of conduct", "responsible sourcing", "conflict minerals", "physical supply chain", "supply chain resilience", "business model resilience", "climate adaptation", "resource scarcity", "critical materials", "materials efficiency", "product innovation", "sustainable innovation"],
       "Leadership and Governance": ["business ethics", "ethical conduct", "code of conduct", "competitive behavior", "anti-competitive practices", "antitrust", "regulatory compliance", "legal compliance", "regulatory capture", "critical incident", "crisis management", "risk management", "enterprise risk", "systemic risk management", "governance", "corporate governance", "board oversight", "board independence", "executive compensation", "incentive alignment", "lobbying", "political contributions", "political spending", "corruption", "bribery", "anti-corruption", "management of legal environment", "policy influence"]
+    }
+  },
+
+  // ============================================
+  // CYBERSECURITY THEME
+  // ============================================
+  {
+    id: 'nist-csf',
+    name: 'NIST Cybersecurity Framework',
+    description: 'Keywords from the NIST Cybersecurity Framework core functions: Identify, Protect, Detect, Respond, Recover.',
+    theme: 'cybersecurity',
+    list_type: 'grouped',
+    keywords: {
+      "Identify": ["asset management", "asset inventory", "business environment", "governance", "risk assessment", "risk management strategy", "supply chain risk", "data classification", "critical assets", "system inventory", "network mapping", "information flows", "baseline configuration", "risk tolerance", "threat landscape", "vulnerability identification", "business impact analysis", "criticality assessment", "data mapping", "third-party risk"],
+      "Protect": ["access control", "identity management", "authentication", "authorization", "awareness training", "security training", "data security", "encryption", "data protection", "information protection", "protective technology", "firewall", "intrusion prevention", "endpoint protection", "network segmentation", "secure configuration", "patch management", "vulnerability management", "privileged access", "multi-factor authentication", "mfa", "least privilege", "security architecture"],
+      "Detect": ["anomaly detection", "continuous monitoring", "security monitoring", "detection processes", "event logging", "log analysis", "siem", "intrusion detection", "ids", "threat detection", "malware detection", "network monitoring", "behavioral analysis", "alert management", "security analytics", "threat intelligence", "indicator of compromise", "ioc", "suspicious activity", "detection capability"],
+      "Respond": ["incident response", "response planning", "incident management", "communications", "incident analysis", "forensics", "mitigation", "containment", "eradication", "incident reporting", "escalation", "response team", "playbook", "tabletop exercise", "crisis management", "stakeholder notification", "breach response", "coordination", "lessons learned", "post-incident review"],
+      "Recover": ["recovery planning", "disaster recovery", "business continuity", "backup", "restoration", "improvements", "recovery strategy", "recovery time objective", "rto", "recovery point objective", "rpo", "resilience", "system restoration", "data recovery", "failover", "redundancy", "continuity planning", "recovery testing", "communication plan", "reputation recovery"]
+    }
+  },
+  {
+    id: 'iso-27001',
+    name: 'ISO 27001 Information Security',
+    description: 'Keywords from ISO 27001 information security management system controls.',
+    theme: 'cybersecurity',
+    list_type: 'grouped',
+    keywords: {
+      "Organizational Controls": ["information security policy", "security roles", "segregation of duties", "management responsibility", "contact with authorities", "threat intelligence", "project security", "asset inventory", "acceptable use", "information classification", "information labeling", "information transfer", "access control policy", "identity management", "authentication information", "access rights", "supplier security", "cloud security", "incident management", "business continuity", "legal compliance", "security review"],
+      "People Controls": ["screening", "employment terms", "security awareness", "disciplinary process", "termination responsibilities", "confidentiality agreements", "remote working", "security event reporting", "personnel security", "user responsibilities", "clear desk policy", "background verification", "training program", "competence", "security culture"],
+      "Physical Controls": ["security perimeters", "physical entry", "office security", "physical security monitoring", "environmental threats", "secure areas", "clear desk", "equipment siting", "equipment security", "secure disposal", "utility services", "cabling security", "equipment maintenance", "off-premises security", "storage media", "visitor management", "delivery areas"],
+      "Technological Controls": ["endpoint devices", "privileged access", "information access", "source code access", "secure authentication", "capacity management", "malware protection", "vulnerability management", "configuration management", "information deletion", "data masking", "data leakage prevention", "dlp", "backup", "redundancy", "logging", "monitoring", "clock synchronization", "software installation", "network security", "network segmentation", "web filtering", "cryptography", "secure development", "security testing", "outsourced development", "change management"]
+    }
+  },
+  {
+    id: 'cis-controls',
+    name: 'CIS Critical Security Controls',
+    description: 'Keywords from the Center for Internet Security (CIS) Critical Security Controls.',
+    theme: 'cybersecurity',
+    list_type: 'grouped',
+    keywords: {
+      "Basic Controls": ["hardware inventory", "software inventory", "data protection", "secure configuration", "account management", "access control management", "vulnerability management", "audit log management", "email security", "web browser security", "malware defense", "data recovery", "network infrastructure", "security awareness", "service provider management", "application security", "incident response", "penetration testing"],
+      "Foundational Controls": ["boundary defense", "data loss prevention", "wireless access control", "account monitoring", "security skills assessment", "application software security", "incident response management", "penetration tests", "red team exercises", "secure network engineering", "network monitoring and defense", "security architecture"],
+      "Implementation Groups": ["ig1 basic hygiene", "ig2 growing organization", "ig3 mature organization", "essential controls", "foundational controls", "organizational controls", "safeguards", "implementation priority", "maturity model", "control assessment", "gap analysis", "remediation plan", "security baseline"]
+    }
+  },
+  {
+    id: 'mitre-attack',
+    name: 'MITRE ATT&CK Framework',
+    description: 'Keywords from the MITRE ATT&CK framework for adversary tactics and techniques.',
+    theme: 'cybersecurity',
+    list_type: 'grouped',
+    keywords: {
+      "Tactics": ["reconnaissance", "resource development", "initial access", "execution", "persistence", "privilege escalation", "defense evasion", "credential access", "discovery", "lateral movement", "collection", "command and control", "exfiltration", "impact"],
+      "Common Techniques": ["phishing", "spearphishing", "drive-by compromise", "exploit public-facing application", "supply chain compromise", "valid accounts", "command line interface", "powershell", "scripting", "scheduled task", "registry run keys", "dll injection", "process injection", "access token manipulation", "brute force", "credential dumping", "pass the hash", "remote services", "data staged", "encrypted channel", "data encrypted for impact", "ransomware", "data destruction"],
+      "Threat Intelligence": ["threat actor", "advanced persistent threat", "apt", "campaign", "intrusion set", "malware family", "tool", "attack pattern", "indicator", "course of action", "threat hunting", "behavioral detection", "sigma rules", "yara rules", "ioc", "ttp", "kill chain", "diamond model", "threat modeling"]
+    }
+  },
+
+  // ============================================
+  // FINANCE THEME
+  // ============================================
+  {
+    id: 'financial-ratios',
+    name: 'Financial Ratios & Metrics',
+    description: 'Keywords for financial analysis including profitability, liquidity, and solvency ratios.',
+    theme: 'finance',
+    list_type: 'grouped',
+    keywords: {
+      "Profitability Ratios": ["gross profit margin", "operating profit margin", "net profit margin", "return on assets", "roa", "return on equity", "roe", "return on investment", "roi", "return on capital employed", "roce", "earnings per share", "eps", "price to earnings", "p/e ratio", "ebitda", "ebitda margin", "operating income", "net income", "gross margin", "contribution margin", "operating leverage", "profit margin"],
+      "Liquidity Ratios": ["current ratio", "quick ratio", "acid test", "cash ratio", "working capital", "working capital ratio", "operating cash flow ratio", "cash conversion cycle", "days sales outstanding", "dso", "days payable outstanding", "dpo", "days inventory outstanding", "dio", "net working capital", "liquidity coverage ratio", "lcr"],
+      "Solvency Ratios": ["debt to equity", "debt ratio", "debt to assets", "interest coverage ratio", "times interest earned", "equity ratio", "financial leverage", "leverage ratio", "debt service coverage ratio", "dscr", "capitalization ratio", "long-term debt ratio", "total debt ratio", "gearing ratio", "net debt", "net debt to ebitda"],
+      "Efficiency Ratios": ["asset turnover", "inventory turnover", "receivables turnover", "payables turnover", "fixed asset turnover", "total asset turnover", "capital turnover", "operating cycle", "cash cycle", "capacity utilization", "revenue per employee", "efficiency ratio"],
+      "Valuation Metrics": ["market capitalization", "enterprise value", "ev", "price to book", "p/b ratio", "price to sales", "p/s ratio", "ev to ebitda", "dividend yield", "payout ratio", "book value", "intrinsic value", "fair value", "discounted cash flow", "dcf", "net present value", "npv", "internal rate of return", "irr", "weighted average cost of capital", "wacc"]
+    }
+  },
+  {
+    id: 'sec-regulations',
+    name: 'SEC Regulations & Reporting',
+    description: 'Keywords related to SEC filing requirements and financial reporting standards.',
+    theme: 'finance',
+    list_type: 'grouped',
+    keywords: {
+      "SEC Filings": ["form 10-k", "form 10-q", "form 8-k", "form s-1", "form 4", "proxy statement", "def 14a", "annual report", "quarterly report", "current report", "registration statement", "prospectus", "sec filing", "edgar", "material event", "earnings release", "earnings call", "guidance", "forward-looking statements"],
+      "GAAP Standards": ["generally accepted accounting principles", "gaap", "revenue recognition", "asc 606", "lease accounting", "asc 842", "fair value measurement", "asc 820", "financial instruments", "consolidation", "segment reporting", "earnings per share", "stock compensation", "income taxes", "contingencies", "subsequent events", "going concern", "materiality", "disclosure requirements"],
+      "Audit & Compliance": ["independent auditor", "audit opinion", "unqualified opinion", "qualified opinion", "adverse opinion", "disclaimer of opinion", "internal controls", "sox compliance", "sarbanes-oxley", "pcaob", "audit committee", "material weakness", "significant deficiency", "management assessment", "auditor attestation", "restatement", "non-reliance"],
+      "Corporate Governance": ["board of directors", "audit committee", "compensation committee", "nominating committee", "independent director", "executive compensation", "say on pay", "proxy advisory", "shareholder proposal", "beneficial ownership", "insider trading", "regulation fd", "fair disclosure", "related party transaction", "conflict of interest", "fiduciary duty"]
+    }
+  },
+  {
+    id: 'basel-iii',
+    name: 'Basel III Banking Regulations',
+    description: 'Keywords from Basel III international banking regulatory framework.',
+    theme: 'finance',
+    list_type: 'grouped',
+    keywords: {
+      "Capital Requirements": ["tier 1 capital", "tier 2 capital", "common equity tier 1", "cet1", "risk-weighted assets", "rwa", "capital adequacy ratio", "car", "capital buffer", "countercyclical buffer", "capital conservation buffer", "systemic risk buffer", "leverage ratio", "minimum capital requirements", "regulatory capital", "capital planning", "stress testing", "capital stress test"],
+      "Liquidity Standards": ["liquidity coverage ratio", "lcr", "net stable funding ratio", "nsfr", "high-quality liquid assets", "hqla", "liquidity risk", "funding risk", "liquidity buffer", "liquidity stress test", "intraday liquidity", "liquidity management", "contingency funding plan", "liquidity monitoring", "maturity mismatch"],
+      "Risk Management": ["credit risk", "market risk", "operational risk", "counterparty credit risk", "credit valuation adjustment", "cva", "wrong-way risk", "concentration risk", "interest rate risk", "banking book", "trading book", "value at risk", "var", "expected shortfall", "stress testing", "scenario analysis", "risk appetite", "risk limits", "model risk"],
+      "Regulatory Reporting": ["pillar 1", "pillar 2", "pillar 3", "regulatory reporting", "disclosure requirements", "supervisory review", "internal capital adequacy", "icaap", "recovery planning", "resolution planning", "living will", "systemically important bank", "sifi", "g-sib", "d-sib", "too big to fail"]
+    }
+  },
+  {
+    id: 'risk-metrics',
+    name: 'Risk Management Metrics',
+    description: 'Keywords for enterprise risk management and financial risk analysis.',
+    theme: 'finance',
+    list_type: 'grouped',
+    keywords: {
+      "Market Risk": ["value at risk", "var", "conditional var", "cvar", "expected shortfall", "beta", "alpha", "sharpe ratio", "sortino ratio", "treynor ratio", "information ratio", "tracking error", "volatility", "standard deviation", "correlation", "covariance", "monte carlo simulation", "historical simulation", "parametric var", "stress testing", "scenario analysis"],
+      "Credit Risk": ["probability of default", "pd", "loss given default", "lgd", "exposure at default", "ead", "expected loss", "unexpected loss", "credit rating", "credit score", "creditworthiness", "credit spread", "credit default swap", "cds", "credit risk model", "credit portfolio", "concentration risk", "counterparty risk", "netting agreement", "collateral"],
+      "Operational Risk": ["operational risk event", "loss event", "key risk indicator", "kri", "risk control self-assessment", "rcsa", "business continuity", "disaster recovery", "fraud risk", "cyber risk", "compliance risk", "legal risk", "reputational risk", "model risk", "third-party risk", "vendor risk", "people risk", "process risk", "systems risk"],
+      "Enterprise Risk": ["risk appetite", "risk tolerance", "risk capacity", "risk limit", "risk exposure", "risk mitigation", "risk transfer", "risk acceptance", "risk avoidance", "risk register", "heat map", "risk matrix", "bow-tie analysis", "root cause analysis", "risk governance", "three lines of defense", "chief risk officer", "risk committee", "risk culture", "risk-adjusted return"]
+    }
+  },
+
+  // ============================================
+  // HEALTHCARE THEME
+  // ============================================
+  {
+    id: 'clinical-trials',
+    name: 'Clinical Trials & Research',
+    description: 'Keywords for clinical research, trial phases, and study design.',
+    theme: 'healthcare',
+    list_type: 'grouped',
+    keywords: {
+      "Trial Phases": ["phase 1", "phase i", "phase 2", "phase ii", "phase 3", "phase iii", "phase 4", "phase iv", "preclinical", "first in human", "dose escalation", "dose finding", "proof of concept", "pivotal trial", "confirmatory trial", "post-marketing", "pharmacovigilance", "safety study", "efficacy study"],
+      "Study Design": ["randomized controlled trial", "rct", "double-blind", "single-blind", "open-label", "placebo-controlled", "active-controlled", "crossover study", "parallel group", "adaptive design", "basket trial", "umbrella trial", "platform trial", "non-inferiority", "superiority", "equivalence", "intention to treat", "per protocol", "modified intention to treat"],
+      "Endpoints & Outcomes": ["primary endpoint", "secondary endpoint", "surrogate endpoint", "clinical endpoint", "composite endpoint", "overall survival", "progression-free survival", "disease-free survival", "objective response rate", "complete response", "partial response", "stable disease", "time to progression", "quality of life", "patient-reported outcome", "pro", "adverse event", "serious adverse event", "sae"],
+      "Regulatory & Compliance": ["informed consent", "institutional review board", "irb", "ethics committee", "good clinical practice", "gcp", "investigational new drug", "ind", "new drug application", "nda", "biologics license application", "bla", "clinical trial application", "cta", "data safety monitoring board", "dsmb", "protocol deviation", "protocol amendment", "site monitoring", "source data verification"]
+    }
+  },
+  {
+    id: 'fda-regulations',
+    name: 'FDA Regulations & Compliance',
+    description: 'Keywords for FDA regulatory requirements and drug approval process.',
+    theme: 'healthcare',
+    list_type: 'grouped',
+    keywords: {
+      "Drug Approval": ["new drug application", "nda", "abbreviated new drug application", "anda", "biologics license application", "bla", "investigational new drug", "ind", "pre-ind meeting", "end of phase meeting", "pre-nda meeting", "priority review", "standard review", "accelerated approval", "fast track", "breakthrough therapy", "orphan drug", "rare pediatric disease", "pdufa", "user fee"],
+      "Manufacturing & Quality": ["good manufacturing practice", "gmp", "cgmp", "quality system", "quality control", "quality assurance", "batch record", "deviation", "capa", "corrective action", "preventive action", "validation", "process validation", "cleaning validation", "method validation", "stability testing", "expiration dating", "specification", "out of specification", "oos"],
+      "Labeling & Marketing": ["prescribing information", "package insert", "medication guide", "patient labeling", "black box warning", "contraindication", "indication", "off-label use", "promotional material", "direct-to-consumer", "dtc advertising", "fair balance", "risk evaluation and mitigation strategy", "rems", "post-marketing requirement", "post-marketing commitment"],
+      "Inspections & Enforcement": ["fda inspection", "form 483", "warning letter", "consent decree", "import alert", "recall", "market withdrawal", "safety alert", "medwatch", "adverse event reporting", "faers", "maude", "establishment inspection report", "eir", "compliance program", "regulatory action"]
+    }
+  },
+  {
+    id: 'hipaa',
+    name: 'HIPAA Privacy & Security',
+    description: 'Keywords for HIPAA healthcare privacy and security compliance.',
+    theme: 'healthcare',
+    list_type: 'grouped',
+    keywords: {
+      "Privacy Rule": ["protected health information", "phi", "individually identifiable", "covered entity", "business associate", "notice of privacy practices", "authorization", "consent", "minimum necessary", "de-identification", "limited data set", "designated record set", "accounting of disclosures", "access rights", "amendment rights", "restriction requests", "confidential communications", "privacy officer"],
+      "Security Rule": ["administrative safeguards", "physical safeguards", "technical safeguards", "security management", "risk analysis", "risk management", "sanction policy", "information system activity review", "workforce security", "access management", "security awareness training", "security incident procedures", "contingency plan", "facility access controls", "workstation security", "device controls", "access control", "audit controls", "integrity controls", "transmission security", "encryption"],
+      "Breach Notification": ["breach notification", "unsecured phi", "breach assessment", "notification requirements", "individual notification", "media notification", "hhs notification", "breach documentation", "harm threshold", "risk of harm", "low probability", "breach log"],
+      "Enforcement": ["hipaa enforcement", "civil penalty", "criminal penalty", "corrective action plan", "resolution agreement", "hipaa audit", "ocr investigation", "complaint", "compliance review", "voluntary compliance", "technical assistance", "hipaa violation", "willful neglect"]
+    }
+  },
+  {
+    id: 'medical-terminology',
+    name: 'Medical & Healthcare Terms',
+    description: 'Common medical terminology for healthcare document analysis.',
+    theme: 'healthcare',
+    list_type: 'grouped',
+    keywords: {
+      "Diagnostics": ["diagnosis", "differential diagnosis", "prognosis", "etiology", "pathophysiology", "symptom", "sign", "syndrome", "comorbidity", "complication", "sequela", "acute", "chronic", "recurrent", "remission", "exacerbation", "staging", "grading", "biomarker", "laboratory test", "imaging", "biopsy", "histopathology"],
+      "Treatment": ["treatment", "therapy", "intervention", "procedure", "surgery", "medication", "drug", "dose", "dosage", "regimen", "protocol", "standard of care", "first-line", "second-line", "adjuvant", "neoadjuvant", "palliative", "curative", "supportive care", "combination therapy", "monotherapy", "treatment response", "treatment failure", "resistance"],
+      "Patient Care": ["patient", "inpatient", "outpatient", "admission", "discharge", "length of stay", "readmission", "emergency department", "intensive care", "icu", "ambulatory", "primary care", "specialty care", "referral", "consultation", "follow-up", "monitoring", "vital signs", "patient outcome", "patient safety", "quality of care", "care coordination"],
+      "Healthcare Systems": ["hospital", "clinic", "health system", "provider", "physician", "nurse", "allied health", "electronic health record", "ehr", "medical record", "health information", "interoperability", "health information exchange", "hie", "telehealth", "telemedicine", "value-based care", "fee-for-service", "bundled payment", "accountable care organization", "aco"]
+    }
+  },
+
+  // ============================================
+  // LEGAL THEME
+  // ============================================
+  {
+    id: 'contract-terms',
+    name: 'Contract Terms & Clauses',
+    description: 'Keywords for contract analysis and legal agreement review.',
+    theme: 'legal',
+    list_type: 'grouped',
+    keywords: {
+      "Core Terms": ["party", "parties", "agreement", "contract", "effective date", "term", "termination", "renewal", "consideration", "obligations", "rights", "duties", "performance", "breach", "remedy", "damages", "liability", "indemnification", "warranty", "representation", "covenant", "condition precedent", "condition subsequent"],
+      "Standard Clauses": ["force majeure", "limitation of liability", "indemnity", "confidentiality", "non-disclosure", "non-compete", "non-solicitation", "assignment", "severability", "entire agreement", "amendment", "waiver", "governing law", "jurisdiction", "dispute resolution", "arbitration", "mediation", "notice", "survival", "counterparts"],
+      "Commercial Terms": ["payment terms", "pricing", "fees", "expenses", "invoice", "net 30", "net 60", "milestone", "deliverable", "acceptance", "rejection", "warranty period", "service level", "sla", "penalty", "liquidated damages", "escrow", "security deposit", "insurance requirements", "audit rights"],
+      "IP & Data": ["intellectual property", "ownership", "license", "license grant", "perpetual license", "exclusive license", "non-exclusive license", "sublicense", "work for hire", "assignment of rights", "background ip", "foreground ip", "joint ip", "data protection", "data processing", "data controller", "data processor", "personal data", "privacy"]
+    }
+  },
+  {
+    id: 'regulatory-language',
+    name: 'Regulatory & Compliance Language',
+    description: 'Keywords for regulatory compliance documents and policy analysis.',
+    theme: 'legal',
+    list_type: 'grouped',
+    keywords: {
+      "Compliance Framework": ["compliance", "regulatory compliance", "legal compliance", "policy compliance", "compliance program", "compliance officer", "compliance committee", "compliance monitoring", "compliance audit", "compliance review", "compliance risk", "compliance training", "compliance culture", "compliance framework", "regulatory requirement", "statutory requirement", "obligation"],
+      "Regulatory Actions": ["regulation", "rule", "statute", "law", "ordinance", "directive", "guidance", "advisory", "enforcement", "sanction", "penalty", "fine", "cease and desist", "consent order", "settlement", "remediation", "corrective action", "regulatory approval", "license", "permit", "registration", "certification"],
+      "Due Diligence": ["due diligence", "know your customer", "kyc", "anti-money laundering", "aml", "sanctions screening", "background check", "risk assessment", "third-party due diligence", "vendor due diligence", "enhanced due diligence", "ongoing monitoring", "suspicious activity", "red flag", "politically exposed person", "pep", "beneficial owner", "ultimate beneficial owner"],
+      "Reporting & Disclosure": ["disclosure", "material disclosure", "mandatory disclosure", "voluntary disclosure", "reporting requirement", "filing requirement", "notification requirement", "annual report", "periodic report", "incident report", "suspicious activity report", "sar", "currency transaction report", "ctr", "recordkeeping", "document retention", "audit trail"]
+    }
+  },
+  {
+    id: 'legal-clauses',
+    name: 'Legal Provisions & Remedies',
+    description: 'Keywords for legal provisions, remedies, and dispute resolution.',
+    theme: 'legal',
+    list_type: 'grouped',
+    keywords: {
+      "Dispute Resolution": ["dispute", "controversy", "claim", "litigation", "lawsuit", "arbitration", "mediation", "negotiation", "settlement", "resolution", "binding arbitration", "non-binding arbitration", "arbitration clause", "forum selection", "venue", "choice of law", "applicable law", "injunctive relief", "specific performance", "declaratory judgment"],
+      "Liability & Damages": ["liability", "limited liability", "unlimited liability", "joint liability", "several liability", "joint and several liability", "direct damages", "indirect damages", "consequential damages", "incidental damages", "punitive damages", "exemplary damages", "compensatory damages", "actual damages", "special damages", "general damages", "cap on damages", "exclusion of damages", "mitigation of damages"],
+      "Intellectual Property": ["patent", "trademark", "copyright", "trade secret", "intellectual property rights", "infringement", "misappropriation", "dilution", "passing off", "unfair competition", "license agreement", "royalty", "assignment", "ip indemnity", "ip warranty", "prior art", "patent pending", "registered trademark", "copyright notice"],
+      "Corporate & M&A": ["merger", "acquisition", "divestiture", "joint venture", "shareholders agreement", "stock purchase", "asset purchase", "due diligence", "closing", "closing conditions", "material adverse change", "mac clause", "representations and warranties", "disclosure schedule", "escrow", "earnout", "holdback", "purchase price adjustment", "working capital adjustment"]
+    }
+  },
+  {
+    id: 'compliance-keywords',
+    name: 'Compliance & Ethics Keywords',
+    description: 'Keywords for ethics, compliance, and corporate governance review.',
+    theme: 'legal',
+    list_type: 'grouped',
+    keywords: {
+      "Ethics & Conduct": ["ethics", "ethical conduct", "code of conduct", "code of ethics", "business ethics", "professional ethics", "integrity", "honesty", "fairness", "transparency", "accountability", "responsibility", "conflict of interest", "gift policy", "entertainment policy", "anti-bribery", "anti-corruption", "fcpa", "uk bribery act", "whistleblower", "hotline", "speak up"],
+      "Corporate Governance": ["corporate governance", "board of directors", "board oversight", "fiduciary duty", "duty of care", "duty of loyalty", "shareholder rights", "stakeholder", "proxy", "voting rights", "annual meeting", "special meeting", "board committee", "audit committee", "compensation committee", "nominating committee", "independent director", "executive session", "related party transaction"],
+      "Privacy & Data Protection": ["privacy", "data protection", "gdpr", "ccpa", "personal information", "sensitive data", "data subject", "consent", "lawful basis", "data minimization", "purpose limitation", "storage limitation", "data breach", "breach notification", "data transfer", "cross-border transfer", "privacy by design", "data protection officer", "dpo", "privacy impact assessment", "pia"],
+      "Employment Law": ["employment", "employee", "employer", "employment agreement", "at-will employment", "wrongful termination", "discrimination", "harassment", "retaliation", "reasonable accommodation", "equal opportunity", "affirmative action", "wage and hour", "overtime", "minimum wage", "leave of absence", "fmla", "workers compensation", "unemployment", "collective bargaining", "union"]
+    }
+  },
+
+  // ============================================
+  // ACADEMIC RESEARCH THEME
+  // ============================================
+  {
+    id: 'research-methods',
+    name: 'Research Methodology',
+    description: 'Keywords for academic research methods and study design.',
+    theme: 'academic',
+    list_type: 'grouped',
+    keywords: {
+      "Research Design": ["research design", "methodology", "method", "approach", "framework", "paradigm", "epistemology", "ontology", "positivism", "interpretivism", "constructivism", "pragmatism", "mixed methods", "triangulation", "validity", "reliability", "generalizability", "transferability", "replicability", "rigor"],
+      "Quantitative Methods": ["quantitative research", "experimental design", "quasi-experimental", "survey research", "longitudinal study", "cross-sectional study", "cohort study", "case-control", "randomized", "control group", "treatment group", "sample size", "power analysis", "effect size", "statistical significance", "hypothesis testing", "null hypothesis", "alternative hypothesis", "variable", "independent variable", "dependent variable", "confounding variable"],
+      "Qualitative Methods": ["qualitative research", "case study", "ethnography", "phenomenology", "grounded theory", "narrative research", "action research", "interview", "focus group", "observation", "participant observation", "field notes", "thick description", "coding", "thematic analysis", "content analysis", "discourse analysis", "saturation", "member checking", "reflexivity"],
+      "Data Collection": ["data collection", "primary data", "secondary data", "sampling", "random sampling", "stratified sampling", "purposive sampling", "snowball sampling", "convenience sampling", "questionnaire", "survey instrument", "interview protocol", "informed consent", "anonymity", "confidentiality", "ethical approval", "irb approval", "data management", "data storage"]
+    }
+  },
+  {
+    id: 'statistical-terms',
+    name: 'Statistical Analysis Terms',
+    description: 'Keywords for statistical analysis and data interpretation.',
+    theme: 'academic',
+    list_type: 'grouped',
+    keywords: {
+      "Descriptive Statistics": ["mean", "median", "mode", "standard deviation", "variance", "range", "interquartile range", "iqr", "percentile", "quartile", "frequency", "distribution", "normal distribution", "skewness", "kurtosis", "outlier", "central tendency", "dispersion", "descriptive statistics", "summary statistics"],
+      "Inferential Statistics": ["hypothesis test", "t-test", "anova", "chi-square", "correlation", "regression", "linear regression", "multiple regression", "logistic regression", "p-value", "confidence interval", "significance level", "alpha", "beta", "type i error", "type ii error", "statistical power", "degrees of freedom", "f-statistic", "t-statistic", "z-score"],
+      "Advanced Methods": ["multivariate analysis", "factor analysis", "principal component analysis", "pca", "cluster analysis", "discriminant analysis", "structural equation modeling", "sem", "path analysis", "multilevel modeling", "hierarchical linear modeling", "hlm", "time series analysis", "survival analysis", "meta-analysis", "systematic review", "bayesian analysis", "machine learning", "predictive modeling"],
+      "Data Quality": ["missing data", "imputation", "listwise deletion", "pairwise deletion", "measurement error", "reliability coefficient", "cronbachs alpha", "inter-rater reliability", "test-retest reliability", "construct validity", "content validity", "criterion validity", "convergent validity", "discriminant validity", "face validity", "internal validity", "external validity"]
+    }
+  },
+  {
+    id: 'literature-review',
+    name: 'Literature Review Terms',
+    description: 'Keywords for systematic literature review and academic writing.',
+    theme: 'academic',
+    list_type: 'grouped',
+    keywords: {
+      "Review Types": ["literature review", "systematic review", "meta-analysis", "scoping review", "narrative review", "integrative review", "critical review", "umbrella review", "rapid review", "state of the art", "theoretical framework", "conceptual framework", "research gap", "knowledge gap", "research agenda"],
+      "Search & Selection": ["search strategy", "database search", "keyword search", "boolean operators", "inclusion criteria", "exclusion criteria", "screening", "title screening", "abstract screening", "full-text screening", "prisma", "prisma flow diagram", "hand searching", "citation searching", "forward citation", "backward citation", "grey literature", "snowballing"],
+      "Analysis & Synthesis": ["data extraction", "quality assessment", "risk of bias", "critical appraisal", "evidence synthesis", "thematic synthesis", "narrative synthesis", "framework synthesis", "heterogeneity", "homogeneity", "effect size", "forest plot", "funnel plot", "publication bias", "sensitivity analysis", "subgroup analysis"],
+      "Academic Writing": ["thesis", "dissertation", "manuscript", "journal article", "peer review", "peer-reviewed", "abstract", "introduction", "literature review", "methodology", "results", "discussion", "conclusion", "implications", "limitations", "future research", "contribution", "theoretical contribution", "practical contribution", "reference", "citation", "bibliography"]
+    }
+  },
+  {
+    id: 'citation-analysis',
+    name: 'Citation & Impact Analysis',
+    description: 'Keywords for bibliometric analysis and research impact assessment.',
+    theme: 'academic',
+    list_type: 'grouped',
+    keywords: {
+      "Citation Metrics": ["citation", "citation count", "citation analysis", "bibliometrics", "scientometrics", "h-index", "h index", "g-index", "i10-index", "citation impact", "times cited", "self-citation", "co-citation", "bibliographic coupling", "citation network", "citation burst", "highly cited", "citation classic"],
+      "Journal Metrics": ["impact factor", "journal impact factor", "jif", "cite score", "scimago journal rank", "sjr", "source normalized impact", "snip", "eigenfactor", "article influence score", "immediacy index", "journal ranking", "quartile", "q1 journal", "open access", "predatory journal"],
+      "Research Impact": ["research impact", "academic impact", "societal impact", "altmetrics", "attention score", "social media mentions", "news mentions", "policy citations", "patent citations", "download count", "view count", "readership", "mendeley readers", "research visibility", "knowledge transfer", "research translation"],
+      "Collaboration": ["collaboration", "co-authorship", "research collaboration", "international collaboration", "interdisciplinary", "multidisciplinary", "transdisciplinary", "research network", "collaboration network", "corresponding author", "first author", "senior author", "author contribution", "orcid", "researcher id"]
+    }
+  },
+
+  // ============================================
+  // PROJECT MANAGEMENT THEME
+  // ============================================
+  {
+    id: 'agile-scrum',
+    name: 'Agile & Scrum Methodology',
+    description: 'Keywords for Agile and Scrum project management practices.',
+    theme: 'project-management',
+    list_type: 'grouped',
+    keywords: {
+      "Agile Principles": ["agile", "agile manifesto", "iterative", "incremental", "adaptive", "flexibility", "collaboration", "customer collaboration", "responding to change", "working software", "individuals and interactions", "continuous improvement", "self-organizing team", "cross-functional team", "agile mindset", "agile transformation", "agile coach", "agile maturity"],
+      "Scrum Framework": ["scrum", "sprint", "sprint planning", "sprint review", "sprint retrospective", "daily scrum", "daily standup", "scrum master", "product owner", "development team", "scrum team", "sprint backlog", "product backlog", "backlog refinement", "backlog grooming", "definition of done", "definition of ready", "increment", "potentially shippable"],
+      "Artifacts & Events": ["user story", "epic", "theme", "acceptance criteria", "story points", "velocity", "burndown chart", "burnup chart", "sprint goal", "release planning", "release train", "safe", "scaled agile", "kanban", "kanban board", "wip limit", "lead time", "cycle time", "throughput", "cumulative flow diagram"],
+      "Roles & Ceremonies": ["product owner", "scrum master", "team member", "stakeholder", "chicken and pig", "sprint planning", "daily standup", "sprint review", "sprint retrospective", "backlog refinement", "estimation", "planning poker", "relative estimation", "t-shirt sizing", "fibonacci sequence", "timeboxing", "facilitation", "impediment", "blocker"]
+    }
+  },
+  {
+    id: 'pmbok',
+    name: 'PMBOK Guide Processes',
+    description: 'Keywords from the Project Management Body of Knowledge (PMBOK) Guide.',
+    theme: 'project-management',
+    list_type: 'grouped',
+    keywords: {
+      "Process Groups": ["initiating", "planning", "executing", "monitoring and controlling", "closing", "project lifecycle", "phase gate", "process group", "knowledge area", "project charter", "project management plan", "deliverable", "work performance data", "work performance information", "work performance report", "change request", "lessons learned"],
+      "Knowledge Areas": ["integration management", "scope management", "schedule management", "cost management", "quality management", "resource management", "communications management", "risk management", "procurement management", "stakeholder management", "project scope", "wbs", "work breakdown structure", "schedule baseline", "cost baseline", "quality baseline"],
+      "Planning & Control": ["scope statement", "requirements", "milestone", "critical path", "float", "slack", "gantt chart", "network diagram", "pert", "earned value", "ev", "planned value", "pv", "actual cost", "ac", "schedule variance", "sv", "cost variance", "cv", "schedule performance index", "spi", "cost performance index", "cpi", "estimate at completion", "eac", "estimate to complete", "etc"],
+      "Stakeholder & Communication": ["stakeholder analysis", "stakeholder register", "stakeholder engagement", "power interest grid", "communication plan", "communication matrix", "status report", "progress report", "escalation", "change control", "change control board", "ccb", "configuration management", "issue log", "action item", "decision log", "raid log"]
+    }
+  },
+  {
+    id: 'risk-management-pm',
+    name: 'Project Risk Management',
+    description: 'Keywords for project risk identification, analysis, and response.',
+    theme: 'project-management',
+    list_type: 'grouped',
+    keywords: {
+      "Risk Identification": ["risk", "risk identification", "risk register", "risk log", "risk category", "risk source", "risk trigger", "risk event", "threat", "opportunity", "assumption", "constraint", "dependency", "external risk", "internal risk", "technical risk", "organizational risk", "project management risk"],
+      "Risk Analysis": ["risk analysis", "qualitative risk analysis", "quantitative risk analysis", "probability", "impact", "risk score", "risk rating", "risk matrix", "probability impact matrix", "risk priority", "high risk", "medium risk", "low risk", "risk threshold", "risk tolerance", "risk appetite", "expected monetary value", "emv", "decision tree", "monte carlo analysis", "sensitivity analysis", "tornado diagram"],
+      "Risk Response": ["risk response", "risk response strategy", "avoid", "mitigate", "transfer", "accept", "exploit", "enhance", "share", "escalate", "contingency plan", "fallback plan", "contingency reserve", "management reserve", "risk owner", "risk action", "residual risk", "secondary risk", "workaround"],
+      "Risk Monitoring": ["risk monitoring", "risk review", "risk audit", "risk reassessment", "variance analysis", "trend analysis", "risk reporting", "risk dashboard", "key risk indicator", "kri", "early warning sign", "risk trigger", "risk status", "risk response effectiveness", "lessons learned"]
+    }
+  },
+  {
+    id: 'resource-planning',
+    name: 'Resource & Capacity Planning',
+    description: 'Keywords for project resource management and capacity planning.',
+    theme: 'project-management',
+    list_type: 'grouped',
+    keywords: {
+      "Resource Planning": ["resource planning", "resource management", "resource allocation", "resource assignment", "resource calendar", "resource availability", "resource requirement", "resource breakdown structure", "rbs", "organizational breakdown structure", "obs", "responsibility assignment matrix", "ram", "raci matrix", "responsible", "accountable", "consulted", "informed"],
+      "Capacity Management": ["capacity planning", "capacity management", "workload", "utilization", "availability", "allocation", "over-allocation", "under-allocation", "resource leveling", "resource smoothing", "resource optimization", "bottleneck", "constraint", "critical resource", "scarce resource", "shared resource", "dedicated resource"],
+      "Team Management": ["team", "project team", "team building", "team development", "forming", "storming", "norming", "performing", "adjourning", "team charter", "ground rules", "colocation", "virtual team", "team performance", "team assessment", "conflict management", "conflict resolution", "negotiation", "motivation", "recognition", "reward"],
+      "Budget & Cost": ["budget", "project budget", "cost estimate", "cost baseline", "cost control", "budget at completion", "bac", "actual cost", "planned value", "earned value", "variance", "forecast", "funding", "funding limit", "cash flow", "cost of quality", "direct cost", "indirect cost", "fixed cost", "variable cost", "sunk cost", "opportunity cost"]
     }
   }
 ]
@@ -352,10 +698,41 @@ export function initDatabase(): Database.Database {
   // Migrate existing project_id relationships to junction table
   migrateProjectDocuments(db)
 
+  // Add theme columns if they don't exist
+  migrateThemeColumns(db)
+
   // Seed default data if needed
   seedDefaultData(db)
 
   return db
+}
+
+/**
+ * Add theme columns to projects and keyword_lists tables if they don't exist.
+ * This migration supports the new theme system for different research domains.
+ */
+function migrateThemeColumns(database: Database.Database) {
+  // Check if theme column exists in projects table
+  const projectColumns = database.prepare("PRAGMA table_info(projects)").all() as { name: string }[]
+  const hasProjectTheme = projectColumns.some(col => col.name === 'theme')
+
+  if (!hasProjectTheme) {
+    console.log('Adding theme column to projects table...')
+    database.exec("ALTER TABLE projects ADD COLUMN theme TEXT DEFAULT 'sustainability'")
+  }
+
+  // Check if theme column exists in keyword_lists table
+  const keywordColumns = database.prepare("PRAGMA table_info(keyword_lists)").all() as { name: string }[]
+  const hasKeywordTheme = keywordColumns.some(col => col.name === 'theme')
+
+  if (!hasKeywordTheme) {
+    console.log('Adding theme column to keyword_lists table...')
+    database.exec("ALTER TABLE keyword_lists ADD COLUMN theme TEXT")
+
+    // Update existing built-in frameworks with their theme
+    console.log('Updating existing frameworks with theme...')
+    database.exec("UPDATE keyword_lists SET theme = 'sustainability' WHERE framework IN ('tcfd', 'gri', 'sdgs', 'sasb') AND is_builtin = 1")
+  }
 }
 
 /**
@@ -434,12 +811,12 @@ function seedDefaultData(database: Database.Database) {
 
   // Seed framework keyword lists
   const keywordListCount = database.prepare('SELECT COUNT(*) as count FROM keyword_lists WHERE is_builtin = 1').get() as { count: number }
-  
+
   if (keywordListCount.count === 0) {
     console.log('Seeding framework keyword lists...')
     const insertKeywordList = database.prepare(
-      `INSERT INTO keyword_lists (id, name, description, framework, list_type, keywords, is_builtin)
-       VALUES (?, ?, ?, ?, ?, ?, 1)`
+      `INSERT INTO keyword_lists (id, name, description, framework, theme, list_type, keywords, is_builtin)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
     )
     const insertMany = database.transaction((frameworks: typeof FRAMEWORK_KEYWORDS) => {
       for (const framework of frameworks) {
@@ -449,16 +826,46 @@ function seedDefaultData(database: Database.Database) {
           framework.name,
           framework.description,
           framework.id,
+          framework.theme,
           framework.list_type,
           JSON.stringify(framework.keywords)
         )
-        console.log(`  Seeded: ${framework.name}`)
+        console.log(`  Seeded: ${framework.name} (${framework.theme})`)
       }
     })
     insertMany(FRAMEWORK_KEYWORDS)
     console.log(`Seeded ${FRAMEWORK_KEYWORDS.length} framework keyword lists`)
   } else {
-    console.log(`Framework keyword lists already seeded (${keywordListCount.count} found)`)
+    // Check if we need to add new frameworks (e.g., after adding new themes)
+    const existingFrameworks = database.prepare('SELECT framework FROM keyword_lists WHERE is_builtin = 1').all() as { framework: string }[]
+    const existingIds = new Set(existingFrameworks.map(f => f.framework))
+    const newFrameworks = FRAMEWORK_KEYWORDS.filter(f => !existingIds.has(f.id))
+
+    if (newFrameworks.length > 0) {
+      console.log(`Adding ${newFrameworks.length} new framework keyword lists...`)
+      const insertKeywordList = database.prepare(
+        `INSERT INTO keyword_lists (id, name, description, framework, theme, list_type, keywords, is_builtin)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
+      )
+      const insertMany = database.transaction((frameworks: typeof FRAMEWORK_KEYWORDS) => {
+        for (const framework of frameworks) {
+          const id = `builtin-${framework.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          insertKeywordList.run(
+            id,
+            framework.name,
+            framework.description,
+            framework.id,
+            framework.theme,
+            framework.list_type,
+            JSON.stringify(framework.keywords)
+          )
+          console.log(`  Added: ${framework.name} (${framework.theme})`)
+        }
+      })
+      insertMany(newFrameworks)
+    } else {
+      console.log(`Framework keyword lists already seeded (${keywordListCount.count} found)`)
+    }
   }
 }
 

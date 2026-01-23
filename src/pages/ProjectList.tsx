@@ -1,17 +1,36 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, FolderOpen, Trash2, MoreVertical } from 'lucide-react'
+import { Plus, FolderOpen, Trash2, Leaf, Shield, TrendingUp, Heart, Scale, GraduationCap, ClipboardList, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { THEMES, DEFAULT_THEME, type Theme } from '@/data/themes'
+import { cn } from '@/lib/utils'
 
 interface Project {
   id: string
   name: string
   description: string | null
+  theme: string
   created_at: string
   updated_at: string
   document_count?: number
+}
+
+// Map theme icon names to components
+const themeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  Leaf,
+  Shield,
+  TrendingUp,
+  Heart,
+  Scale,
+  GraduationCap,
+  ClipboardList,
+  FileText
+}
+
+function getThemeIcon(theme: Theme) {
+  return themeIcons[theme.icon] || FileText
 }
 
 export function ProjectList() {
@@ -20,6 +39,7 @@ export function ProjectList() {
   const [showNewProject, setShowNewProject] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
   const [newProjectDescription, setNewProjectDescription] = useState('')
+  const [newProjectTheme, setNewProjectTheme] = useState(DEFAULT_THEME)
 
   useEffect(() => {
     loadProjects()
@@ -31,7 +51,7 @@ export function ProjectList() {
       // Load projects with document count (using junction table)
       const result = await window.electron.dbQuery<Project>(`
         SELECT
-          p.*,
+          p.id, p.name, p.description, p.theme, p.created_at, p.updated_at,
           COUNT(pd.document_id) as document_count
         FROM projects p
         LEFT JOIN project_documents pd ON pd.project_id = p.id
@@ -52,12 +72,13 @@ export function ProjectList() {
     try {
       const id = crypto.randomUUID()
       await window.electron.dbRun(
-        'INSERT INTO projects (id, name, description) VALUES (?, ?, ?)',
-        [id, newProjectName.trim(), newProjectDescription.trim() || null]
+        'INSERT INTO projects (id, name, description, theme) VALUES (?, ?, ?, ?)',
+        [id, newProjectName.trim(), newProjectDescription.trim() || null, newProjectTheme]
       )
-      
+
       setNewProjectName('')
       setNewProjectDescription('')
+      setNewProjectTheme(DEFAULT_THEME)
       setShowNewProject(false)
       loadProjects()
     } catch (error) {
@@ -122,7 +143,7 @@ export function ProjectList() {
                 <Input
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
-                  placeholder="e.g., TCFD Analysis 2024"
+                  placeholder="e.g., Annual Report Analysis 2024"
                   className="mt-1"
                 />
               </div>
@@ -135,11 +156,48 @@ export function ProjectList() {
                   className="mt-1"
                 />
               </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Research Theme</label>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Choose a theme to get pre-loaded keyword frameworks for your research domain
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {THEMES.map((theme) => {
+                    const Icon = getThemeIcon(theme)
+                    const isSelected = newProjectTheme === theme.id
+                    return (
+                      <button
+                        key={theme.id}
+                        onClick={() => setNewProjectTheme(theme.id)}
+                        className={cn(
+                          'flex flex-col items-center gap-2 p-3 rounded-lg border text-sm transition-colors',
+                          isSelected
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border hover:border-primary/50 hover:bg-muted'
+                        )}
+                      >
+                        <Icon className={cn('h-5 w-5', isSelected ? theme.color : 'text-muted-foreground')} />
+                        <span className="font-medium text-center text-xs">{theme.name}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                {newProjectTheme && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {THEMES.find(t => t.id === newProjectTheme)?.description}
+                  </p>
+                )}
+              </div>
               <div className="flex gap-2">
                 <Button onClick={createProject} disabled={!newProjectName.trim()}>
                   Create Project
                 </Button>
-                <Button variant="outline" onClick={() => setShowNewProject(false)}>
+                <Button variant="outline" onClick={() => {
+                  setShowNewProject(false)
+                  setNewProjectName('')
+                  setNewProjectDescription('')
+                  setNewProjectTheme(DEFAULT_THEME)
+                }}>
                   Cancel
                 </Button>
               </div>
@@ -165,38 +223,45 @@ export function ProjectList() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((project) => (
-            <Link key={project.id} to={`/project/${project.id}`}>
-              <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{project.name}</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 -mr-2 -mt-2"
-                      onClick={(e) => deleteProject(project.id, e)}
-                    >
-                      <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                    </Button>
-                  </div>
-                  {project.description && (
-                    <CardDescription className="line-clamp-2">
-                      {project.description}
-                    </CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{project.document_count || 0} documents</span>
-                    <span>
-                      Updated {new Date(project.updated_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          {projects.map((project) => {
+            const theme = THEMES.find(t => t.id === project.theme) || THEMES.find(t => t.id === 'general')!
+            const ThemeIcon = getThemeIcon(theme)
+            return (
+              <Link key={project.id} to={`/project/${project.id}`}>
+                <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <ThemeIcon className={cn('h-5 w-5', theme.color)} />
+                        <CardTitle className="text-lg">{project.name}</CardTitle>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 -mr-2 -mt-2"
+                        onClick={(e) => deleteProject(project.id, e)}
+                      >
+                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                      </Button>
+                    </div>
+                    {project.description && (
+                      <CardDescription className="line-clamp-2">
+                        {project.description}
+                      </CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span className={cn('text-xs px-2 py-0.5 rounded-full bg-muted', theme.color)}>
+                        {theme.name}
+                      </span>
+                      <span>{project.document_count || 0} documents</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>

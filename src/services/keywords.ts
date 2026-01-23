@@ -28,6 +28,7 @@ export interface KeywordList {
   name: string
   description: string | null
   framework: string | null
+  theme: string | null
   list_type: string
   keywords: string // JSON string
   is_builtin: boolean
@@ -129,6 +130,26 @@ export async function getCustomLists(): Promise<KeywordList[]> {
   return window.electron.dbQuery<KeywordList>(
     'SELECT * FROM keyword_lists WHERE is_builtin = 0 ORDER BY name'
   )
+}
+
+/**
+ * Get built-in keyword lists by theme
+ */
+export async function getKeywordListsByTheme(theme: string): Promise<KeywordList[]> {
+  return window.electron.dbQuery<KeywordList>(
+    'SELECT * FROM keyword_lists WHERE theme = ? AND is_builtin = 1 ORDER BY name',
+    [theme]
+  )
+}
+
+/**
+ * Get all unique themes from keyword lists
+ */
+export async function getKeywordThemes(): Promise<string[]> {
+  const results = await window.electron.dbQuery<{ theme: string }>(
+    'SELECT DISTINCT theme FROM keyword_lists WHERE theme IS NOT NULL AND is_builtin = 1 ORDER BY theme'
+  )
+  return results.map(r => r.theme)
 }
 
 /**

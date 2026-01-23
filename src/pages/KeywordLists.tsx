@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Copy, Trash2, FileUp, ChevronRight, Search } from 'lucide-react'
+import { Plus, Copy, Trash2, FileUp, ChevronRight, Search, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -21,6 +21,8 @@ import {
   type ParsedKeywordList,
 } from '@/services/keywords'
 import { KeywordListViewer } from '@/components/KeywordListViewer'
+import { THEMES, getTheme } from '@/data/themes'
+import { cn } from '@/lib/utils'
 
 export function KeywordLists() {
   const [lists, setLists] = useState<KeywordList[]>([])
@@ -164,10 +166,39 @@ export function KeywordLists() {
   const builtinLists = lists.filter(l => l.is_builtin)
   const customLists = lists.filter(l => !l.is_builtin)
 
-  const filteredBuiltin = searchQuery
-    ? builtinLists.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : builtinLists
-  
+  // Group built-in lists by theme
+  const builtinByTheme = builtinLists.reduce((acc, list) => {
+    const theme = list.theme || 'other'
+    if (!acc[theme]) acc[theme] = []
+    acc[theme].push(list)
+    return acc
+  }, {} as Record<string, KeywordList[]>)
+
+  // Track expanded themes
+  const [expandedThemes, setExpandedThemes] = useState<Set<string>>(new Set(['sustainability']))
+
+  const toggleTheme = (themeId: string) => {
+    setExpandedThemes(prev => {
+      const next = new Set(prev)
+      if (next.has(themeId)) {
+        next.delete(themeId)
+      } else {
+        next.add(themeId)
+      }
+      return next
+    })
+  }
+
+  const filteredBuiltinByTheme = Object.entries(builtinByTheme).reduce((acc, [theme, themeLists]) => {
+    const filtered = searchQuery
+      ? themeLists.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : themeLists
+    if (filtered.length > 0) {
+      acc[theme] = filtered
+    }
+    return acc
+  }, {} as Record<string, KeywordList[]>)
+
   const filteredCustom = searchQuery
     ? customLists.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : customLists
@@ -201,36 +232,52 @@ export function KeywordLists() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-2">
-          {/* Built-in Frameworks */}
-          <div className="mb-4">
-            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-              Frameworks
-            </h2>
-            <div className="space-y-1">
-              {filteredBuiltin.map(list => {
-                const parsed = parseKeywords(list)
-                return (
-                  <button
-                    key={list.id}
-                    onClick={() => handleSelectList(list)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between group ${
-                      selectedList?.id === list.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted'
-                    }`}
-                  >
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{list.name}</div>
-                      <div className={`text-xs ${selectedList?.id === list.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                        {parsed.totalCount} keywords
-                      </div>
-                    </div>
-                    <ChevronRight className={`h-4 w-4 shrink-0 ${selectedList?.id === list.id ? '' : 'opacity-0 group-hover:opacity-50'}`} />
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          {/* Built-in Frameworks by Theme */}
+          {THEMES.filter(t => t.id !== 'general' && filteredBuiltinByTheme[t.id]?.length > 0).map(theme => {
+            const themeLists = filteredBuiltinByTheme[theme.id] || []
+            const isExpanded = expandedThemes.has(theme.id)
+
+            return (
+              <div key={theme.id} className="mb-2">
+                <button
+                  onClick={() => toggleTheme(theme.id)}
+                  className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted rounded-md"
+                >
+                  <span className={cn(theme.color)}>{theme.name}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] font-normal normal-case">{themeLists.length}</span>
+                    <ChevronDown className={cn('h-3 w-3 transition-transform', isExpanded ? '' : '-rotate-90')} />
+                  </div>
+                </button>
+                {isExpanded && (
+                  <div className="space-y-1 mt-1">
+                    {themeLists.map(list => {
+                      const parsed = parseKeywords(list)
+                      return (
+                        <button
+                          key={list.id}
+                          onClick={() => handleSelectList(list)}
+                          className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between group ${
+                            selectedList?.id === list.id
+                              ? 'bg-primary text-primary-foreground'
+                              : 'hover:bg-muted'
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            <div className="font-medium truncate">{list.name}</div>
+                            <div className={`text-xs ${selectedList?.id === list.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                              {parsed.totalCount} keywords
+                            </div>
+                          </div>
+                          <ChevronRight className={`h-4 w-4 shrink-0 ${selectedList?.id === list.id ? '' : 'opacity-0 group-hover:opacity-50'}`} />
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
 
           {/* Custom Lists */}
           <div>
