@@ -11,6 +11,10 @@ import {
   FolderOpen,
   ChevronUp,
   ChevronDown,
+  CheckCircle,
+  AlertTriangle,
+  RefreshCw,
+  FileQuestion,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -18,10 +22,12 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DocumentMetadataModal } from '@/components/DocumentMetadataModal'
 import {
-  getAllDocuments,
+  getAllDocumentsWithStatus,
   deleteDocuments,
   getDocumentProjects,
+  reExtractDocument,
   type DocumentRecord,
+  type DocumentStatus,
 } from '@/services/documents'
 
 type SortField = 'filename' | 'company_name' | 'report_year' | 'created_at'
@@ -29,6 +35,7 @@ type SortDirection = 'asc' | 'desc'
 
 interface DocumentWithProjects extends DocumentRecord {
   projects: Array<{ id: string; name: string }>
+  status: DocumentStatus
 }
 
 export function DocumentLibrary() {
@@ -40,6 +47,7 @@ export function DocumentLibrary() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [contextMenu, setContextMenu] = useState<string | null>(null)
   const [editingDocument, setEditingDocument] = useState<DocumentRecord | null>(null)
+  const [reExtracting, setReExtracting] = useState<string | null>(null)
 
   useEffect(() => {
     loadDocuments()
@@ -48,7 +56,7 @@ export function DocumentLibrary() {
   const loadDocuments = async () => {
     try {
       setLoading(true)
-      const docs = await getAllDocuments()
+      const docs = await getAllDocumentsWithStatus()
 
       // Load projects for each document
       const docsWithProjects = await Promise.all(
@@ -94,11 +102,42 @@ export function DocumentLibrary() {
     }
   }
 
-  const handleOpenFile = async (doc: DocumentRecord) => {
+  const handleOpenFile = async (doc: DocumentWithProjects) => {
+    if (!doc.status.pdfAvailable) {
+      alert('PDF file not found at original location. The file may have been moved or deleted.')
+      return
+    }
     try {
       await window.electron.openPath(doc.file_path)
     } catch (error) {
       console.error('Failed to open file:', error)
+      alert('Failed to open PDF file.')
+    }
+  }
+
+  const handleReExtract = async (doc: DocumentWithProjects) => {
+    if (!doc.status.pdfAvailable) {
+      alert('Cannot re-extract: PDF file not found at original location.')
+      return
+    }
+
+    if (!confirm(`Re-extract text from "${doc.filename}"?\n\nThis will replace the existing extracted text and clear any analysis results.`)) {
+      return
+    }
+
+    setReExtracting(doc.id)
+    try {
+      const result = await reExtractDocument(doc.id)
+      if (result.success) {
+        loadDocuments()
+      } else {
+        alert(`Re-extraction failed: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Failed to re-extract:', error)
+      alert('Failed to re-extract text from document.')
+    } finally {
+      setReExtracting(null)
     }
   }
 
@@ -298,6 +337,9 @@ export function DocumentLibrary() {
                         <SortIcon field="report_year" />
                       </button>
                     </th>
+                    <th className="text-left px-3 py-3 w-32">
+                      Status
+                    </th>
                     <th className="text-left px-3 py-3">
                       Projects
                     </th>
@@ -335,6 +377,34 @@ export function DocumentLibrary() {
                         </span>
                       </td>
                       <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          {/* Text status */}
+                          {doc.status.textAvailable ? (
+                            <span className="flex items-center gap-1 text-xs text-green-600" title="Text extracted">
+                              <CheckCircle className="h-3 w-3" />
+                              Text
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-xs text-amber-600" title="No text extracted">
+                              <AlertTriangle className="h-3 w-3" />
+                              No text
+                            </span>
+                          )}
+                          {/* PDF status */}
+                          {doc.status.pdfAvailable ? (
+                            <span className="flex items-center gap-1 text-xs text-green-600" title="PDF available">
+                              <CheckCircle className="h-3 w-3" />
+                              PDF
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-xs text-red-600" title="PDF not found">
+                              <FileQuestion className="h-3 w-3" />
+                              No PDF
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">
                         {doc.projects.length === 0 ? (
                           <span className="text-sm text-muted-foreground italic">
                             Not in any project
@@ -370,7 +440,7 @@ export function DocumentLibrary() {
                                 className="fixed inset-0 z-10"
                                 onClick={() => setContextMenu(null)}
                               />
-                              <div className="absolute right-0 top-full mt-1 z-20 w-40 bg-popover border rounded-md shadow-lg py-1">
+                              <div className="absolute right-0 top-full mt-1 z-20 w-44 bg-popover border rounded-md shadow-lg py-1">
                                 <button
                                   className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted"
                                   onClick={() => {
@@ -382,7 +452,7 @@ export function DocumentLibrary() {
                                   Edit Metadata
                                 </button>
                                 <button
-                                  className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted"
+                                  className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted ${!doc.status.pdfAvailable ? 'text-muted-foreground' : ''}`}
                                   onClick={() => {
                                     handleOpenFile(doc)
                                     setContextMenu(null)
@@ -390,7 +460,20 @@ export function DocumentLibrary() {
                                 >
                                   <ExternalLink className="h-4 w-4" />
                                   Open PDF
+                                  {!doc.status.pdfAvailable && <AlertTriangle className="h-3 w-3 text-amber-500" />}
                                 </button>
+                                <button
+                                  className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted ${!doc.status.pdfAvailable ? 'text-muted-foreground' : ''}`}
+                                  onClick={() => {
+                                    handleReExtract(doc)
+                                    setContextMenu(null)
+                                  }}
+                                  disabled={reExtracting === doc.id}
+                                >
+                                  <RefreshCw className={`h-4 w-4 ${reExtracting === doc.id ? 'animate-spin' : ''}`} />
+                                  {reExtracting === doc.id ? 'Re-extracting...' : 'Re-extract Text'}
+                                </button>
+                                <hr className="my-1 border-muted" />
                                 <button
                                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-muted"
                                   onClick={() => {

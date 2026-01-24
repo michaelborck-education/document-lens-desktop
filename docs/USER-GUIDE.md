@@ -9,7 +9,7 @@ A desktop application for batch PDF analysis using domain-specific keyword frame
 ### 1. Create a Project
 - Click **"New Project"** on the home screen
 - Enter project name (e.g., "2024 Annual Reports")
-- **Choose a Research Theme** — this determines which keyword frameworks are available:
+- **Choose a Research Focus** — this determines which keyword frameworks are available:
   - **Sustainability**: TCFD, GRI, SDGs, SASB frameworks
   - **Cybersecurity**: NIST CSF, ISO 27001, CIS Controls, MITRE ATT&CK
   - **Finance**: Financial Ratios, SEC Regulations, Basel III, Risk Metrics
@@ -53,13 +53,13 @@ A desktop application for batch PDF analysis using domain-specific keyword frame
 **Why**: Separate different research efforts, time periods, or research domains.
 
 **Key Points**:
-- Each project has a **Research Theme** that determines available keyword frameworks
-- Choose from 8 themes: Sustainability, Cybersecurity, Finance, Healthcare, Legal, Academic, Project Management, or General
+- Each project has a **Research Focus** that determines available keyword frameworks
+- Choose from 8 focuses: Sustainability, Cybersecurity, Finance, Healthcare, Legal, Academic, Project Management, or General
 
 **Examples**:
-- "2024 Climate Reports" (Sustainability theme)
-- "Security Audit Q1" (Cybersecurity theme)
-- "Contract Review 2024" (Legal theme)
+- "2024 Climate Reports" (Sustainability focus)
+- "Security Audit Q1" (Cybersecurity focus)
+- "Contract Review 2024" (Legal focus)
 
 ### Quick Filter
 **What**: Ad-hoc filtering on analysis pages to include/exclude specific documents.
@@ -71,23 +71,23 @@ A desktop application for batch PDF analysis using domain-specific keyword frame
 - Analyze only documents from 2023
 - Focus on documents that mention certain topics
 
-### Analysis Profiles
-**What**: Saved sets of keyword searches and domain settings for repeated analysis.
+### Project Profile
+**What**: Each project has one profile that stores your keyword framework selections.
 
-**Why**: Reuse the same analysis configuration across different projects.
+**Why**: Your keyword configuration is saved and persists across sessions.
 
-**Examples**:
-- "TCFD Climate Risks" - TCFD keywords + climate domain focus
-- "SDG Mapping" - SDG keywords + all domains
-- "Board Governance" - SASB governance keywords + governance domain
+**Key Points**:
+- Click **Profile** button in project header to edit
+- Enable/disable frameworks and select specific keywords
+- Use **Duplicate Project** to analyze the same documents with different keyword configurations
 
 ---
 
-## Research Themes
+## Research Focuses
 
-Research themes let you focus Document Lens on your specific domain. Each theme comes with pre-loaded keyword frameworks designed by experts in that field.
+Research focuses let you tailor Document Lens to your specific domain. Each focus comes with pre-loaded keyword frameworks designed by experts in that field.
 
-### Available Themes
+### Available Focuses
 
 #### Sustainability
 For ESG reporting, climate disclosures, and corporate sustainability analysis.
@@ -165,26 +165,26 @@ Start with a blank slate — no pre-loaded frameworks. Use this when:
 - You want to use only custom keyword lists
 - You're exploring a new area
 
-### Choosing a Theme
+### Choosing a Focus
 
-When creating a new project, you'll see the theme selector:
+When creating a new project, you'll see the focus selector:
 
 1. Click **New Project**
 2. Enter your project name
-3. Click a theme card to select it
+3. Click a focus card to select it
 4. Read the description to confirm it matches your needs
 5. Click **Create**
 
-### Switching Themes
+### Switching Focuses
 
-Themes are set when you create a project. To use a different theme:
-1. Create a new project with the desired theme
+Focuses are set when you create a project. To use a different focus:
+1. Create a new project with the desired focus
 2. Use **Add from Library** to add your existing documents to the new project
 
-### Using Multiple Themes
+### Using Multiple Focuses
 
 If your research spans multiple domains (e.g., healthcare finance), you can:
-1. Create separate projects for each theme
+1. Create separate projects for each focus
 2. Add the same documents to both projects
 3. Analyze with domain-specific frameworks in each
 
@@ -382,57 +382,35 @@ Documents must be analyzed before stats are available:
 
 ---
 
-## Analysis Profiles
+## Project Profile
 
-### Creating a Profile
+Each project has one profile that stores your keyword configuration. The profile persists across sessions and can be used in Visualizations.
 
-1. Go to project **Profiles** tab
-2. Click **"New Profile"**
-3. Name it (e.g., "TCFD Climate Risks")
-4. Select keywords by framework:
+### Editing Your Profile
 
-```
-Framework Options:
-- TCFD (Governance, Strategy, Risk Management, Metrics)
-- GRI (Environmental, Social, Economic)
-- SDGs (17 Sustainable Development Goals)
-- SASB (Governance, Risk Management, Strategic Planning)
-- CUSTOM (User-defined keywords)
+1. Click the **Profile** button in the project header
+2. Enable/disable keyword frameworks using the toggles
+3. Within each framework, select specific keywords to include
+4. Add custom keywords if needed
+5. Changes are saved automatically
 
-For each framework:
-☐ Enable/disable
-☑ Select specific keywords to search for
-```
+### Using Profile Keywords in Visualizations
 
-5. Select analysis domains
-6. Save profile
+1. Go to **Visualizations** page
+2. Click **"Use Profile Keywords"** button
+3. Your enabled keywords are loaded for analysis
 
-### Making a Profile Active
+### Duplicate Project for Different Analysis
 
-```
-Profiles → Click profile name
-→ Click "Make Active" (star icon)
-```
+If you want to analyze the same documents with different keyword configurations:
 
-**Result**: This profile's settings are now used by default in Keyword Search.
+1. Click **"..."** menu in project header
+2. Select **Duplicate Project**
+3. Enter a new name
+4. The new project has the same documents and a copy of the profile
+5. Edit the new project's profile with different keywords
 
-### Profile Examples
-
-#### Profile 1: Climate Risk Focus
-```
-Name: "TCFD Climate Analysis"
-Frameworks: TCFD only
-Keywords: climate risks, physical risks, transition risks, emissions
-Domains: Governance, Strategy, Risk Management, Metrics
-```
-
-#### Profile 2: Holistic Sustainability
-```
-Name: "Full Sustainability"
-Frameworks: TCFD + GRI + SDGs
-Keywords: All (30+ keywords across frameworks)
-Domains: All
-```
+This lets you compare different analysis approaches on the same document set.
 
 ---
 
@@ -441,7 +419,7 @@ Domains: All
 ### Basic Search
 
 1. Go to **Keyword Search**
-2. Your active profile's keywords are pre-selected
+2. Select keywords to search for (or use your profile's saved keywords)
 3. Modify keyword selection if needed:
    - Check/uncheck keywords to include/exclude
 4. Click **"Search"**
@@ -710,12 +688,11 @@ Once downloaded, you control when to restart:
 
 | Term | Definition |
 |------|-----------|
-| **Project** | Container for organizing related documents with a specific research theme |
-| **Research Theme** | Domain focus (Sustainability, Cybersecurity, Finance, etc.) that determines available frameworks |
+| **Project** | Container for organizing related documents with a specific research focus |
+| **Research Focus** | Domain focus (Sustainability, Cybersecurity, Finance, etc.) that determines available frameworks |
 | **Document Library** | Central repository of all imported PDFs |
 | **Quick Filter** | Temporary filter to analyze subset of documents |
-| **Profile** | Saved analysis configuration (keywords, domains, settings) |
-| **Active Profile** | Currently selected profile used by default in searches |
+| **Profile** | Project's keyword configuration (enabled frameworks and keywords) |
 | **Framework** | Pre-built keyword list for a research domain (e.g., TCFD, NIST CSF, PMBOK) |
 | **Domain** | Subject area within a framework (e.g., Governance, Strategy, Risk, Metrics) |
 | **Bundle** | .lens ZIP file for sharing projects with colleagues |

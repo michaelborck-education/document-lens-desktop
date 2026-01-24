@@ -388,6 +388,114 @@ export async function getDocument(documentId: string): Promise<DocumentRecord | 
 }
 
 /**
+ * Document status information for UI display
+ */
+export interface DocumentStatus {
+  textAvailable: boolean
+  pdfAvailable: boolean
+  analysisComplete: boolean
+}
+
+/**
+ * Check if a PDF file exists at the given path
+ */
+export async function checkPdfExists(filePath: string): Promise<boolean> {
+  try {
+    const stats = await window.electron.getFileStats(filePath)
+    return stats.size > 0
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Get document status (text available, PDF available, analysis complete)
+ */
+export async function getDocumentStatus(doc: DocumentRecord): Promise<DocumentStatus> {
+  const pdfAvailable = await checkPdfExists(doc.file_path)
+
+  return {
+    textAvailable: doc.extracted_text !== null && doc.extracted_text.length > 0,
+    pdfAvailable,
+    analysisComplete: doc.analysis_status === 'completed'
+  }
+}
+
+/**
+ * Get all documents with their status
+ */
+export async function getAllDocumentsWithStatus(): Promise<Array<DocumentRecord & { status: DocumentStatus }>> {
+  const docs = await getAllDocuments()
+
+  return Promise.all(
+    docs.map(async (doc) => ({
+      ...doc,
+      status: await getDocumentStatus(doc)
+    }))
+  )
+}
+
+/**
+ * Re-extract text from a document's PDF
+ * Useful when extraction algorithm improves or text was corrupted
+ */
+export async function reExtractDocument(
+  documentId: string,
+  onProgress?: (status: string) => void
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Get the document
+    const doc = await getDocument(documentId)
+    if (!doc) {
+      return { success: false, error: 'Document not found' }
+    }
+
+    // Check if PDF exists
+    const pdfExists = await checkPdfExists(doc.file_path)
+    if (!pdfExists) {
+      return { success: false, error: 'PDF file not found at original location' }
+    }
+
+    onProgress?.('Re-extracting text from PDF...')
+
+    // Re-process through API
+    const apiResult = await api.processFilePath(doc.file_path, { include_extracted_text: true })
+
+    onProgress?.('Updating database...')
+
+    // Update the document with new extracted text
+    await window.electron.dbRun(
+      `UPDATE documents SET
+        extracted_text = ?,
+        extracted_pages = ?,
+        pdf_metadata = ?,
+        inferred_metadata = ?,
+        analysis_status = 'pending',
+        analyzed_at = NULL
+       WHERE id = ?`,
+      [
+        apiResult.extracted_text?.full_text || null,
+        apiResult.extracted_text?.pages ? JSON.stringify(apiResult.extracted_text.pages) : null,
+        apiResult.metadata ? JSON.stringify(apiResult.metadata) : null,
+        apiResult.inferred ? JSON.stringify(apiResult.inferred) : null,
+        documentId
+      ]
+    )
+
+    // Clear old analysis results since text changed
+    await window.electron.dbRun(
+      'DELETE FROM analysis_results WHERE document_id = ?',
+      [documentId]
+    )
+
+    return { success: true }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return { success: false, error: message }
+  }
+}
+
+/**
  * Get projects that contain a document
  */
 export async function getDocumentProjects(documentId: string): Promise<Array<{ id: string; name: string }>> {

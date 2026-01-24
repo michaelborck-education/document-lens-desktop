@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS projects (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
-    theme TEXT DEFAULT 'sustainability',
+    focus TEXT DEFAULT 'sustainability',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS keyword_lists (
     name TEXT NOT NULL,
     description TEXT,
     framework TEXT,                  -- tcfd, sdgs, gri, sasb, custom, etc.
-    theme TEXT,                      -- sustainability, cybersecurity, finance, etc.
+    focus TEXT,                      -- sustainability, cybersecurity, finance, etc.
     list_type TEXT NOT NULL,         -- simple, grouped, weighted
     keywords TEXT NOT NULL,          -- JSON structure
     is_builtin BOOLEAN DEFAULT FALSE,
@@ -257,20 +257,20 @@ interface FrameworkData {
   id: string
   name: string
   description: string
-  theme: string
+  focus: string
   list_type: string
   keywords: Record<string, string[]>
 }
 
 const FRAMEWORK_KEYWORDS: FrameworkData[] = [
   // ============================================
-  // SUSTAINABILITY THEME
+  // SUSTAINABILITY FOCUS
   // ============================================
   {
     id: 'tcfd',
     name: 'TCFD - Climate-related Financial Disclosures',
     description: "Keywords aligned with TCFD's four pillars for climate-related financial risk disclosure.",
-    theme: 'sustainability',
+    focus: 'sustainability',
     list_type: 'grouped',
     keywords: {
       "Governance": ["board oversight", "climate governance", "management role", "climate committee", "board responsibility", "governance structure", "executive compensation", "climate expertise", "board composition", "climate oversight", "management accountability", "climate leadership", "sustainability committee", "risk committee", "board-level review", "management processes"],
@@ -283,7 +283,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'sdgs',
     name: 'UN Sustainable Development Goals',
     description: 'Keywords for the 17 UN Sustainable Development Goals adopted in 2015.',
-    theme: 'sustainability',
+    focus: 'sustainability',
     list_type: 'grouped',
     keywords: {
       "SDG 1 - No Poverty": ["poverty", "poverty eradication", "extreme poverty", "poverty line", "social protection", "economic resources", "basic services", "financial inclusion", "microfinance", "vulnerable", "income equality", "wealth distribution", "quality of life", "developing countries", "disadvantaged", "poor and vulnerable", "resources", "social protection systems"],
@@ -309,7 +309,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'gri',
     name: 'GRI - Global Reporting Initiative Standards',
     description: "Keywords aligned with GRI Economic (200), Environmental (300), and Social (400) Standards.",
-    theme: 'sustainability',
+    focus: 'sustainability',
     list_type: 'grouped',
     keywords: {
       "Economic (GRI 200)": ["economic performance", "economic value generated", "economic value distributed", "revenue", "operating costs", "employee wages", "employee benefits", "payments to providers of capital", "payments to government", "community investments", "market presence", "local hiring", "senior management local", "minimum wage", "indirect economic impacts", "infrastructure investments", "services supported", "significant indirect impacts", "procurement practices", "local suppliers", "spending on local suppliers", "anti-corruption", "corruption risk assessment", "corruption training", "confirmed corruption incidents", "anti-competitive behavior", "legal actions anti-competitive", "anti-trust", "monopoly practices", "tax", "tax payments by country", "tax governance"],
@@ -321,7 +321,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'sasb',
     name: 'SASB - Sustainability Accounting Standards',
     description: "Keywords across SASB's five sustainability dimensions, now maintained by the ISSB.",
-    theme: 'sustainability',
+    focus: 'sustainability',
     list_type: 'grouped',
     keywords: {
       "Environment": ["ghg emissions", "greenhouse gas emissions", "scope 1 emissions", "scope 2 emissions", "scope 3 emissions", "carbon emissions", "air quality", "air emissions", "air pollutants", "criteria pollutants", "energy management", "energy consumption", "energy efficiency", "grid electricity", "renewable energy", "water management", "water withdrawal", "water consumption", "water discharge", "water stress", "water recycling", "waste management", "hazardous waste", "non-hazardous waste", "waste disposal", "waste diversion", "ecological impacts", "biodiversity impacts", "land use", "habitat", "environmental incidents", "spills", "releases", "remediation", "environmental compliance"],
@@ -333,13 +333,13 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
   },
 
   // ============================================
-  // CYBERSECURITY THEME
+  // CYBERSECURITY FOCUS
   // ============================================
   {
     id: 'nist-csf',
     name: 'NIST Cybersecurity Framework',
     description: 'Keywords from the NIST Cybersecurity Framework core functions: Identify, Protect, Detect, Respond, Recover.',
-    theme: 'cybersecurity',
+    focus: 'cybersecurity',
     list_type: 'grouped',
     keywords: {
       "Identify": ["asset management", "asset inventory", "business environment", "governance", "risk assessment", "risk management strategy", "supply chain risk", "data classification", "critical assets", "system inventory", "network mapping", "information flows", "baseline configuration", "risk tolerance", "threat landscape", "vulnerability identification", "business impact analysis", "criticality assessment", "data mapping", "third-party risk"],
@@ -353,7 +353,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'iso-27001',
     name: 'ISO 27001 Information Security',
     description: 'Keywords from ISO 27001 information security management system controls.',
-    theme: 'cybersecurity',
+    focus: 'cybersecurity',
     list_type: 'grouped',
     keywords: {
       "Organizational Controls": ["information security policy", "security roles", "segregation of duties", "management responsibility", "contact with authorities", "threat intelligence", "project security", "asset inventory", "acceptable use", "information classification", "information labeling", "information transfer", "access control policy", "identity management", "authentication information", "access rights", "supplier security", "cloud security", "incident management", "business continuity", "legal compliance", "security review"],
@@ -366,7 +366,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'cis-controls',
     name: 'CIS Critical Security Controls',
     description: 'Keywords from the Center for Internet Security (CIS) Critical Security Controls.',
-    theme: 'cybersecurity',
+    focus: 'cybersecurity',
     list_type: 'grouped',
     keywords: {
       "Basic Controls": ["hardware inventory", "software inventory", "data protection", "secure configuration", "account management", "access control management", "vulnerability management", "audit log management", "email security", "web browser security", "malware defense", "data recovery", "network infrastructure", "security awareness", "service provider management", "application security", "incident response", "penetration testing"],
@@ -378,7 +378,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'mitre-attack',
     name: 'MITRE ATT&CK Framework',
     description: 'Keywords from the MITRE ATT&CK framework for adversary tactics and techniques.',
-    theme: 'cybersecurity',
+    focus: 'cybersecurity',
     list_type: 'grouped',
     keywords: {
       "Tactics": ["reconnaissance", "resource development", "initial access", "execution", "persistence", "privilege escalation", "defense evasion", "credential access", "discovery", "lateral movement", "collection", "command and control", "exfiltration", "impact"],
@@ -388,13 +388,13 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
   },
 
   // ============================================
-  // FINANCE THEME
+  // FINANCE FOCUS
   // ============================================
   {
     id: 'financial-ratios',
     name: 'Financial Ratios & Metrics',
     description: 'Keywords for financial analysis including profitability, liquidity, and solvency ratios.',
-    theme: 'finance',
+    focus: 'finance',
     list_type: 'grouped',
     keywords: {
       "Profitability Ratios": ["gross profit margin", "operating profit margin", "net profit margin", "return on assets", "roa", "return on equity", "roe", "return on investment", "roi", "return on capital employed", "roce", "earnings per share", "eps", "price to earnings", "p/e ratio", "ebitda", "ebitda margin", "operating income", "net income", "gross margin", "contribution margin", "operating leverage", "profit margin"],
@@ -408,7 +408,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'sec-regulations',
     name: 'SEC Regulations & Reporting',
     description: 'Keywords related to SEC filing requirements and financial reporting standards.',
-    theme: 'finance',
+    focus: 'finance',
     list_type: 'grouped',
     keywords: {
       "SEC Filings": ["form 10-k", "form 10-q", "form 8-k", "form s-1", "form 4", "proxy statement", "def 14a", "annual report", "quarterly report", "current report", "registration statement", "prospectus", "sec filing", "edgar", "material event", "earnings release", "earnings call", "guidance", "forward-looking statements"],
@@ -421,7 +421,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'basel-iii',
     name: 'Basel III Banking Regulations',
     description: 'Keywords from Basel III international banking regulatory framework.',
-    theme: 'finance',
+    focus: 'finance',
     list_type: 'grouped',
     keywords: {
       "Capital Requirements": ["tier 1 capital", "tier 2 capital", "common equity tier 1", "cet1", "risk-weighted assets", "rwa", "capital adequacy ratio", "car", "capital buffer", "countercyclical buffer", "capital conservation buffer", "systemic risk buffer", "leverage ratio", "minimum capital requirements", "regulatory capital", "capital planning", "stress testing", "capital stress test"],
@@ -434,7 +434,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'risk-metrics',
     name: 'Risk Management Metrics',
     description: 'Keywords for enterprise risk management and financial risk analysis.',
-    theme: 'finance',
+    focus: 'finance',
     list_type: 'grouped',
     keywords: {
       "Market Risk": ["value at risk", "var", "conditional var", "cvar", "expected shortfall", "beta", "alpha", "sharpe ratio", "sortino ratio", "treynor ratio", "information ratio", "tracking error", "volatility", "standard deviation", "correlation", "covariance", "monte carlo simulation", "historical simulation", "parametric var", "stress testing", "scenario analysis"],
@@ -445,13 +445,13 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
   },
 
   // ============================================
-  // HEALTHCARE THEME
+  // HEALTHCARE FOCUS
   // ============================================
   {
     id: 'clinical-trials',
     name: 'Clinical Trials & Research',
     description: 'Keywords for clinical research, trial phases, and study design.',
-    theme: 'healthcare',
+    focus: 'healthcare',
     list_type: 'grouped',
     keywords: {
       "Trial Phases": ["phase 1", "phase i", "phase 2", "phase ii", "phase 3", "phase iii", "phase 4", "phase iv", "preclinical", "first in human", "dose escalation", "dose finding", "proof of concept", "pivotal trial", "confirmatory trial", "post-marketing", "pharmacovigilance", "safety study", "efficacy study"],
@@ -464,7 +464,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'fda-regulations',
     name: 'FDA Regulations & Compliance',
     description: 'Keywords for FDA regulatory requirements and drug approval process.',
-    theme: 'healthcare',
+    focus: 'healthcare',
     list_type: 'grouped',
     keywords: {
       "Drug Approval": ["new drug application", "nda", "abbreviated new drug application", "anda", "biologics license application", "bla", "investigational new drug", "ind", "pre-ind meeting", "end of phase meeting", "pre-nda meeting", "priority review", "standard review", "accelerated approval", "fast track", "breakthrough therapy", "orphan drug", "rare pediatric disease", "pdufa", "user fee"],
@@ -477,7 +477,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'hipaa',
     name: 'HIPAA Privacy & Security',
     description: 'Keywords for HIPAA healthcare privacy and security compliance.',
-    theme: 'healthcare',
+    focus: 'healthcare',
     list_type: 'grouped',
     keywords: {
       "Privacy Rule": ["protected health information", "phi", "individually identifiable", "covered entity", "business associate", "notice of privacy practices", "authorization", "consent", "minimum necessary", "de-identification", "limited data set", "designated record set", "accounting of disclosures", "access rights", "amendment rights", "restriction requests", "confidential communications", "privacy officer"],
@@ -490,7 +490,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'medical-terminology',
     name: 'Medical & Healthcare Terms',
     description: 'Common medical terminology for healthcare document analysis.',
-    theme: 'healthcare',
+    focus: 'healthcare',
     list_type: 'grouped',
     keywords: {
       "Diagnostics": ["diagnosis", "differential diagnosis", "prognosis", "etiology", "pathophysiology", "symptom", "sign", "syndrome", "comorbidity", "complication", "sequela", "acute", "chronic", "recurrent", "remission", "exacerbation", "staging", "grading", "biomarker", "laboratory test", "imaging", "biopsy", "histopathology"],
@@ -501,13 +501,13 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
   },
 
   // ============================================
-  // LEGAL THEME
+  // LEGAL FOCUS
   // ============================================
   {
     id: 'contract-terms',
     name: 'Contract Terms & Clauses',
     description: 'Keywords for contract analysis and legal agreement review.',
-    theme: 'legal',
+    focus: 'legal',
     list_type: 'grouped',
     keywords: {
       "Core Terms": ["party", "parties", "agreement", "contract", "effective date", "term", "termination", "renewal", "consideration", "obligations", "rights", "duties", "performance", "breach", "remedy", "damages", "liability", "indemnification", "warranty", "representation", "covenant", "condition precedent", "condition subsequent"],
@@ -520,7 +520,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'regulatory-language',
     name: 'Regulatory & Compliance Language',
     description: 'Keywords for regulatory compliance documents and policy analysis.',
-    theme: 'legal',
+    focus: 'legal',
     list_type: 'grouped',
     keywords: {
       "Compliance Framework": ["compliance", "regulatory compliance", "legal compliance", "policy compliance", "compliance program", "compliance officer", "compliance committee", "compliance monitoring", "compliance audit", "compliance review", "compliance risk", "compliance training", "compliance culture", "compliance framework", "regulatory requirement", "statutory requirement", "obligation"],
@@ -533,7 +533,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'legal-clauses',
     name: 'Legal Provisions & Remedies',
     description: 'Keywords for legal provisions, remedies, and dispute resolution.',
-    theme: 'legal',
+    focus: 'legal',
     list_type: 'grouped',
     keywords: {
       "Dispute Resolution": ["dispute", "controversy", "claim", "litigation", "lawsuit", "arbitration", "mediation", "negotiation", "settlement", "resolution", "binding arbitration", "non-binding arbitration", "arbitration clause", "forum selection", "venue", "choice of law", "applicable law", "injunctive relief", "specific performance", "declaratory judgment"],
@@ -546,7 +546,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'compliance-keywords',
     name: 'Compliance & Ethics Keywords',
     description: 'Keywords for ethics, compliance, and corporate governance review.',
-    theme: 'legal',
+    focus: 'legal',
     list_type: 'grouped',
     keywords: {
       "Ethics & Conduct": ["ethics", "ethical conduct", "code of conduct", "code of ethics", "business ethics", "professional ethics", "integrity", "honesty", "fairness", "transparency", "accountability", "responsibility", "conflict of interest", "gift policy", "entertainment policy", "anti-bribery", "anti-corruption", "fcpa", "uk bribery act", "whistleblower", "hotline", "speak up"],
@@ -557,13 +557,13 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
   },
 
   // ============================================
-  // ACADEMIC RESEARCH THEME
+  // ACADEMIC RESEARCH FOCUS
   // ============================================
   {
     id: 'research-methods',
     name: 'Research Methodology',
     description: 'Keywords for academic research methods and study design.',
-    theme: 'academic',
+    focus: 'academic',
     list_type: 'grouped',
     keywords: {
       "Research Design": ["research design", "methodology", "method", "approach", "framework", "paradigm", "epistemology", "ontology", "positivism", "interpretivism", "constructivism", "pragmatism", "mixed methods", "triangulation", "validity", "reliability", "generalizability", "transferability", "replicability", "rigor"],
@@ -576,7 +576,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'statistical-terms',
     name: 'Statistical Analysis Terms',
     description: 'Keywords for statistical analysis and data interpretation.',
-    theme: 'academic',
+    focus: 'academic',
     list_type: 'grouped',
     keywords: {
       "Descriptive Statistics": ["mean", "median", "mode", "standard deviation", "variance", "range", "interquartile range", "iqr", "percentile", "quartile", "frequency", "distribution", "normal distribution", "skewness", "kurtosis", "outlier", "central tendency", "dispersion", "descriptive statistics", "summary statistics"],
@@ -589,7 +589,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'literature-review',
     name: 'Literature Review Terms',
     description: 'Keywords for systematic literature review and academic writing.',
-    theme: 'academic',
+    focus: 'academic',
     list_type: 'grouped',
     keywords: {
       "Review Types": ["literature review", "systematic review", "meta-analysis", "scoping review", "narrative review", "integrative review", "critical review", "umbrella review", "rapid review", "state of the art", "theoretical framework", "conceptual framework", "research gap", "knowledge gap", "research agenda"],
@@ -602,7 +602,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'citation-analysis',
     name: 'Citation & Impact Analysis',
     description: 'Keywords for bibliometric analysis and research impact assessment.',
-    theme: 'academic',
+    focus: 'academic',
     list_type: 'grouped',
     keywords: {
       "Citation Metrics": ["citation", "citation count", "citation analysis", "bibliometrics", "scientometrics", "h-index", "h index", "g-index", "i10-index", "citation impact", "times cited", "self-citation", "co-citation", "bibliographic coupling", "citation network", "citation burst", "highly cited", "citation classic"],
@@ -613,13 +613,13 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
   },
 
   // ============================================
-  // PROJECT MANAGEMENT THEME
+  // PROJECT MANAGEMENT FOCUS
   // ============================================
   {
     id: 'agile-scrum',
     name: 'Agile & Scrum Methodology',
     description: 'Keywords for Agile and Scrum project management practices.',
-    theme: 'project-management',
+    focus: 'project-management',
     list_type: 'grouped',
     keywords: {
       "Agile Principles": ["agile", "agile manifesto", "iterative", "incremental", "adaptive", "flexibility", "collaboration", "customer collaboration", "responding to change", "working software", "individuals and interactions", "continuous improvement", "self-organizing team", "cross-functional team", "agile mindset", "agile transformation", "agile coach", "agile maturity"],
@@ -632,7 +632,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'pmbok',
     name: 'PMBOK Guide Processes',
     description: 'Keywords from the Project Management Body of Knowledge (PMBOK) Guide.',
-    theme: 'project-management',
+    focus: 'project-management',
     list_type: 'grouped',
     keywords: {
       "Process Groups": ["initiating", "planning", "executing", "monitoring and controlling", "closing", "project lifecycle", "phase gate", "process group", "knowledge area", "project charter", "project management plan", "deliverable", "work performance data", "work performance information", "work performance report", "change request", "lessons learned"],
@@ -645,7 +645,7 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'risk-management-pm',
     name: 'Project Risk Management',
     description: 'Keywords for project risk identification, analysis, and response.',
-    theme: 'project-management',
+    focus: 'project-management',
     list_type: 'grouped',
     keywords: {
       "Risk Identification": ["risk", "risk identification", "risk register", "risk log", "risk category", "risk source", "risk trigger", "risk event", "threat", "opportunity", "assumption", "constraint", "dependency", "external risk", "internal risk", "technical risk", "organizational risk", "project management risk"],
@@ -658,13 +658,115 @@ const FRAMEWORK_KEYWORDS: FrameworkData[] = [
     id: 'resource-planning',
     name: 'Resource & Capacity Planning',
     description: 'Keywords for project resource management and capacity planning.',
-    theme: 'project-management',
+    focus: 'project-management',
     list_type: 'grouped',
     keywords: {
       "Resource Planning": ["resource planning", "resource management", "resource allocation", "resource assignment", "resource calendar", "resource availability", "resource requirement", "resource breakdown structure", "rbs", "organizational breakdown structure", "obs", "responsibility assignment matrix", "ram", "raci matrix", "responsible", "accountable", "consulted", "informed"],
       "Capacity Management": ["capacity planning", "capacity management", "workload", "utilization", "availability", "allocation", "over-allocation", "under-allocation", "resource leveling", "resource smoothing", "resource optimization", "bottleneck", "constraint", "critical resource", "scarce resource", "shared resource", "dedicated resource"],
       "Team Management": ["team", "project team", "team building", "team development", "forming", "storming", "norming", "performing", "adjourning", "team charter", "ground rules", "colocation", "virtual team", "team performance", "team assessment", "conflict management", "conflict resolution", "negotiation", "motivation", "recognition", "reward"],
       "Budget & Cost": ["budget", "project budget", "cost estimate", "cost baseline", "cost control", "budget at completion", "bac", "actual cost", "planned value", "earned value", "variance", "forecast", "funding", "funding limit", "cash flow", "cost of quality", "direct cost", "indirect cost", "fixed cost", "variable cost", "sunk cost", "opportunity cost"]
+    }
+  },
+
+  // ============================================
+  // GENERAL DOMAIN KEYWORD LISTS
+  // Non-framework-specific keywords for each focus
+  // ============================================
+  {
+    id: 'sustainability-general',
+    name: 'Sustainability - General Domain Keywords',
+    description: 'Common sustainability and ESG terminology for general document analysis without framework-specific constraints.',
+    focus: 'sustainability',
+    list_type: 'grouped',
+    keywords: {
+      "Environmental": ["environment", "environmental", "sustainability", "sustainable", "green", "eco-friendly", "carbon", "emissions", "pollution", "waste", "recycling", "renewable", "clean energy", "conservation", "biodiversity", "ecosystem", "climate", "water", "air quality", "natural resources", "deforestation", "habitat", "wildlife"],
+      "Social": ["social", "community", "stakeholder", "employee", "workforce", "diversity", "inclusion", "equity", "human rights", "labor", "labour", "health and safety", "wellbeing", "well-being", "training", "development", "engagement", "supply chain", "fair trade", "indigenous", "local community", "philanthropy", "volunteering"],
+      "Governance": ["governance", "ethics", "ethical", "transparency", "accountability", "compliance", "regulation", "policy", "board", "oversight", "audit", "risk management", "internal controls", "anti-corruption", "bribery", "whistleblower", "disclosure", "reporting", "assurance", "verification"],
+      "Strategy & Performance": ["esg", "corporate responsibility", "csr", "sustainable development", "triple bottom line", "materiality", "stakeholder engagement", "long-term value", "resilience", "circular economy", "net zero", "carbon neutral", "science-based", "targets", "goals", "progress", "performance", "metrics", "indicators", "benchmarking", "best practice", "continuous improvement", "innovation", "transformation"]
+    }
+  },
+  {
+    id: 'cybersecurity-general',
+    name: 'Cybersecurity - General Domain Keywords',
+    description: 'Common cybersecurity and information security terminology for general document analysis without framework-specific constraints.',
+    focus: 'cybersecurity',
+    list_type: 'grouped',
+    keywords: {
+      "Security Fundamentals": ["security", "cybersecurity", "information security", "data security", "privacy", "confidentiality", "integrity", "availability", "authentication", "authorization", "access control", "encryption", "password", "credential", "identity", "permission", "privilege", "secure", "protection", "defense"],
+      "Threats & Attacks": ["threat", "attack", "breach", "hack", "hacker", "malware", "virus", "ransomware", "phishing", "spam", "vulnerability", "exploit", "compromise", "intrusion", "unauthorized", "suspicious", "malicious", "cyber attack", "data breach", "security incident", "threat actor", "adversary"],
+      "Security Operations": ["firewall", "antivirus", "monitoring", "detection", "prevention", "response", "recovery", "backup", "patch", "update", "scan", "audit", "log", "alert", "incident", "investigation", "forensics", "remediation", "mitigation", "containment"],
+      "Compliance & Governance": ["compliance", "regulation", "policy", "standard", "framework", "control", "risk", "assessment", "audit", "certification", "training", "awareness", "governance", "procedure", "guideline", "best practice", "due diligence", "third party", "vendor", "supply chain"],
+      "Technology & Infrastructure": ["network", "server", "endpoint", "cloud", "database", "application", "software", "hardware", "infrastructure", "system", "device", "mobile", "wireless", "internet", "email", "web", "remote", "vpn", "configuration", "architecture"]
+    }
+  },
+  {
+    id: 'finance-general',
+    name: 'Finance - General Domain Keywords',
+    description: 'Common financial and business terminology for general document analysis without framework-specific constraints.',
+    focus: 'finance',
+    list_type: 'grouped',
+    keywords: {
+      "Financial Performance": ["revenue", "sales", "income", "profit", "loss", "earnings", "margin", "growth", "decline", "performance", "results", "financial", "fiscal", "quarterly", "annual", "year-over-year", "forecast", "outlook", "guidance", "target"],
+      "Assets & Liabilities": ["asset", "liability", "equity", "capital", "debt", "loan", "credit", "cash", "investment", "property", "inventory", "receivable", "payable", "depreciation", "amortization", "impairment", "write-off", "reserve", "provision", "balance sheet"],
+      "Operations & Costs": ["cost", "expense", "overhead", "operating", "efficiency", "productivity", "margin", "budget", "spending", "saving", "reduction", "optimization", "restructuring", "synergy", "integration", "acquisition", "merger", "divestiture", "expansion", "consolidation"],
+      "Market & Valuation": ["market", "share", "stock", "price", "value", "valuation", "investor", "shareholder", "dividend", "return", "yield", "appreciation", "trading", "exchange", "portfolio", "fund", "benchmark", "index", "volatility", "liquidity"],
+      "Risk & Control": ["risk", "exposure", "hedge", "insurance", "contingency", "compliance", "regulation", "audit", "control", "governance", "oversight", "disclosure", "transparency", "fiduciary", "material", "significant", "adverse", "uncertainty", "sensitivity", "stress test"]
+    }
+  },
+  {
+    id: 'healthcare-general',
+    name: 'Healthcare - General Domain Keywords',
+    description: 'Common healthcare and medical terminology for general document analysis without framework-specific constraints.',
+    focus: 'healthcare',
+    list_type: 'grouped',
+    keywords: {
+      "Clinical Care": ["patient", "care", "treatment", "therapy", "diagnosis", "clinical", "medical", "health", "disease", "condition", "symptom", "outcome", "recovery", "prevention", "screening", "intervention", "procedure", "surgery", "medication", "prescription", "dosage", "side effect"],
+      "Healthcare Delivery": ["hospital", "clinic", "physician", "doctor", "nurse", "provider", "specialist", "primary care", "emergency", "inpatient", "outpatient", "admission", "discharge", "referral", "appointment", "visit", "consultation", "telemedicine", "telehealth", "home care"],
+      "Quality & Safety": ["quality", "safety", "error", "adverse event", "complication", "infection", "mortality", "morbidity", "readmission", "outcome", "measure", "indicator", "benchmark", "accreditation", "standard", "guideline", "protocol", "best practice", "evidence-based", "improvement"],
+      "Research & Development": ["research", "study", "trial", "clinical trial", "drug", "pharmaceutical", "biotech", "innovation", "discovery", "development", "approval", "efficacy", "safety", "data", "evidence", "publication", "peer review", "breakthrough", "pipeline", "therapeutic"],
+      "Policy & Administration": ["policy", "regulation", "compliance", "coverage", "insurance", "reimbursement", "cost", "spending", "access", "equity", "disparity", "population health", "public health", "prevention", "wellness", "chronic", "management", "coordination", "integration", "reform"]
+    }
+  },
+  {
+    id: 'legal-general',
+    name: 'Legal - General Domain Keywords',
+    description: 'Common legal and regulatory terminology for general document analysis without framework-specific constraints.',
+    focus: 'legal',
+    list_type: 'grouped',
+    keywords: {
+      "Legal Fundamentals": ["law", "legal", "court", "judge", "attorney", "lawyer", "counsel", "party", "plaintiff", "defendant", "case", "matter", "proceeding", "hearing", "trial", "judgment", "ruling", "decision", "precedent", "jurisdiction"],
+      "Contracts & Agreements": ["contract", "agreement", "term", "condition", "obligation", "right", "duty", "breach", "remedy", "damages", "liability", "indemnity", "warranty", "representation", "covenant", "termination", "renewal", "amendment", "waiver", "assignment"],
+      "Regulatory & Compliance": ["regulation", "regulatory", "compliance", "requirement", "standard", "rule", "policy", "procedure", "guideline", "enforcement", "penalty", "fine", "sanction", "violation", "infringement", "audit", "inspection", "license", "permit", "approval"],
+      "Dispute Resolution": ["dispute", "claim", "allegation", "litigation", "lawsuit", "arbitration", "mediation", "settlement", "negotiation", "resolution", "appeal", "injunction", "motion", "discovery", "evidence", "testimony", "witness", "deposition", "subpoena", "verdict"],
+      "Corporate & Commercial": ["corporate", "company", "business", "entity", "shareholder", "director", "officer", "fiduciary", "governance", "merger", "acquisition", "transaction", "due diligence", "disclosure", "confidential", "proprietary", "intellectual property", "trade secret", "non-compete", "non-disclosure"]
+    }
+  },
+  {
+    id: 'academic-general',
+    name: 'Academic - General Domain Keywords',
+    description: 'Common academic and scholarly terminology for general document analysis without methodology-specific constraints.',
+    focus: 'academic',
+    list_type: 'grouped',
+    keywords: {
+      "Research Process": ["research", "study", "investigation", "inquiry", "exploration", "analysis", "examination", "assessment", "evaluation", "review", "survey", "experiment", "observation", "measurement", "data", "sample", "participant", "subject", "population", "findings"],
+      "Scholarly Writing": ["thesis", "hypothesis", "theory", "framework", "model", "concept", "construct", "variable", "factor", "dimension", "argument", "claim", "evidence", "support", "conclusion", "implication", "limitation", "contribution", "significance", "relevance"],
+      "Literature & Sources": ["literature", "source", "reference", "citation", "author", "publication", "journal", "article", "paper", "book", "chapter", "volume", "issue", "edition", "peer review", "scholarly", "academic", "empirical", "theoretical", "seminal"],
+      "Analysis & Results": ["result", "outcome", "effect", "impact", "relationship", "correlation", "association", "difference", "comparison", "trend", "pattern", "theme", "category", "significant", "substantial", "notable", "consistent", "inconsistent", "unexpected", "preliminary"],
+      "Academic Context": ["discipline", "field", "domain", "area", "topic", "issue", "problem", "question", "gap", "debate", "discourse", "perspective", "approach", "paradigm", "tradition", "school of thought", "interdisciplinary", "multidisciplinary", "emerging", "contemporary"]
+    }
+  },
+  {
+    id: 'project-management-general',
+    name: 'Project Management - General Domain Keywords',
+    description: 'Common project management terminology for general document analysis without methodology-specific constraints.',
+    focus: 'project-management',
+    list_type: 'grouped',
+    keywords: {
+      "Project Fundamentals": ["project", "program", "portfolio", "initiative", "objective", "goal", "scope", "requirement", "deliverable", "outcome", "benefit", "value", "success", "criteria", "constraint", "assumption", "dependency", "priority", "phase", "stage"],
+      "Planning & Scheduling": ["plan", "planning", "schedule", "timeline", "milestone", "deadline", "duration", "estimate", "forecast", "baseline", "target", "task", "activity", "work", "effort", "critical", "path", "sequence", "parallel", "lead time"],
+      "Resources & Budget": ["resource", "team", "staff", "personnel", "skill", "capacity", "allocation", "availability", "workload", "budget", "cost", "expense", "funding", "investment", "spending", "variance", "overrun", "underrun", "contingency", "reserve"],
+      "Execution & Control": ["execution", "implementation", "progress", "status", "update", "report", "review", "meeting", "tracking", "monitoring", "control", "change", "issue", "problem", "risk", "action", "decision", "escalation", "resolution", "approval"],
+      "Stakeholders & Communication": ["stakeholder", "sponsor", "client", "customer", "user", "manager", "leader", "member", "role", "responsibility", "communication", "collaboration", "coordination", "alignment", "engagement", "expectation", "feedback", "acceptance", "sign-off", "handover"]
     }
   }
 ]
@@ -698,8 +800,8 @@ export function initDatabase(): Database.Database {
   // Migrate existing project_id relationships to junction table
   migrateProjectDocuments(db)
 
-  // Add theme columns if they don't exist
-  migrateThemeColumns(db)
+  // Add focus columns if they don't exist (also migrates old theme columns)
+  migrateFocusColumns(db)
 
   // Seed default data if needed
   seedDefaultData(db)
@@ -708,30 +810,40 @@ export function initDatabase(): Database.Database {
 }
 
 /**
- * Add theme columns to projects and keyword_lists tables if they don't exist.
- * This migration supports the new theme system for different research domains.
+ * Add focus columns to projects and keyword_lists tables if they don't exist.
+ * Also migrates old 'theme' column to 'focus' if needed.
+ * This migration supports the research focus system for different research domains.
  */
-function migrateThemeColumns(database: Database.Database) {
-  // Check if theme column exists in projects table
+function migrateFocusColumns(database: Database.Database) {
   const projectColumns = database.prepare("PRAGMA table_info(projects)").all() as { name: string }[]
-  const hasProjectTheme = projectColumns.some(col => col.name === 'theme')
+  const keywordColumns = database.prepare("PRAGMA table_info(keyword_lists)").all() as { name: string }[]
 
-  if (!hasProjectTheme) {
-    console.log('Adding theme column to projects table...')
-    database.exec("ALTER TABLE projects ADD COLUMN theme TEXT DEFAULT 'sustainability'")
+  // Check for old 'theme' column and migrate to 'focus'
+  const hasProjectTheme = projectColumns.some(col => col.name === 'theme')
+  const hasProjectFocus = projectColumns.some(col => col.name === 'focus')
+
+  if (hasProjectTheme && !hasProjectFocus) {
+    console.log('Migrating projects.theme to projects.focus...')
+    database.exec("ALTER TABLE projects RENAME COLUMN theme TO focus")
+  } else if (!hasProjectFocus) {
+    console.log('Adding focus column to projects table...')
+    database.exec("ALTER TABLE projects ADD COLUMN focus TEXT DEFAULT 'sustainability'")
   }
 
-  // Check if theme column exists in keyword_lists table
-  const keywordColumns = database.prepare("PRAGMA table_info(keyword_lists)").all() as { name: string }[]
+  // Check for old 'theme' column in keyword_lists and migrate to 'focus'
   const hasKeywordTheme = keywordColumns.some(col => col.name === 'theme')
+  const hasKeywordFocus = keywordColumns.some(col => col.name === 'focus')
 
-  if (!hasKeywordTheme) {
-    console.log('Adding theme column to keyword_lists table...')
-    database.exec("ALTER TABLE keyword_lists ADD COLUMN theme TEXT")
+  if (hasKeywordTheme && !hasKeywordFocus) {
+    console.log('Migrating keyword_lists.theme to keyword_lists.focus...')
+    database.exec("ALTER TABLE keyword_lists RENAME COLUMN theme TO focus")
+  } else if (!hasKeywordFocus) {
+    console.log('Adding focus column to keyword_lists table...')
+    database.exec("ALTER TABLE keyword_lists ADD COLUMN focus TEXT")
 
-    // Update existing built-in frameworks with their theme
-    console.log('Updating existing frameworks with theme...')
-    database.exec("UPDATE keyword_lists SET theme = 'sustainability' WHERE framework IN ('tcfd', 'gri', 'sdgs', 'sasb') AND is_builtin = 1")
+    // Update existing built-in frameworks with their focus
+    console.log('Updating existing frameworks with focus...')
+    database.exec("UPDATE keyword_lists SET focus = 'sustainability' WHERE framework IN ('tcfd', 'gri', 'sdgs', 'sasb') AND is_builtin = 1")
   }
 }
 
@@ -815,7 +927,7 @@ function seedDefaultData(database: Database.Database) {
   if (keywordListCount.count === 0) {
     console.log('Seeding framework keyword lists...')
     const insertKeywordList = database.prepare(
-      `INSERT INTO keyword_lists (id, name, description, framework, theme, list_type, keywords, is_builtin)
+      `INSERT INTO keyword_lists (id, name, description, framework, focus, list_type, keywords, is_builtin)
        VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
     )
     const insertMany = database.transaction((frameworks: typeof FRAMEWORK_KEYWORDS) => {
@@ -826,11 +938,11 @@ function seedDefaultData(database: Database.Database) {
           framework.name,
           framework.description,
           framework.id,
-          framework.theme,
+          framework.focus,
           framework.list_type,
           JSON.stringify(framework.keywords)
         )
-        console.log(`  Seeded: ${framework.name} (${framework.theme})`)
+        console.log(`  Seeded: ${framework.name} (${framework.focus})`)
       }
     })
     insertMany(FRAMEWORK_KEYWORDS)
@@ -844,7 +956,7 @@ function seedDefaultData(database: Database.Database) {
     if (newFrameworks.length > 0) {
       console.log(`Adding ${newFrameworks.length} new framework keyword lists...`)
       const insertKeywordList = database.prepare(
-        `INSERT INTO keyword_lists (id, name, description, framework, theme, list_type, keywords, is_builtin)
+        `INSERT INTO keyword_lists (id, name, description, framework, focus, list_type, keywords, is_builtin)
          VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
       )
       const insertMany = database.transaction((frameworks: typeof FRAMEWORK_KEYWORDS) => {
@@ -855,11 +967,11 @@ function seedDefaultData(database: Database.Database) {
             framework.name,
             framework.description,
             framework.id,
-            framework.theme,
+            framework.focus,
             framework.list_type,
             JSON.stringify(framework.keywords)
           )
-          console.log(`  Added: ${framework.name} (${framework.theme})`)
+          console.log(`  Added: ${framework.name} (${framework.focus})`)
         }
       })
       insertMany(newFrameworks)

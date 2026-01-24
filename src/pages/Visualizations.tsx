@@ -8,6 +8,7 @@ import {
   Grid3X3,
   Radar,
   Loader2,
+  Settings2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -32,6 +33,11 @@ import { KeywordSelector } from '@/components/KeywordSelector'
 import { DocumentFilter } from '@/components/DocumentFilter'
 import { searchKeywordsLocal, type BatchKeywordSearchResult } from '@/services/analysis'
 import type { DocumentRecord } from '@/services/documents'
+import {
+  getActiveProfile,
+  getEnabledKeywords,
+  type ParsedAnalysisProfile,
+} from '@/services/profiles'
 
 export function Visualizations() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -47,6 +53,10 @@ export function Visualizations() {
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([])
   const [selectedListName, setSelectedListName] = useState('')
   const [searchResults, setSearchResults] = useState<BatchKeywordSearchResult | null>(null)
+
+  // Profile
+  const [profile, setProfile] = useState<ParsedAnalysisProfile | null>(null)
+  const [loadingProfile, setLoadingProfile] = useState(false)
 
   // Chart refs for export
   const wordCloudRef = useRef<HTMLDivElement>(null)
@@ -68,8 +78,33 @@ export function Visualizations() {
   useEffect(() => {
     if (projectId) {
       loadDocuments()
+      loadProfile()
     }
   }, [projectId])
+
+  const loadProfile = async () => {
+    try {
+      setLoadingProfile(true)
+      const activeProfile = await getActiveProfile(projectId!)
+      setProfile(activeProfile)
+    } catch (error) {
+      console.error('Failed to load profile:', error)
+    } finally {
+      setLoadingProfile(false)
+    }
+  }
+
+  const handleUseProfile = async () => {
+    if (!profile) return
+
+    const keywords = getEnabledKeywords(profile.config)
+    if (keywords.length === 0) {
+      alert('No keywords are configured in your profile. Open Profile Settings to add keywords.')
+      return
+    }
+
+    handleKeywordSelect(keywords, `${profile.name} Keywords`)
+  }
 
   // Load saved keywords after documents are loaded
   useEffect(() => {
@@ -352,8 +387,21 @@ export function Visualizations() {
               selectedIds={filteredDocIds}
               onChange={handleFilterChange}
             />
-            <Button onClick={() => setShowKeywordSelector(true)}>
-              Select Framework Keywords
+            {profile && (
+              <Button
+                variant="default"
+                onClick={handleUseProfile}
+                disabled={loadingProfile || analyzing}
+              >
+                <Settings2 className="h-4 w-4 mr-2" />
+                Use Profile Keywords
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => setShowKeywordSelector(true)}
+            >
+              Select Other Keywords
             </Button>
             {selectedKeywords.length > 0 && (
               <span className="text-sm text-muted-foreground">
@@ -367,6 +415,11 @@ export function Visualizations() {
               </div>
             )}
           </div>
+          {!profile && !loadingProfile && (
+            <p className="text-xs text-muted-foreground mt-2">
+              No profile configured. Create a profile in project settings to save your keyword preferences.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -521,12 +574,24 @@ export function Visualizations() {
             <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h2 className="text-lg font-medium mb-2">Select Keywords to Visualize</h2>
             <p className="text-muted-foreground mb-4">
-              Choose a keyword framework to generate visualizations of keyword
-              distribution across your documents
+              {profile
+                ? 'Use your profile keywords or select a different framework to generate visualizations'
+                : 'Choose a keyword framework to generate visualizations of keyword distribution across your documents'}
             </p>
-            <Button onClick={() => setShowKeywordSelector(true)}>
-              Select Keywords
-            </Button>
+            <div className="flex items-center justify-center gap-2">
+              {profile && (
+                <Button onClick={handleUseProfile}>
+                  <Settings2 className="h-4 w-4 mr-2" />
+                  Use Profile Keywords
+                </Button>
+              )}
+              <Button
+                variant={profile ? 'outline' : 'default'}
+                onClick={() => setShowKeywordSelector(true)}
+              >
+                {profile ? 'Select Other Keywords' : 'Select Keywords'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

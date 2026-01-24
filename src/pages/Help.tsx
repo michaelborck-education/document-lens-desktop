@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 const HELP_SECTIONS = [
   { id: 'user-guide', title: 'User Guide', icon: '📖' },
   { id: 'analysis-workflows', title: 'Analysis Workflows', icon: '🔍' },
+  { id: 'keyword-methodology', title: 'Keyword Methodology', icon: '🔬' },
   { id: 'quick-reference', title: 'Quick Reference', icon: '⚡' },
   { id: 'collaboration', title: 'Collaboration', icon: '👥' },
 ]

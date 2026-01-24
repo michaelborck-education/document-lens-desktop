@@ -397,7 +397,7 @@ Determine which ESG issues matter most to your industry peers.
 
 ### Steps
 
-#### 1. Keyword Frequency by Theme
+#### 1. Keyword Frequency by Category
 ```
 For each profile, activate and run keyword search
 → Count frequency of each keyword

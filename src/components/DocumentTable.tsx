@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   FileText,
@@ -11,10 +11,20 @@ import {
   Eye,
   FolderMinus,
   BarChart3,
+  CheckCircle,
+  AlertTriangle,
+  RefreshCw,
+  FileQuestion,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import type { DocumentRecord } from '@/services/documents'
+import {
+  type DocumentRecord,
+  type DocumentStatus,
+  getDocumentStatus,
+  reExtractDocument,
+  checkPdfExists,
+} from '@/services/documents'
 
 type SortField = 'filename' | 'company_name' | 'report_year' | 'analysis_status' | 'created_at'
 type SortDirection = 'asc' | 'desc'
@@ -29,6 +39,7 @@ interface DocumentTableProps {
   onRemoveFromProject?: (documentIds: string[]) => void
   onOpenFile: (document: DocumentRecord) => void
   onViewStats?: (document: DocumentRecord) => void
+  onRefresh?: () => void
 }
 
 export function DocumentTable({
@@ -41,10 +52,61 @@ export function DocumentTable({
   onRemoveFromProject,
   onOpenFile,
   onViewStats,
+  onRefresh,
 }: DocumentTableProps) {
   const [sortField, setSortField] = useState<SortField>('created_at')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [contextMenu, setContextMenu] = useState<string | null>(null)
+  const [documentStatuses, setDocumentStatuses] = useState<Record<string, DocumentStatus>>({})
+  const [reExtracting, setReExtracting] = useState<string | null>(null)
+
+  // Load document statuses
+  useEffect(() => {
+    const loadStatuses = async () => {
+      const statuses: Record<string, DocumentStatus> = {}
+      for (const doc of documents) {
+        statuses[doc.id] = await getDocumentStatus(doc)
+      }
+      setDocumentStatuses(statuses)
+    }
+    loadStatuses()
+  }, [documents])
+
+  const handleOpenFile = async (doc: DocumentRecord) => {
+    const status = documentStatuses[doc.id]
+    if (status && !status.pdfAvailable) {
+      alert('PDF file not found at original location. The file may have been moved or deleted.')
+      return
+    }
+    onOpenFile(doc)
+  }
+
+  const handleReExtract = async (doc: DocumentRecord) => {
+    const status = documentStatuses[doc.id]
+    if (status && !status.pdfAvailable) {
+      alert('Cannot re-extract: PDF file not found at original location.')
+      return
+    }
+
+    if (!confirm(`Re-extract text from "${doc.filename}"?\n\nThis will replace the existing extracted text and clear any analysis results.`)) {
+      return
+    }
+
+    setReExtracting(doc.id)
+    try {
+      const result = await reExtractDocument(doc.id)
+      if (result.success) {
+        onRefresh?.()
+      } else {
+        alert(`Re-extraction failed: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Failed to re-extract:', error)
+      alert('Failed to re-extract text from document.')
+    } finally {
+      setReExtracting(null)
+    }
+  }
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -157,9 +219,12 @@ export function DocumentTable({
                 className="flex items-center gap-1 text-sm font-medium hover:text-primary"
                 onClick={() => handleSort('analysis_status')}
               >
-                Status
+                Analysis
                 <SortIcon field="analysis_status" />
               </button>
+            </th>
+            <th className="text-left px-3 py-3 w-24">
+              <span className="text-sm font-medium">Availability</span>
             </th>
             <th className="w-20 px-3 py-3" />
           </tr>
@@ -205,6 +270,34 @@ export function DocumentTable({
                 </span>
               </td>
               <td className="px-3 py-3">
+                {documentStatuses[doc.id] && (
+                  <div className="flex flex-col gap-0.5">
+                    {documentStatuses[doc.id].textAvailable ? (
+                      <span className="flex items-center gap-1 text-xs text-green-600" title="Text extracted">
+                        <CheckCircle className="h-3 w-3" />
+                        Text
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-xs text-amber-600" title="No text extracted">
+                        <AlertTriangle className="h-3 w-3" />
+                        No text
+                      </span>
+                    )}
+                    {documentStatuses[doc.id].pdfAvailable ? (
+                      <span className="flex items-center gap-1 text-xs text-green-600" title="PDF available">
+                        <CheckCircle className="h-3 w-3" />
+                        PDF
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-xs text-red-600" title="PDF not found">
+                        <FileQuestion className="h-3 w-3" />
+                        No PDF
+                      </span>
+                    )}
+                  </div>
+                )}
+              </td>
+              <td className="px-3 py-3">
                 <div className="relative">
                   <Button
                     variant="ghost"
@@ -241,14 +334,28 @@ export function DocumentTable({
                           Edit Metadata
                         </button>
                         <button
-                          className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted"
+                          className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted ${documentStatuses[doc.id] && !documentStatuses[doc.id].pdfAvailable ? 'text-muted-foreground' : ''}`}
                           onClick={() => {
-                            onOpenFile(doc)
+                            handleOpenFile(doc)
                             setContextMenu(null)
                           }}
                         >
                           <ExternalLink className="h-4 w-4" />
                           Open PDF
+                          {documentStatuses[doc.id] && !documentStatuses[doc.id].pdfAvailable && (
+                            <AlertTriangle className="h-3 w-3 text-amber-500" />
+                          )}
+                        </button>
+                        <button
+                          className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted ${documentStatuses[doc.id] && !documentStatuses[doc.id].pdfAvailable ? 'text-muted-foreground' : ''}`}
+                          onClick={() => {
+                            handleReExtract(doc)
+                            setContextMenu(null)
+                          }}
+                          disabled={reExtracting === doc.id}
+                        >
+                          <RefreshCw className={`h-4 w-4 ${reExtracting === doc.id ? 'animate-spin' : ''}`} />
+                          {reExtracting === doc.id ? 'Re-extracting...' : 'Re-extract Text'}
                         </button>
                         {onViewStats && (
                           <button

@@ -6,11 +6,56 @@
 
 import { v4 as uuidv4 } from 'uuid'
 
-// Import framework data
+// Import framework data - Sustainability focus
 import tcfdData from '@/data/frameworks/tcfd.json'
 import sdgsData from '@/data/frameworks/sdgs.json'
 import griData from '@/data/frameworks/gri.json'
 import sasbData from '@/data/frameworks/sasb.json'
+
+// Cybersecurity focus
+import nistCsfData from '@/data/frameworks/nist-csf.json'
+import iso27001Data from '@/data/frameworks/iso-27001.json'
+import cisControlsData from '@/data/frameworks/cis-controls.json'
+import mitreAttackData from '@/data/frameworks/mitre-attack.json'
+
+// Finance focus
+import financialRatiosData from '@/data/frameworks/financial-ratios.json'
+import secRegulationsData from '@/data/frameworks/sec-regulations.json'
+import baselIiiData from '@/data/frameworks/basel-iii.json'
+import riskMetricsData from '@/data/frameworks/risk-metrics.json'
+
+// Healthcare focus
+import clinicalTrialsData from '@/data/frameworks/clinical-trials.json'
+import fdaRegulationsData from '@/data/frameworks/fda-regulations.json'
+import hipaaData from '@/data/frameworks/hipaa.json'
+import medicalTerminologyData from '@/data/frameworks/medical-terminology.json'
+
+// Legal focus
+import contractTermsData from '@/data/frameworks/contract-terms.json'
+import regulatoryLanguageData from '@/data/frameworks/regulatory-language.json'
+import legalClausesData from '@/data/frameworks/legal-clauses.json'
+import complianceKeywordsData from '@/data/frameworks/compliance-keywords.json'
+
+// Academic focus
+import researchMethodsData from '@/data/frameworks/research-methods.json'
+import statisticalTermsData from '@/data/frameworks/statistical-terms.json'
+import literatureReviewData from '@/data/frameworks/literature-review.json'
+import citationAnalysisData from '@/data/frameworks/citation-analysis.json'
+
+// Project Management focus
+import agileScrumData from '@/data/frameworks/agile-scrum.json'
+import pmbokData from '@/data/frameworks/pmbok.json'
+import riskManagementPmData from '@/data/frameworks/risk-management-pm.json'
+import resourcePlanningData from '@/data/frameworks/resource-planning.json'
+
+// General domain keyword lists (non-framework-specific)
+import sustainabilityGeneralData from '@/data/frameworks/sustainability-general.json'
+import cybersecurityGeneralData from '@/data/frameworks/cybersecurity-general.json'
+import financeGeneralData from '@/data/frameworks/finance-general.json'
+import healthcareGeneralData from '@/data/frameworks/healthcare-general.json'
+import legalGeneralData from '@/data/frameworks/legal-general.json'
+import academicGeneralData from '@/data/frameworks/academic-general.json'
+import projectManagementGeneralData from '@/data/frameworks/project-management-general.json'
 
 export interface FrameworkData {
   name: string
@@ -28,7 +73,7 @@ export interface KeywordList {
   name: string
   description: string | null
   framework: string | null
-  theme: string | null
+  focus: string | null
   list_type: string
   keywords: string // JSON string
   is_builtin: boolean
@@ -43,10 +88,49 @@ export interface ParsedKeywordList extends Omit<KeywordList, 'keywords'> {
 
 // Framework data map
 const FRAMEWORKS: Record<string, FrameworkData> = {
+  // Sustainability
   tcfd: tcfdData as FrameworkData,
   sdgs: sdgsData as FrameworkData,
   gri: griData as FrameworkData,
   sasb: sasbData as FrameworkData,
+  // Cybersecurity
+  'nist-csf': nistCsfData as FrameworkData,
+  'iso-27001': iso27001Data as FrameworkData,
+  'cis-controls': cisControlsData as FrameworkData,
+  'mitre-attack': mitreAttackData as FrameworkData,
+  // Finance
+  'financial-ratios': financialRatiosData as FrameworkData,
+  'sec-regulations': secRegulationsData as FrameworkData,
+  'basel-iii': baselIiiData as FrameworkData,
+  'risk-metrics': riskMetricsData as FrameworkData,
+  // Healthcare
+  'clinical-trials': clinicalTrialsData as FrameworkData,
+  'fda-regulations': fdaRegulationsData as FrameworkData,
+  'hipaa': hipaaData as FrameworkData,
+  'medical-terminology': medicalTerminologyData as FrameworkData,
+  // Legal
+  'contract-terms': contractTermsData as FrameworkData,
+  'regulatory-language': regulatoryLanguageData as FrameworkData,
+  'legal-clauses': legalClausesData as FrameworkData,
+  'compliance-keywords': complianceKeywordsData as FrameworkData,
+  // Academic
+  'research-methods': researchMethodsData as FrameworkData,
+  'statistical-terms': statisticalTermsData as FrameworkData,
+  'literature-review': literatureReviewData as FrameworkData,
+  'citation-analysis': citationAnalysisData as FrameworkData,
+  // Project Management
+  'agile-scrum': agileScrumData as FrameworkData,
+  'pmbok': pmbokData as FrameworkData,
+  'risk-management-pm': riskManagementPmData as FrameworkData,
+  'resource-planning': resourcePlanningData as FrameworkData,
+  // General domain keywords (non-framework-specific)
+  'sustainability-general': sustainabilityGeneralData as FrameworkData,
+  'cybersecurity-general': cybersecurityGeneralData as FrameworkData,
+  'finance-general': financeGeneralData as FrameworkData,
+  'healthcare-general': healthcareGeneralData as FrameworkData,
+  'legal-general': legalGeneralData as FrameworkData,
+  'academic-general': academicGeneralData as FrameworkData,
+  'project-management-general': projectManagementGeneralData as FrameworkData,
 }
 
 /**
@@ -133,23 +217,23 @@ export async function getCustomLists(): Promise<KeywordList[]> {
 }
 
 /**
- * Get built-in keyword lists by theme
+ * Get built-in keyword lists by focus
  */
-export async function getKeywordListsByTheme(theme: string): Promise<KeywordList[]> {
+export async function getKeywordListsByFocus(focus: string): Promise<KeywordList[]> {
   return window.electron.dbQuery<KeywordList>(
-    'SELECT * FROM keyword_lists WHERE theme = ? AND is_builtin = 1 ORDER BY name',
-    [theme]
+    'SELECT * FROM keyword_lists WHERE focus = ? AND is_builtin = 1 ORDER BY name',
+    [focus]
   )
 }
 
 /**
- * Get all unique themes from keyword lists
+ * Get all unique focuses from keyword lists
  */
-export async function getKeywordThemes(): Promise<string[]> {
-  const results = await window.electron.dbQuery<{ theme: string }>(
-    'SELECT DISTINCT theme FROM keyword_lists WHERE theme IS NOT NULL AND is_builtin = 1 ORDER BY theme'
+export async function getKeywordFocuses(): Promise<string[]> {
+  const results = await window.electron.dbQuery<{ focus: string }>(
+    'SELECT DISTINCT focus FROM keyword_lists WHERE focus IS NOT NULL AND is_builtin = 1 ORDER BY focus'
   )
-  return results.map(r => r.theme)
+  return results.map(r => r.focus)
 }
 
 /**

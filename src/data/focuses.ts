@@ -1,7 +1,7 @@
-// Research themes - each theme bundles related keyword frameworks
+// Research focuses - each focus bundles related keyword frameworks
 // for specific research domains
 
-export interface Theme {
+export interface Focus {
   id: string
   name: string
   description: string
@@ -9,7 +9,7 @@ export interface Theme {
   color: string // Tailwind color class
 }
 
-export const THEMES: Theme[] = [
+export const FOCUSES: Focus[] = [
   {
     id: 'sustainability',
     name: 'Sustainability',
@@ -68,23 +68,24 @@ export const THEMES: Theme[] = [
   }
 ]
 
-export const DEFAULT_THEME = 'sustainability'
+export const DEFAULT_FOCUS = 'sustainability'
 
-export function getTheme(id: string): Theme | undefined {
-  return THEMES.find(t => t.id === id)
+export function getFocus(id: string): Focus | undefined {
+  return FOCUSES.find(f => f.id === id)
 }
 
-export function getThemeFrameworks(themeId: string): string[] {
-  // Map theme IDs to their framework IDs
-  const themeFrameworks: Record<string, string[]> = {
-    'sustainability': ['tcfd', 'gri', 'sdgs', 'sasb'],
-    'cybersecurity': ['nist-csf', 'iso-27001', 'cis-controls', 'mitre-attack'],
-    'finance': ['financial-ratios', 'sec-regulations', 'basel-iii', 'risk-metrics'],
-    'healthcare': ['clinical-trials', 'fda-regulations', 'hipaa', 'medical-terminology'],
-    'legal': ['contract-terms', 'regulatory-language', 'legal-clauses', 'compliance-keywords'],
-    'academic': ['research-methods', 'statistical-terms', 'literature-review', 'citation-analysis'],
-    'project-management': ['agile-scrum', 'pmbok', 'risk-management', 'resource-planning'],
+export function getFocusFrameworks(focusId: string): string[] {
+  // Map focus IDs to their framework IDs
+  // Each focus includes specific frameworks plus a general domain keyword list
+  const focusFrameworks: Record<string, string[]> = {
+    'sustainability': ['sustainability-general', 'tcfd', 'gri', 'sdgs', 'sasb'],
+    'cybersecurity': ['cybersecurity-general', 'nist-csf', 'iso-27001', 'cis-controls', 'mitre-attack'],
+    'finance': ['finance-general', 'financial-ratios', 'sec-regulations', 'basel-iii', 'risk-metrics'],
+    'healthcare': ['healthcare-general', 'clinical-trials', 'fda-regulations', 'hipaa', 'medical-terminology'],
+    'legal': ['legal-general', 'contract-terms', 'regulatory-language', 'legal-clauses', 'compliance-keywords'],
+    'academic': ['academic-general', 'research-methods', 'statistical-terms', 'literature-review', 'citation-analysis'],
+    'project-management': ['project-management-general', 'agile-scrum', 'pmbok', 'risk-management-pm', 'resource-planning'],
     'general': []
   }
-  return themeFrameworks[themeId] || []
+  return focusFrameworks[focusId] || []
 }

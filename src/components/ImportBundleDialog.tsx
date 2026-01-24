@@ -225,11 +225,38 @@ export function ImportBundleDialog({
                           {preview.documents.total} Documents
                         </span>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {preview.documents.newDocuments} new •{' '}
-                        {preview.documents.duplicates} duplicates
-                        {preview.manifest.contents.includes_text && ' • Includes text'}
-                        {preview.manifest.contents.includes_analysis && ' • Includes analysis'}
+                      <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                        <div>
+                          {preview.documents.newDocuments} new •{' '}
+                          {preview.documents.duplicates} duplicates
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {preview.manifest.contents.includes_text && (
+                            <span className="inline-flex items-center gap-1 text-green-600">
+                              <CheckCircle2 className="h-3 w-3" /> Text included
+                            </span>
+                          )}
+                          {preview.manifest.contents.includes_analysis && (
+                            <span className="inline-flex items-center gap-1 text-green-600">
+                              <CheckCircle2 className="h-3 w-3" /> Analysis included
+                            </span>
+                          )}
+                          {preview.manifest.contents.includes_pdfs && (
+                            <span className="inline-flex items-center gap-1 text-green-600">
+                              <CheckCircle2 className="h-3 w-3" /> PDFs included
+                            </span>
+                          )}
+                          {!preview.manifest.contents.includes_pdfs && preview.manifest.contents.includes_text && (
+                            <span className="inline-flex items-center gap-1 text-amber-600">
+                              <AlertTriangle className="h-3 w-3" /> PDFs not included
+                            </span>
+                          )}
+                        </div>
+                        {preview.documents.textOnly > 0 && (
+                          <div className="text-amber-600">
+                            {preview.documents.textOnly} document{preview.documents.textOnly !== 1 ? 's' : ''} have text only (no PDF)
+                          </div>
+                        )}
                       </div>
                     </div>
                   </label>

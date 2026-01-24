@@ -25,6 +25,7 @@ CHAPTERS=(
     "user-guide.md:User Guide"
     "quick-reference.md:Quick Reference"
     "analysis-workflows.md:Analysis Workflows"
+    "keyword-methodology.md:Keyword Methodology"
     "collaboration.md:Collaboration"
 )
 

@@ -1,9 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download, Package, Library, FolderMinus } from 'lucide-react'
+import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download, Package, Library, FolderMinus, Copy, MoreVertical, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { DocumentTable } from '@/components/DocumentTable'
 import { DocumentMetadataModal } from '@/components/DocumentMetadataModal'
 import { ImportProgressDialog } from '@/components/ImportProgressDialog'
@@ -27,6 +34,7 @@ import {
   analyzeDocuments,
   type AnalysisProgress,
 } from '@/services/analysis'
+import { duplicateProject } from '@/services/projects'
 
 interface Project {
   id: string
@@ -63,6 +71,7 @@ export function ProjectDashboard() {
   const [showImportBundle, setShowImportBundle] = useState(false)
   const [showAddFromLibrary, setShowAddFromLibrary] = useState(false)
   const [statsDocument, setStatsDocument] = useState<DocumentRecord | null>(null)
+  const [duplicating, setDuplicating] = useState(false)
 
   useEffect(() => {
     if (projectId) {
@@ -197,14 +206,34 @@ export function ProjectDashboard() {
     }
   }
 
-  const handleAnalyzeAll = async () => {
-    // Get documents that need analysis (have text but not completed)
-    const docsToAnalyze = documents.filter(
-      d => d.extracted_text && d.analysis_status !== 'completed'
+  const handleDuplicateProject = async () => {
+    const newName = prompt(
+      'Enter a name for the duplicated project:',
+      `${project?.name} (Copy)`
     )
+    if (!newName?.trim()) return
+
+    try {
+      setDuplicating(true)
+      const newProjectId = await duplicateProject(projectId!, newName.trim())
+      // Navigate to the new project
+      navigate(`/project/${newProjectId}`)
+    } catch (error) {
+      console.error('Failed to duplicate project:', error)
+      alert('Failed to duplicate project. Please try again.')
+    } finally {
+      setDuplicating(false)
+    }
+  }
+
+  const handleAnalyzeAll = async (forceRedo = false) => {
+    // Get documents that need analysis (have text but not completed, or all if forceRedo)
+    const docsToAnalyze = forceRedo
+      ? documents.filter(d => d.extracted_text)
+      : documents.filter(d => d.extracted_text && d.analysis_status !== 'completed')
 
     if (docsToAnalyze.length === 0) {
-      alert('All documents are already analyzed or have no text to analyze.')
+      alert('No documents available to analyze (all documents need extracted text).')
       return
     }
 
@@ -310,6 +339,23 @@ export function ProjectDashboard() {
           projectId={projectId!}
           onManageProfiles={() => setShowProfileEditor(true)}
         />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" disabled={duplicating}>
+              {duplicating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MoreVertical className="h-4 w-4" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleDuplicateProject}>
+              <Copy className="h-4 w-4 mr-2" />
+              Duplicate Project
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Stats Cards */}
@@ -382,18 +428,49 @@ export function ProjectDashboard() {
           <Package className="h-4 w-4 mr-2" />
           Import Bundle
         </Button>
-        <Button
-          variant="outline"
-          disabled={documents.length === 0 || analyzing}
-          onClick={handleAnalyzeAll}
-        >
-          {analyzing ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <BarChart3 className="h-4 w-4 mr-2" />
-          )}
-          {analyzing ? 'Analyzing...' : 'Analyze All'}
-        </Button>
+        {(() => {
+          const analyzedCount = documents.filter(d => d.analysis_status === 'completed').length
+          const analyzableCount = documents.filter(d => d.extracted_text).length
+          const allAnalyzed = analyzedCount === analyzableCount && analyzableCount > 0
+          const pendingCount = analyzableCount - analyzedCount
+
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={documents.length === 0 || analyzing}
+                >
+                  {analyzing ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                  )}
+                  {analyzing ? 'Analyzing...' : allAnalyzed ? 'Analysis Complete' : `Analyze (${pendingCount})`}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {!allAnalyzed && pendingCount > 0 && (
+                  <DropdownMenuItem onClick={() => handleAnalyzeAll(false)}>
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Analyze Pending ({pendingCount})
+                  </DropdownMenuItem>
+                )}
+                {analyzableCount > 0 && (
+                  <DropdownMenuItem onClick={() => handleAnalyzeAll(true)}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    {allAnalyzed ? 'Redo All Analysis' : `Redo All (${analyzableCount})`}
+                  </DropdownMenuItem>
+                )}
+                {analyzableCount === 0 && (
+                  <DropdownMenuItem disabled>
+                    No documents with text to analyze
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
+        })()}
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
@@ -532,6 +609,7 @@ export function ProjectDashboard() {
               onRemoveFromProject={handleRemoveFromProject}
               onOpenFile={handleOpenFile}
               onViewStats={setStatsDocument}
+              onRefresh={loadDocuments}
             />
           )}
         </CardContent>
@@ -567,6 +645,7 @@ export function ProjectDashboard() {
         open={showProfileEditor}
         onClose={() => setShowProfileEditor(false)}
         projectId={projectId!}
+        projectName={project?.name}
       />
 
       {/* Import Bundle Dialog */}

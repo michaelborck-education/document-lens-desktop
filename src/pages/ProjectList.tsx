@@ -1,24 +1,33 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, FolderOpen, Trash2, Leaf, Shield, TrendingUp, Heart, Scale, GraduationCap, ClipboardList, FileText } from 'lucide-react'
+import { Plus, FolderOpen, Trash2, Leaf, Shield, TrendingUp, Heart, Scale, GraduationCap, ClipboardList, FileText, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { THEMES, DEFAULT_THEME, type Theme } from '@/data/themes'
+import { FOCUSES, DEFAULT_FOCUS, type Focus } from '@/data/focuses'
+
+// Get default focus from user settings or fallback to system default
+function getDefaultFocus(): string {
+  const setting = localStorage.getItem('defaultFocus')
+  if (setting && FOCUSES.some(f => f.id === setting)) {
+    return setting
+  }
+  return DEFAULT_FOCUS
+}
 import { cn } from '@/lib/utils'
 
 interface Project {
   id: string
   name: string
   description: string | null
-  theme: string
+  focus: string
   created_at: string
   updated_at: string
   document_count?: number
 }
 
-// Map theme icon names to components
-const themeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+// Map focus icon names to components
+const focusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   Leaf,
   Shield,
   TrendingUp,
@@ -29,8 +38,8 @@ const themeIcons: Record<string, React.ComponentType<{ className?: string }>> = 
   FileText
 }
 
-function getThemeIcon(theme: Theme) {
-  return themeIcons[theme.icon] || FileText
+function getFocusIcon(focus: Focus) {
+  return focusIcons[focus.icon] || FileText
 }
 
 export function ProjectList() {
@@ -39,7 +48,7 @@ export function ProjectList() {
   const [showNewProject, setShowNewProject] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
   const [newProjectDescription, setNewProjectDescription] = useState('')
-  const [newProjectTheme, setNewProjectTheme] = useState(DEFAULT_THEME)
+  const [newProjectFocus, setNewProjectFocus] = useState(getDefaultFocus)
 
   useEffect(() => {
     loadProjects()
@@ -51,7 +60,7 @@ export function ProjectList() {
       // Load projects with document count (using junction table)
       const result = await window.electron.dbQuery<Project>(`
         SELECT
-          p.id, p.name, p.description, p.theme, p.created_at, p.updated_at,
+          p.id, p.name, p.description, p.focus, p.created_at, p.updated_at,
           COUNT(pd.document_id) as document_count
         FROM projects p
         LEFT JOIN project_documents pd ON pd.project_id = p.id
@@ -72,13 +81,13 @@ export function ProjectList() {
     try {
       const id = crypto.randomUUID()
       await window.electron.dbRun(
-        'INSERT INTO projects (id, name, description, theme) VALUES (?, ?, ?, ?)',
-        [id, newProjectName.trim(), newProjectDescription.trim() || null, newProjectTheme]
+        'INSERT INTO projects (id, name, description, focus) VALUES (?, ?, ?, ?)',
+        [id, newProjectName.trim(), newProjectDescription.trim() || null, newProjectFocus]
       )
 
       setNewProjectName('')
       setNewProjectDescription('')
-      setNewProjectTheme(DEFAULT_THEME)
+      setNewProjectFocus(getDefaultFocus())
       setShowNewProject(false)
       loadProjects()
     } catch (error) {
@@ -89,7 +98,7 @@ export function ProjectList() {
   const deleteProject = async (id: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (!confirm('Are you sure you want to delete this project? All documents will be removed.')) {
       return
     }
@@ -157,18 +166,21 @@ export function ProjectList() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Research Theme</label>
+                <label className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  Research Focus
+                </label>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Choose a theme to get pre-loaded keyword frameworks for your research domain
+                  Choose a focus to get pre-loaded keyword frameworks for your research domain
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {THEMES.map((theme) => {
-                    const Icon = getThemeIcon(theme)
-                    const isSelected = newProjectTheme === theme.id
+                  {FOCUSES.map((focus) => {
+                    const Icon = getFocusIcon(focus)
+                    const isSelected = newProjectFocus === focus.id
                     return (
                       <button
-                        key={theme.id}
-                        onClick={() => setNewProjectTheme(theme.id)}
+                        key={focus.id}
+                        onClick={() => setNewProjectFocus(focus.id)}
                         className={cn(
                           'flex flex-col items-center gap-2 p-3 rounded-lg border text-sm transition-colors',
                           isSelected
@@ -176,15 +188,15 @@ export function ProjectList() {
                             : 'border-border hover:border-primary/50 hover:bg-muted'
                         )}
                       >
-                        <Icon className={cn('h-5 w-5', isSelected ? theme.color : 'text-muted-foreground')} />
-                        <span className="font-medium text-center text-xs">{theme.name}</span>
+                        <Icon className={cn('h-5 w-5', isSelected ? focus.color : 'text-muted-foreground')} />
+                        <span className="font-medium text-center text-xs">{focus.name}</span>
                       </button>
                     )
                   })}
                 </div>
-                {newProjectTheme && (
+                {newProjectFocus && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    {THEMES.find(t => t.id === newProjectTheme)?.description}
+                    {FOCUSES.find(f => f.id === newProjectFocus)?.description}
                   </p>
                 )}
               </div>
@@ -196,7 +208,7 @@ export function ProjectList() {
                   setShowNewProject(false)
                   setNewProjectName('')
                   setNewProjectDescription('')
-                  setNewProjectTheme(DEFAULT_THEME)
+                  setNewProjectFocus(getDefaultFocus())
                 }}>
                   Cancel
                 </Button>
@@ -224,15 +236,15 @@ export function ProjectList() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => {
-            const theme = THEMES.find(t => t.id === project.theme) || THEMES.find(t => t.id === 'general')!
-            const ThemeIcon = getThemeIcon(theme)
+            const focus = FOCUSES.find(f => f.id === project.focus) || FOCUSES.find(f => f.id === 'general')!
+            const FocusIcon = getFocusIcon(focus)
             return (
               <Link key={project.id} to={`/project/${project.id}`}>
                 <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
-                        <ThemeIcon className={cn('h-5 w-5', theme.color)} />
+                        <FocusIcon className={cn('h-5 w-5', focus.color)} />
                         <CardTitle className="text-lg">{project.name}</CardTitle>
                       </div>
                       <Button
@@ -252,8 +264,9 @@ export function ProjectList() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className={cn('text-xs px-2 py-0.5 rounded-full bg-muted', theme.color)}>
-                        {theme.name}
+                      <span className={cn('text-xs px-2 py-0.5 rounded-full bg-muted flex items-center gap-1', focus.color)}>
+                        <Search className="h-3 w-3" />
+                        {focus.name}
                       </span>
                       <span>{project.document_count || 0} documents</span>
                     </div>

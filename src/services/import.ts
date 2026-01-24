@@ -80,11 +80,14 @@ export interface ImportPreview {
     total: number
     newDocuments: number
     duplicates: number
+    textOnly: number  // Has text but no PDF in bundle
     items: Array<{
       id: string
       filename: string
       file_hash: string
-      status: 'new' | 'duplicate' | 'pdf_missing'
+      status: 'new' | 'duplicate' | 'text_only'
+      hasText: boolean
+      hasPdfInBundle: boolean
       existingDocumentId?: string
     }>
   }
@@ -148,18 +151,32 @@ export async function previewBundle(
 ): Promise<ImportPreview> {
   const { zip, manifest } = await readBundleFile(bundlePath)
 
+  // Check if PDFs are included in bundle
+  const pdfsFolder = zip.folder('pdfs')
+  const includedPdfFilenames = new Set<string>()
+  if (pdfsFolder) {
+    pdfsFolder.forEach((relativePath, file) => {
+      if (!file.dir) {
+        includedPdfFilenames.add(file.name.split('/').pop() || '')
+      }
+    })
+  }
+
   // Read documents folder
   const documentsFolder = zip.folder('documents')
   const documents: Array<{
     id: string
     filename: string
     file_hash: string
-    status: 'new' | 'duplicate' | 'pdf_missing'
+    status: 'new' | 'duplicate' | 'text_only'
+    hasText: boolean
+    hasPdfInBundle: boolean
     existingDocumentId?: string
   }> = []
 
   let newCount = 0
   let duplicateCount = 0
+  let textOnlyCount = 0
 
   if (documentsFolder) {
     const docFiles = documentsFolder.filter((_, file) => file.name.endsWith('.json'))
@@ -167,6 +184,9 @@ export async function previewBundle(
     for (const docFile of docFiles) {
       const docText = await docFile.async('text')
       const docData = JSON.parse(docText) as BundleDocumentData
+
+      const hasText = docData.extracted_text !== null && docData.extracted_text.length > 0
+      const hasPdfInBundle = includedPdfFilenames.has(docData.filename)
 
       // Check if document already exists by file hash
       const existing = await findDocumentByHash(targetProjectId, docData.file_hash)
@@ -178,7 +198,21 @@ export async function previewBundle(
           filename: docData.filename,
           file_hash: docData.file_hash,
           status: 'duplicate',
+          hasText,
+          hasPdfInBundle,
           existingDocumentId: existing.id
+        })
+      } else if (hasText && !hasPdfInBundle) {
+        // Has text but no PDF - still usable for analysis
+        textOnlyCount++
+        newCount++
+        documents.push({
+          id: docData.id,
+          filename: docData.filename,
+          file_hash: docData.file_hash,
+          status: 'text_only',
+          hasText,
+          hasPdfInBundle
         })
       } else {
         newCount++
@@ -186,7 +220,9 @@ export async function previewBundle(
           id: docData.id,
           filename: docData.filename,
           file_hash: docData.file_hash,
-          status: 'new'
+          status: 'new',
+          hasText,
+          hasPdfInBundle
         })
       }
     }
@@ -212,6 +248,7 @@ export async function previewBundle(
       total: documents.length,
       newDocuments: newCount,
       duplicates: duplicateCount,
+      textOnly: textOnlyCount,
       items: documents
     },
     profiles,

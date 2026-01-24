@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   FolderOpen,
   Lightbulb,
+  Search,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,8 +26,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { api } from '@/services/api'
 import { BACKEND_URL } from '@/config/backend'
+import { FOCUSES, DEFAULT_FOCUS } from '@/data/focuses'
 
 interface Country {
   code: string
@@ -66,6 +75,9 @@ export function Settings() {
   // Welcome dialog setting
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(true)
 
+  // Default focus setting
+  const [defaultFocus, setDefaultFocus] = useState(DEFAULT_FOCUS)
+
   useEffect(() => {
     loadSettings()
     loadAppVersion()
@@ -74,6 +86,7 @@ export function Settings() {
     loadCountries()
     loadIndustries()
     loadWelcomeDialogSetting()
+    loadDefaultFocusSetting()
   }, [])
 
   const loadWelcomeDialogSetting = () => {
@@ -88,6 +101,18 @@ export function Settings() {
     } else {
       localStorage.setItem('showWelcomeDialog', 'false')
     }
+  }
+
+  const loadDefaultFocusSetting = () => {
+    const setting = localStorage.getItem('defaultFocus')
+    if (setting && FOCUSES.some(f => f.id === setting)) {
+      setDefaultFocus(setting)
+    }
+  }
+
+  const changeDefaultFocus = (focusId: string) => {
+    setDefaultFocus(focusId)
+    localStorage.setItem('defaultFocus', focusId)
   }
 
   const loadSettings = async () => {
@@ -309,6 +334,28 @@ export function Settings() {
                 Display the welcome dialog when the app starts
               </p>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <label className="text-sm font-medium">Default Research Focus</label>
+            </div>
+            <Select value={defaultFocus} onValueChange={changeDefaultFocus}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select default focus" />
+              </SelectTrigger>
+              <SelectContent>
+                {FOCUSES.map((focus) => (
+                  <SelectItem key={focus.id} value={focus.id}>
+                    {focus.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              The research focus selected by default when creating new projects
+            </p>
           </div>
         </CardContent>
       </Card>

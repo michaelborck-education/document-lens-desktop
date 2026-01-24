@@ -9,7 +9,7 @@ Fast lookup for common tasks.
 ### Create New Project
 1. Home screen → **New Project**
 2. Enter name
-3. **Select a theme** (Sustainability, Cybersecurity, Finance, etc.)
+3. **Select a focus** (Sustainability, Cybersecurity, Finance, etc.)
 4. Click **Create**
 5. Start importing PDFs
 
@@ -36,13 +36,12 @@ Fast lookup for common tasks.
 3. Select **View Stats**
 4. See word count, readability, top keywords
 
-### Create Analysis Profile
-1. **Profiles** tab → **New Profile**
-2. Enter name & description
-3. Select frameworks & keywords
-4. Select domains
-5. **Save**
-6. (Optional) **Make Active** to set as default
+### Edit Project Profile
+1. Click **Profile** button in project header
+2. Enable/disable keyword frameworks
+3. Select specific keywords within each framework
+4. Add custom keywords
+5. Changes auto-save
 
 ### Run Keyword Search
 1. **Keyword Search** page
@@ -83,10 +82,11 @@ Fast lookup for common tasks.
 5. **Analyze**
 6. View most common phrases
 
-### Make Profile Active
-1. **Profiles** tab → Click profile
-2. **Make Active** (star icon)
-3. Profile's keywords now used by default
+### Duplicate Project
+1. Project Dashboard → Click **"..."** menu (top right)
+2. Select **Duplicate Project**
+3. Enter new name
+4. New project created with same documents and profile (analysis results not copied)
 
 ### Delete Document
 **Remove from Project** (keeps in library):
@@ -100,11 +100,11 @@ Fast lookup for common tasks.
 
 ---
 
-## Research Themes
+## Research Focuses
 
-Each project has a theme that determines available keyword frameworks:
+Each project has a focus that determines available keyword frameworks:
 
-| Theme | Frameworks | Best For |
+| Focus | Frameworks | Best For |
 |-------|-----------|----------|
 | **Sustainability** | TCFD, GRI, SDGs, SASB | ESG reports, climate disclosures |
 | **Cybersecurity** | NIST CSF, ISO 27001, CIS, MITRE | Security audits, compliance |
@@ -115,7 +115,7 @@ Each project has a theme that determines available keyword frameworks:
 | **Project Mgmt** | Agile, PMBOK, Risk Management | Project documentation |
 | **General** | None (custom only) | New domains, custom keywords |
 
-**Tip**: Theme is set when creating a project. To change themes, create a new project and add documents from library.
+**Tip**: Focus is set when creating a project. To change focuses, create a new project and add documents from library.
 
 ---
 
@@ -188,15 +188,14 @@ Yes! **Export → Bundle** (+ options) → Share the .lens file → They **Impor
 Current version only works with PDFs that have extractable text.
 Workaround: Use OCR tool first to create searchable PDF.
 
-### Q: Can I have multiple active profiles?
+### Q: How do profiles work?
 
-No, only one profile is active per project.
-But you can quickly switch by clicking a profile and making it active.
+Each project has one profile that stores your keyword selections. Use **Duplicate Project** if you want to analyze the same documents with different keyword configurations.
 
-### Q: Can I change a project's theme after creating it?
+### Q: Can I change a project's focus after creating it?
 
-No, themes are set at creation. To use a different theme:
-1. Create a new project with the desired theme
+No, focuses are set at creation. To use a different focus:
+1. Create a new project with the desired focus
 2. Use "Add from Library" to add your existing documents
 3. Your documents are now in both projects
 
@@ -265,11 +264,11 @@ Yes! Copy the database file to new computer, or Export .lens + Import.
 
 | Term | Means | Example |
 |------|-------|---------|
-| Project | Organizational container with a theme | "Climate Survey 2024" |
-| Theme | Research domain focus | Sustainability, Cybersecurity, Finance |
+| Project | Organizational container with a focus | "Climate Survey 2024" |
+| Focus | Research domain focus | Sustainability, Cybersecurity, Finance |
 | Document Library | Central PDF repository | All your imported PDFs |
 | Quick Filter | Temporary document filter | Analyze 3 of 20 documents |
-| Profile | Analysis configuration | "TCFD Focus" |
+| Profile | Project's keyword configuration | Enabled frameworks and keywords |
 | Framework | Pre-built keyword list | TCFD, NIST CSF, PMBOK |
 | Domain | Subject area within framework | Governance, Strategy, Risk |
 | Bundle | .lens ZIP file | "climate-survey-v2.lens" |

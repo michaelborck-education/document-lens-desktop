@@ -335,3 +335,74 @@ export function mergeProfileConfigs(
     }
   }
 }
+
+/**
+ * Get or create the single profile for a project.
+ * Each project has exactly one profile that persists across sessions.
+ */
+export async function getOrCreateProjectProfile(
+  projectId: string,
+  projectName?: string
+): Promise<ParsedAnalysisProfile> {
+  // Check if profile already exists
+  const existing = await getActiveProfile(projectId)
+  if (existing) {
+    return existing
+  }
+
+  // Check for any profiles (might not be active)
+  const profiles = await getProjectProfiles(projectId)
+  if (profiles.length > 0) {
+    // Set first one as active and return it
+    await setActiveProfile(projectId, profiles[0].id)
+    return parseProfile(profiles[0])
+  }
+
+  // Create default profile for this project
+  const defaultConfig = createDefaultProfileConfig()
+  const profileName = projectName ? `${projectName} Profile` : 'Research Profile'
+
+  const profileId = await createAnalysisProfile(
+    projectId,
+    profileName,
+    'Default research profile with keyword and analysis settings',
+    defaultConfig
+  )
+
+  // Set as active
+  await setActiveProfile(projectId, profileId)
+
+  // Return the newly created profile
+  const newProfile = await getActiveProfile(projectId)
+  if (!newProfile) {
+    throw new Error('Failed to create profile')
+  }
+
+  return newProfile
+}
+
+/**
+ * Duplicate a project's profile to a new project
+ */
+export async function duplicateProjectProfile(
+  sourceProjectId: string,
+  targetProjectId: string,
+  newProfileName: string
+): Promise<string | null> {
+  const sourceProfile = await getActiveProfile(sourceProjectId)
+  if (!sourceProfile) {
+    return null
+  }
+
+  const newProfileId = await createAnalysisProfile(
+    targetProjectId,
+    newProfileName,
+    sourceProfile.description,
+    sourceProfile.config
+  )
+
+  // Set as active in new project
+  await setActiveProfile(targetProjectId, newProfileId)
+
+  return newProfileId
+}

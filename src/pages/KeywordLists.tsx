@@ -21,7 +21,7 @@ import {
   type ParsedKeywordList,
 } from '@/services/keywords'
 import { KeywordListViewer } from '@/components/KeywordListViewer'
-import { THEMES, getTheme } from '@/data/themes'
+import { FOCUSES, getFocus } from '@/data/focuses'
 import { cn } from '@/lib/utils'
 
 export function KeywordLists() {
@@ -166,35 +166,35 @@ export function KeywordLists() {
   const builtinLists = lists.filter(l => l.is_builtin)
   const customLists = lists.filter(l => !l.is_builtin)
 
-  // Group built-in lists by theme
-  const builtinByTheme = builtinLists.reduce((acc, list) => {
-    const theme = list.theme || 'other'
-    if (!acc[theme]) acc[theme] = []
-    acc[theme].push(list)
+  // Group built-in lists by focus
+  const builtinByFocus = builtinLists.reduce((acc, list) => {
+    const focus = list.focus || 'other'
+    if (!acc[focus]) acc[focus] = []
+    acc[focus].push(list)
     return acc
   }, {} as Record<string, KeywordList[]>)
 
-  // Track expanded themes
-  const [expandedThemes, setExpandedThemes] = useState<Set<string>>(new Set(['sustainability']))
+  // Track expanded focuses
+  const [expandedFocuses, setExpandedFocuses] = useState<Set<string>>(new Set(['sustainability']))
 
-  const toggleTheme = (themeId: string) => {
-    setExpandedThemes(prev => {
+  const toggleFocus = (focusId: string) => {
+    setExpandedFocuses(prev => {
       const next = new Set(prev)
-      if (next.has(themeId)) {
-        next.delete(themeId)
+      if (next.has(focusId)) {
+        next.delete(focusId)
       } else {
-        next.add(themeId)
+        next.add(focusId)
       }
       return next
     })
   }
 
-  const filteredBuiltinByTheme = Object.entries(builtinByTheme).reduce((acc, [theme, themeLists]) => {
+  const filteredBuiltinByFocus = Object.entries(builtinByFocus).reduce((acc, [focus, focusLists]) => {
     const filtered = searchQuery
-      ? themeLists.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase()))
-      : themeLists
+      ? focusLists.filter(l => l.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : focusLists
     if (filtered.length > 0) {
-      acc[theme] = filtered
+      acc[focus] = filtered
     }
     return acc
   }, {} as Record<string, KeywordList[]>)
@@ -232,26 +232,26 @@ export function KeywordLists() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-2">
-          {/* Built-in Frameworks by Theme */}
-          {THEMES.filter(t => t.id !== 'general' && filteredBuiltinByTheme[t.id]?.length > 0).map(theme => {
-            const themeLists = filteredBuiltinByTheme[theme.id] || []
-            const isExpanded = expandedThemes.has(theme.id)
+          {/* Built-in Frameworks by Focus */}
+          {FOCUSES.filter(f => f.id !== 'general' && filteredBuiltinByFocus[f.id]?.length > 0).map(focus => {
+            const focusLists = filteredBuiltinByFocus[focus.id] || []
+            const isExpanded = expandedFocuses.has(focus.id)
 
             return (
-              <div key={theme.id} className="mb-2">
+              <div key={focus.id} className="mb-2">
                 <button
-                  onClick={() => toggleTheme(theme.id)}
+                  onClick={() => toggleFocus(focus.id)}
                   className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted rounded-md"
                 >
-                  <span className={cn(theme.color)}>{theme.name}</span>
+                  <span className={cn(focus.color)}>{focus.name}</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-[10px] font-normal normal-case">{themeLists.length}</span>
+                    <span className="text-[10px] font-normal normal-case">{focusLists.length}</span>
                     <ChevronDown className={cn('h-3 w-3 transition-transform', isExpanded ? '' : '-rotate-90')} />
                   </div>
                 </button>
                 {isExpanded && (
                   <div className="space-y-1 mt-1">
-                    {themeLists.map(list => {
+                    {focusLists.map(list => {
                       const parsed = parseKeywords(list)
                       return (
                         <button

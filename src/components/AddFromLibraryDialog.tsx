@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Library, FileText, Check, Search } from 'lucide-react'
+import { Library, FileText, Check, Search, CheckCircle, AlertTriangle, FileQuestion } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import {
   getDocumentsNotInProject,
   addDocumentToProject,
+  getDocumentStatus,
   type DocumentRecord,
+  type DocumentStatus,
 } from '@/services/documents'
 
 interface AddFromLibraryDialogProps {
@@ -34,6 +36,7 @@ export function AddFromLibraryDialog({
   const [loading, setLoading] = useState(false)
   const [adding, setAdding] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [documentStatuses, setDocumentStatuses] = useState<Record<string, DocumentStatus>>({})
 
   useEffect(() => {
     if (open) {
@@ -48,6 +51,13 @@ export function AddFromLibraryDialog({
       setLoading(true)
       const docs = await getDocumentsNotInProject(projectId)
       setDocuments(docs)
+
+      // Load statuses for all documents
+      const statuses: Record<string, DocumentStatus> = {}
+      for (const doc of docs) {
+        statuses[doc.id] = await getDocumentStatus(doc)
+      }
+      setDocumentStatuses(statuses)
     } catch (error) {
       console.error('Failed to load documents:', error)
     } finally {
@@ -181,6 +191,32 @@ export function AddFromLibraryDialog({
                         {doc.report_year && <span>{doc.report_year}</span>}
                         {doc.report_type && <span>{doc.report_type}</span>}
                       </div>
+                      {documentStatuses[doc.id] && (
+                        <div className="flex items-center gap-2 mt-1">
+                          {documentStatuses[doc.id].textAvailable ? (
+                            <span className="flex items-center gap-0.5 text-[10px] text-green-600">
+                              <CheckCircle className="h-2.5 w-2.5" />
+                              Text
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-0.5 text-[10px] text-amber-600">
+                              <AlertTriangle className="h-2.5 w-2.5" />
+                              No text
+                            </span>
+                          )}
+                          {documentStatuses[doc.id].pdfAvailable ? (
+                            <span className="flex items-center gap-0.5 text-[10px] text-green-600">
+                              <CheckCircle className="h-2.5 w-2.5" />
+                              PDF
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-0.5 text-[10px] text-red-600">
+                              <FileQuestion className="h-2.5 w-2.5" />
+                              No PDF
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     {selectedIds.has(doc.id) && (
                       <Check className="h-4 w-4 text-primary" />

@@ -1,12 +1,13 @@
 # Document Lens Desktop
 
-A cross-platform Electron desktop application for batch PDF analysis, designed primarily for sustainability researchers analyzing corporate annual reports.
+A cross-platform Electron desktop application for batch PDF analysis, designed for researchers analyzing large document collections across various domains.
 
 ## Overview
 
 Document Lens Desktop enables researchers to:
-- **Batch import** corporate annual report PDFs
-- **Analyze** documents using pre-built sustainability framework keyword lists (TCFD, GRI, SDGs, SASB)
+- **Batch import** PDF documents (annual reports, research papers, contracts, etc.)
+- **Choose a research focus** with pre-loaded keyword frameworks for your domain
+- **Analyze** documents using pre-built keyword lists or custom keywords
 - **Search** across documents for keywords and n-grams
 - **Compare** coverage across multiple frameworks
 - **Visualize** trends over time with word clouds, heatmaps, and trend charts
@@ -14,7 +15,8 @@ Document Lens Desktop enables researchers to:
 
 ## Target Users
 
-- Sustainability researchers analyzing corporate annual reports
+- Researchers analyzing document collections
+- Compliance teams reviewing corporate documents
 - Non-technical users requiring simple installation
 - Platform priority: Windows > Mac > Linux
 
@@ -22,8 +24,17 @@ Document Lens Desktop enables researchers to:
 
 ### Core Features
 - Project-based organization with document library (documents can belong to multiple projects)
+- **Research Focuses** for domain-specific analysis:
+  - Sustainability (TCFD, GRI, SDGs, SASB)
+  - Cybersecurity (NIST CSF, ISO 27001, CIS Controls, MITRE ATT&CK)
+  - Finance (SEC, GAAP, Basel III, Financial Ratios)
+  - Healthcare (FDA, HIPAA, Clinical Trials, Medical Terminology)
+  - Legal (Contract Terms, Regulatory Language, Compliance)
+  - Academic (Research Methods, Statistical Terms, Literature Review)
+  - Project Management (Agile, PMBOK, Risk Management)
+  - General (custom keywords only)
 - Drag-and-drop PDF import with auto-metadata detection
-- Pre-built keyword lists for TCFD (~68), SDGs (~412), GRI (~118), and SASB (~108) frameworks
+- Pre-built keyword frameworks with hundreds of domain-specific terms
 - Custom keyword list creation with CSV import support
 - Cross-document keyword search with context highlighting
 - Quick Filter for ad-hoc document subset analysis
@@ -52,7 +63,7 @@ Document Lens Desktop enables researchers to:
 | State Management | Zustand |
 | Database | SQLite (better-sqlite3) |
 | Charts | Recharts |
-| Word Cloud | react-wordcloud |
+| Word Cloud | visx |
 | Build | electron-builder |
 | Auto-update | electron-updater |
 
@@ -121,9 +132,10 @@ document-lens-desktop/
 
 ## Backend
 
-This application connects to the [document-lens](https://github.com/michaelborck-education/document-lens) API backend for text extraction and analysis. The backend can be:
-- Run locally during development
-- Bundled with the desktop app for distribution (via PyInstaller)
+This application connects to the [document-lens](https://github.com/michaelborck-education/document-lens) API backend for text extraction and analysis.
+
+- **Development**: Run the backend locally (`uvicorn app.main:app`)
+- **Distribution**: The GitHub Actions CI/CD workflow automatically builds and bundles the backend executable using PyInstaller for each platform (Windows, macOS, Linux)
 
 ## License
 

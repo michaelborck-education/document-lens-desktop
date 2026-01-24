@@ -1,11 +1,13 @@
 /**
  * ProfileEditor Component
  *
- * Full editor for analysis profile configurations including:
+ * Full editor for the project's research profile configuration including:
  * - Keyword framework selections
  * - Custom domains for domain mapping
  * - Analysis type preferences
  * - Comparison settings
+ *
+ * Each project has exactly one profile that persists across sessions.
  */
 
 import { useState, useEffect } from 'react'
@@ -22,12 +24,11 @@ import {
 } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
-  createAnalysisProfile,
+  getOrCreateProjectProfile,
   updateProfile,
-  parseProfile,
   createDefaultProfileConfig,
   type ProfileConfig,
-  type AnalysisProfile,
+  type ParsedAnalysisProfile,
 } from '@/services/profiles'
 import { getAllKeywordLists, type KeywordList } from '@/services/keywords'
 
@@ -35,7 +36,7 @@ interface ProfileEditorProps {
   open: boolean
   onClose: () => void
   projectId: string
-  editProfile?: AnalysisProfile | null
+  projectName?: string
   onSaved?: () => void
 }
 
@@ -43,9 +44,10 @@ export function ProfileEditor({
   open,
   onClose,
   projectId,
-  editProfile,
+  projectName,
   onSaved,
 }: ProfileEditorProps) {
+  const [profile, setProfile] = useState<ParsedAnalysisProfile | null>(null)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [config, setConfig] = useState<ProfileConfig>(createDefaultProfileConfig())
@@ -57,19 +59,30 @@ export function ProfileEditor({
 
   useEffect(() => {
     if (open) {
+      loadProfile()
       loadKeywordLists()
-      if (editProfile) {
-        const parsed = parseProfile(editProfile)
-        setName(editProfile.name)
-        setDescription(editProfile.description || '')
-        setConfig(parsed.config)
-      } else {
-        setName('')
-        setDescription('')
-        setConfig(createDefaultProfileConfig())
-      }
     }
-  }, [open, editProfile])
+  }, [open, projectId])
+
+  const loadProfile = async () => {
+    try {
+      setLoading(true)
+      // Get or create the project's single profile
+      const existingProfile = await getOrCreateProjectProfile(projectId, projectName)
+      setProfile(existingProfile)
+      setName(existingProfile.name)
+      setDescription(existingProfile.description || '')
+      setConfig(existingProfile.config)
+    } catch (error) {
+      console.error('Failed to load profile:', error)
+      // Use defaults if profile load fails
+      setName(projectName ? `${projectName} Profile` : 'Research Profile')
+      setDescription('')
+      setConfig(createDefaultProfileConfig())
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const loadKeywordLists = async () => {
     try {
@@ -84,25 +97,16 @@ export function ProfileEditor({
   }
 
   const handleSave = async () => {
-    if (!name.trim()) return
+    if (!name.trim() || !profile) return
 
     try {
       setSaving(true)
 
-      if (editProfile) {
-        await updateProfile(editProfile.id, {
-          name: name.trim(),
-          description: description.trim() || null,
-          config,
-        })
-      } else {
-        await createAnalysisProfile(
-          projectId,
-          name.trim(),
-          description.trim() || null,
-          config
-        )
-      }
+      await updateProfile(profile.id, {
+        name: name.trim(),
+        description: description.trim() || null,
+        config,
+      })
 
       onSaved?.()
       onClose()
@@ -239,10 +243,11 @@ export function ProfileEditor({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings2 className="h-5 w-5" />
-            {editProfile ? 'Edit Profile' : 'Create Profile'}
+            Research Profile Settings
           </DialogTitle>
           <DialogDescription>
-            Configure your research lens - keyword selections, domains, and analysis preferences
+            Configure your research lens - keyword selections, domains, and analysis preferences.
+            These settings persist across sessions.
           </DialogDescription>
         </DialogHeader>
 
@@ -468,13 +473,13 @@ export function ProfileEditor({
           <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!name.trim() || saving}>
+          <Button onClick={handleSave} disabled={!name.trim() || saving || loading || !profile}>
             {saving ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <Settings2 className="h-4 w-4 mr-2" />
             )}
-            {saving ? 'Saving...' : editProfile ? 'Update Profile' : 'Create Profile'}
+            {saving ? 'Saving...' : 'Save Profile'}
           </Button>
         </div>
       </DialogContent>

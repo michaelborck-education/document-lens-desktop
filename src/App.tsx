@@ -8,7 +8,6 @@ import { DocumentView } from './pages/DocumentView'
 import { KeywordSearch } from './pages/KeywordSearch'
 import { NgramAnalysis } from './pages/NgramAnalysis'
 import { Visualizations } from './pages/Visualizations'
-import { KeywordLists } from './pages/KeywordLists'
 import { DocumentLibrary } from './pages/DocumentLibrary'
 import { Settings } from './pages/Settings'
 import { Help } from './pages/Help'
@@ -100,7 +99,6 @@ function App() {
           <Route path="project/:projectId/ngrams" element={<NgramAnalysis />} />
           <Route path="project/:projectId/visualize" element={<Visualizations />} />
           <Route path="library" element={<DocumentLibrary />} />
-          <Route path="keywords" element={<KeywordLists />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="help/:section?" element={<Help />} />
