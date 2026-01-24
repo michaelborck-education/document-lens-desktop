@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import {
   FileText,
@@ -56,9 +56,24 @@ export function DocumentTable({
 }: DocumentTableProps) {
   const [sortField, setSortField] = useState<SortField>('created_at')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
-  const [contextMenu, setContextMenu] = useState<string | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number; openUp: boolean } | null>(null)
   const [documentStatuses, setDocumentStatuses] = useState<Record<string, DocumentStatus>>({})
   const [reExtracting, setReExtracting] = useState<string | null>(null)
+
+  const openContextMenu = useCallback((docId: string, buttonElement: HTMLButtonElement) => {
+    const rect = buttonElement.getBoundingClientRect()
+    const menuHeight = 280 // Approximate menu height
+    const viewportHeight = window.innerHeight
+    const spaceBelow = viewportHeight - rect.bottom
+    const openUp = spaceBelow < menuHeight && rect.top > menuHeight
+
+    setContextMenu({
+      id: docId,
+      x: rect.right - 160, // Menu width is 160px (w-40)
+      y: openUp ? rect.top : rect.bottom,
+      openUp
+    })
+  }, [])
 
   // Load document statuses
   useEffect(() => {
@@ -303,18 +318,32 @@ export function DocumentTable({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => setContextMenu(contextMenu === doc.id ? null : doc.id)}
+                    onClick={(e) => {
+                      if (contextMenu?.id === doc.id) {
+                        setContextMenu(null)
+                      } else {
+                        openContextMenu(doc.id, e.currentTarget)
+                      }
+                    }}
                   >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
-                  
-                  {contextMenu === doc.id && (
+
+                  {contextMenu?.id === doc.id && (
                     <>
                       <div
-                        className="fixed inset-0 z-10"
+                        className="fixed inset-0 z-40"
                         onClick={() => setContextMenu(null)}
                       />
-                      <div className="absolute right-0 top-full mt-1 z-20 w-40 bg-popover border rounded-md shadow-lg py-1">
+                      <div
+                        className="fixed z-50 w-40 bg-popover border rounded-md shadow-lg py-1"
+                        style={{
+                          left: contextMenu.x,
+                          ...(contextMenu.openUp
+                            ? { bottom: window.innerHeight - contextMenu.y + 4 }
+                            : { top: contextMenu.y + 4 })
+                        }}
+                      >
                         <Link
                           to={`/project/${projectId}/document/${doc.id}`}
                           className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted"

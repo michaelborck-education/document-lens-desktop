@@ -78,6 +78,9 @@ export function Settings() {
   // Default focus setting
   const [defaultFocus, setDefaultFocus] = useState(DEFAULT_FOCUS)
 
+  // Sidebar default setting
+  const [sidebarDefaultCollapsed, setSidebarDefaultCollapsed] = useState(false)
+
   useEffect(() => {
     loadSettings()
     loadAppVersion()
@@ -87,6 +90,7 @@ export function Settings() {
     loadIndustries()
     loadWelcomeDialogSetting()
     loadDefaultFocusSetting()
+    loadSidebarSetting()
   }, [])
 
   const loadWelcomeDialogSetting = () => {
@@ -113,6 +117,16 @@ export function Settings() {
   const changeDefaultFocus = (focusId: string) => {
     setDefaultFocus(focusId)
     localStorage.setItem('defaultFocus', focusId)
+  }
+
+  const loadSidebarSetting = () => {
+    const setting = localStorage.getItem('sidebarDefaultCollapsed')
+    setSidebarDefaultCollapsed(setting === 'true')
+  }
+
+  const toggleSidebarDefault = (collapsed: boolean) => {
+    setSidebarDefaultCollapsed(collapsed)
+    localStorage.setItem('sidebarDefaultCollapsed', String(collapsed))
   }
 
   const loadSettings = async () => {
@@ -356,6 +370,22 @@ export function Settings() {
             <p className="text-xs text-muted-foreground">
               The research focus selected by default when creating new projects
             </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="sidebarDefaultCollapsed"
+              checked={sidebarDefaultCollapsed}
+              onCheckedChange={(checked) => toggleSidebarDefault(checked === true)}
+            />
+            <div className="space-y-0.5">
+              <label htmlFor="sidebarDefaultCollapsed" className="text-sm font-medium cursor-pointer">
+                Start with Sidebar Collapsed
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Open the app with the sidebar collapsed by default. You can toggle it anytime using the button at the bottom of the sidebar.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -339,6 +339,8 @@ jobs:
             artifacts/**/*.dmg
             artifacts/**/*.exe
             artifacts/**/*.AppImage
+            artifacts/**/*.yml
+            artifacts/**/*.blockmap
           draft: false
           prerelease: false
         env:

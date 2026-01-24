@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download, Package, Library, FolderMinus, Copy, MoreVertical, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Upload, FileText, BarChart3, Search, Trash2, Loader2, Hash, PieChart, Download, Package, Library, FolderMinus, Copy, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -8,7 +8,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { DocumentTable } from '@/components/DocumentTable'
@@ -226,6 +225,20 @@ export function ProjectDashboard() {
     }
   }
 
+  const handleDeleteProject = async () => {
+    if (!confirm('Delete this project?\n\nDocuments will remain in your library and can be added to other projects.')) {
+      return
+    }
+
+    try {
+      await window.electron.dbRun('DELETE FROM projects WHERE id = ?', [projectId])
+      navigate('/')
+    } catch (error) {
+      console.error('Failed to delete project:', error)
+      alert('Failed to delete project. Please try again.')
+    }
+  }
+
   const handleAnalyzeAll = async (forceRedo = false) => {
     // Get documents that need analysis (have text but not completed, or all if forceRedo)
     const docsToAnalyze = forceRedo
@@ -339,23 +352,16 @@ export function ProjectDashboard() {
           projectId={projectId!}
           onManageProfiles={() => setShowProfileEditor(true)}
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" disabled={duplicating}>
-              {duplicating ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <MoreVertical className="h-4 w-4" />
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleDuplicateProject}>
-              <Copy className="h-4 w-4 mr-2" />
-              Duplicate Project
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button variant="ghost" size="icon" onClick={handleDuplicateProject} disabled={duplicating} title="Duplicate project">
+          {duplicating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
+        </Button>
+        <Button variant="ghost" size="icon" onClick={handleDeleteProject} title="Delete project">
+          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+        </Button>
       </div>
 
       {/* Stats Cards */}

@@ -273,7 +273,7 @@ ipcMain.handle('debug:getResourcesInfo', () => {
   const fs = require('fs')
   const path = require('path')
   
-  let info: Record<string, unknown> = {
+  const info: Record<string, unknown> = {
     resourcesPath,
     isPackaged: app.isPackaged,
     platform: process.platform

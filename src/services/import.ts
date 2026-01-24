@@ -189,7 +189,7 @@ export async function previewBundle(
       const hasPdfInBundle = includedPdfFilenames.has(docData.filename)
 
       // Check if document already exists by file hash
-      const existing = await findDocumentByHash(targetProjectId, docData.file_hash)
+      const existing = await findDocumentByHash(docData.file_hash)
 
       if (existing) {
         duplicateCount++
@@ -319,20 +319,34 @@ export async function importBundle(
               status: 'processing'
             })
 
-            // Check for duplicates
-            if (options.skipDuplicates) {
-              const existing = await findDocumentByHash(targetProjectId, docData.file_hash)
-              if (existing) {
+            // Check if document already exists in library
+            const existing = await findDocumentByHash(docData.file_hash)
+
+            if (existing) {
+              // Document exists in library - check if already in this project
+              const alreadyInProject = await isDocumentInProject(existing.id, targetProjectId)
+              if (alreadyInProject && options.skipDuplicates) {
                 documentIdMap.set(docData.id, existing.id)
                 documentsSkipped++
                 continue
               }
+              // Add existing document to project via junction table
+              await window.electron.dbRun(
+                'INSERT OR IGNORE INTO project_documents (project_id, document_id) VALUES (?, ?)',
+                [targetProjectId, existing.id]
+              )
+              documentIdMap.set(docData.id, existing.id)
+              documentsImported++
+            } else {
+              // Import new document to library and add to project
+              const newDocId = await importDocument(docData)
+              await window.electron.dbRun(
+                'INSERT INTO project_documents (project_id, document_id) VALUES (?, ?)',
+                [targetProjectId, newDocId]
+              )
+              documentIdMap.set(docData.id, newDocId)
+              documentsImported++
             }
-
-            // Import document
-            const newDocId = await importDocument(targetProjectId, docData)
-            documentIdMap.set(docData.id, newDocId)
-            documentsImported++
 
           } catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown error'
@@ -427,38 +441,50 @@ export async function importBundle(
 // ============================================================================
 
 /**
- * Find an existing document by file hash
+ * Find an existing document by file hash in the library
  */
 async function findDocumentByHash(
-  projectId: string,
   fileHash: string
 ): Promise<{ id: string } | null> {
   const results = await window.electron.dbQuery<{ id: string }>(
-    'SELECT id FROM documents WHERE project_id = ? AND file_hash = ?',
-    [projectId, fileHash]
+    'SELECT id FROM documents WHERE file_hash = ?',
+    [fileHash]
   )
   return results.length > 0 ? results[0] : null
 }
 
 /**
- * Import a single document from bundle data
+ * Check if a document is already in a project
+ */
+async function isDocumentInProject(
+  documentId: string,
+  projectId: string
+): Promise<boolean> {
+  const results = await window.electron.dbQuery<{ count: number }>(
+    'SELECT COUNT(*) as count FROM project_documents WHERE project_id = ? AND document_id = ?',
+    [projectId, documentId]
+  )
+  return results[0]?.count > 0
+}
+
+/**
+ * Import a single document from bundle data to the library
+ * (Does not add to project - caller should use junction table)
  */
 async function importDocument(
-  projectId: string,
   docData: BundleDocumentData
 ): Promise<string> {
   const newId = uuidv4()
 
   await window.electron.dbRun(
     `INSERT INTO documents
-     (id, project_id, filename, file_path, file_hash, file_size, content_type,
+     (id, filename, file_path, file_hash, file_size, content_type,
       company_name, report_year, industry, country, report_type,
       custom_tags, custom_metadata, extracted_text, extracted_pages,
       pdf_metadata, inferred_metadata, analysis_status, analyzed_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       newId,
-      projectId,
       docData.filename,
       docData.file_path,  // Original path for reference
       docData.file_hash,

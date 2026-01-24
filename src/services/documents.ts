@@ -46,6 +46,7 @@ export interface ImportResult {
   filename: string
   error?: string
   alreadyInProject?: boolean
+  alreadyInLibrary?: boolean
 }
 
 /**
@@ -75,7 +76,7 @@ function extractYearFromFilename(filename: string): number | null {
  */
 function extractCompanyFromFilename(filename: string): string | null {
   // Remove common suffixes and year patterns
-  let name = filename
+  const name = filename
     .replace(/\.(pdf|PDF)$/, '')
     .replace(/\b(19|20)\d{2}\b/g, '')
     .replace(/[-_]/g, ' ')
@@ -129,9 +130,10 @@ export async function isDocumentInProject(documentId: string, projectId: string)
 
 /**
  * Import a single document (or add existing to project)
+ * If projectId is null, imports to library only without adding to any project.
  */
 export async function importDocument(
-  projectId: string,
+  projectId: string | null,
   filePath: string,
   onProgress?: (status: string) => void
 ): Promise<ImportResult> {
@@ -148,27 +150,31 @@ export async function importDocument(
     )
 
     if (existing.length > 0) {
-      // Document exists in library - check if already in this project
       const existingDocId = existing[0].id
-      const inProject = await isDocumentInProject(existingDocId, projectId)
 
-      if (inProject) {
-        return {
-          success: false,
-          filename,
-          error: 'Document already exists in this project',
-          alreadyInProject: true
+      if (projectId) {
+        // Check if already in this project
+        const inProject = await isDocumentInProject(existingDocId, projectId)
+
+        if (inProject) {
+          return {
+            success: false,
+            filename,
+            error: 'Document already exists in this project',
+            alreadyInProject: true
+          }
         }
-      }
 
-      // Add existing document to this project
-      onProgress?.('Adding to project...')
-      await addDocumentToProject(existingDocId, projectId)
+        // Add existing document to this project
+        onProgress?.('Adding to project...')
+        await addDocumentToProject(existingDocId, projectId)
+      }
 
       return {
         success: true,
         documentId: existingDocId,
-        filename
+        filename,
+        alreadyInLibrary: true
       }
     }
 
@@ -190,14 +196,13 @@ export async function importDocument(
     onProgress?.('Saving to database...')
     await window.electron.dbRun(
       `INSERT INTO documents (
-        id, project_id, filename, file_path, file_hash, file_size, content_type,
+        id, filename, file_path, file_hash, file_size, content_type,
         report_year, company_name, report_type,
         extracted_text, extracted_pages, pdf_metadata, inferred_metadata,
         analysis_status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         documentId,
-        projectId,  // Keep for backwards compatibility
         filename,
         filePath,
         fileHash,
@@ -214,8 +219,10 @@ export async function importDocument(
       ]
     )
 
-    // Add to project via junction table
-    await addDocumentToProject(documentId, projectId)
+    // Add to project via junction table (if projectId provided)
+    if (projectId) {
+      await addDocumentToProject(documentId, projectId)
+    }
 
     return {
       success: true,
@@ -234,9 +241,10 @@ export async function importDocument(
 
 /**
  * Import multiple documents with progress tracking
+ * If projectId is null, imports to library only without adding to any project.
  */
 export async function importDocuments(
-  projectId: string,
+  projectId: string | null,
   filePaths: string[],
   onProgress?: (progress: ImportProgress) => void
 ): Promise<ImportResult[]> {
@@ -320,6 +328,37 @@ export async function updateDocumentMetadata(
     `UPDATE documents SET ${updates.join(', ')} WHERE id = ?`,
     values
   )
+}
+
+/**
+ * Get the projects a document belongs to
+ */
+export async function getDocumentProjects(documentId: string): Promise<{ id: string; name: string }[]> {
+  return window.electron.dbQuery<{ id: string; name: string }>(
+    `SELECT p.id, p.name FROM projects p
+     INNER JOIN project_documents pd ON pd.project_id = p.id
+     WHERE pd.document_id = ?`,
+    [documentId]
+  )
+}
+
+/**
+ * Get project count for multiple documents
+ */
+export async function getDocumentsProjectCount(documentIds: string[]): Promise<Map<string, number>> {
+  const placeholders = documentIds.map(() => '?').join(', ')
+  const results = await window.electron.dbQuery<{ document_id: string; project_count: number }>(
+    `SELECT document_id, COUNT(*) as project_count
+     FROM project_documents
+     WHERE document_id IN (${placeholders})
+     GROUP BY document_id`,
+    documentIds
+  )
+  const countMap = new Map<string, number>()
+  for (const r of results) {
+    countMap.set(r.document_id, r.project_count)
+  }
+  return countMap
 }
 
 /**
@@ -495,15 +534,3 @@ export async function reExtractDocument(
   }
 }
 
-/**
- * Get projects that contain a document
- */
-export async function getDocumentProjects(documentId: string): Promise<Array<{ id: string; name: string }>> {
-  return window.electron.dbQuery<{ id: string; name: string }>(
-    `SELECT p.id, p.name FROM projects p
-     INNER JOIN project_documents pd ON p.id = pd.project_id
-     WHERE pd.document_id = ?
-     ORDER BY p.name`,
-    [documentId]
-  )
-}

@@ -129,7 +129,9 @@ export function Visualizations() {
     try {
       setLoading(true)
       const result = await window.electron.dbQuery<DocumentRecord>(
-        'SELECT * FROM documents WHERE project_id = ? AND extracted_text IS NOT NULL',
+        `SELECT d.* FROM documents d
+         INNER JOIN project_documents pd ON pd.document_id = d.id
+         WHERE pd.project_id = ? AND d.extracted_text IS NOT NULL`,
         [projectId]
       )
       setDocuments(result)

@@ -55,7 +55,7 @@ function formatDate(date: string | Date): string {
 }
 
 function sanitizeFilename(name: string): string {
-  return name.replace(/[^a-z0-9_\-\.]/gi, '_').substring(0, 100)
+  return name.replace(/[^a-z0-9_\-.]/gi, '_').substring(0, 100)
 }
 
 function downloadBlob(blob: Blob, filename: string): void {
@@ -103,7 +103,7 @@ export function downloadCsv<T extends Record<string, any>>(data: T[], filename: 
 // Excel Export
 // ============================================================================
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export function downloadExcel(
   sheets: Array<{ name: string; data: any[] }>,
   filename: string
@@ -233,7 +233,9 @@ export async function getProjectSummaryData(
   projectId: string
 ): Promise<ProjectSummaryRow[]> {
   const documents = await window.electron.dbQuery<DocumentRecord>(
-    'SELECT * FROM documents WHERE project_id = ? ORDER BY created_at',
+    `SELECT d.* FROM documents d
+     INNER JOIN project_documents pd ON pd.document_id = d.id
+     WHERE pd.project_id = ? ORDER BY d.created_at`,
     [projectId]
   )
 
@@ -428,9 +430,11 @@ export async function exportFullProject(
   const timestamp = formatDate(new Date())
   const safeName = sanitizeFilename(projectName)
 
-  // Get all documents
+  // Get all documents in project
   const documents = await window.electron.dbQuery<DocumentRecord>(
-    'SELECT * FROM documents WHERE project_id = ?',
+    `SELECT d.* FROM documents d
+     INNER JOIN project_documents pd ON pd.document_id = d.id
+     WHERE pd.project_id = ?`,
     [projectId]
   )
 
@@ -561,9 +565,11 @@ export async function estimateBundleSize(
 ): Promise<{ size: number; documentCount: number }> {
   let estimatedSize = 1024 // Base manifest size
 
-  // Get documents
+  // Get documents in project
   const documents = await window.electron.dbQuery<DocumentRecord>(
-    'SELECT * FROM documents WHERE project_id = ?',
+    `SELECT d.* FROM documents d
+     INNER JOIN project_documents pd ON pd.document_id = d.id
+     WHERE pd.project_id = ?`,
     [projectId]
   )
 
@@ -614,9 +620,11 @@ export async function exportLensBundle(
   // Get app version
   const appVersion = await window.electron.getVersion()
 
-  // Get all documents
+  // Get all documents in project
   const documents = await window.electron.dbQuery<DocumentRecord>(
-    'SELECT * FROM documents WHERE project_id = ?',
+    `SELECT d.* FROM documents d
+     INNER JOIN project_documents pd ON pd.document_id = d.id
+     WHERE pd.project_id = ?`,
     [projectId]
   )
 

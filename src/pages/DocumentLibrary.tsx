@@ -26,8 +26,10 @@ import {
   deleteDocuments,
   getDocumentProjects,
   reExtractDocument,
+  importDocuments,
   type DocumentRecord,
   type DocumentStatus,
+  type ImportProgress,
 } from '@/services/documents'
 
 type SortField = 'filename' | 'company_name' | 'report_year' | 'created_at'
@@ -48,6 +50,8 @@ export function DocumentLibrary() {
   const [contextMenu, setContextMenu] = useState<string | null>(null)
   const [editingDocument, setEditingDocument] = useState<DocumentRecord | null>(null)
   const [reExtracting, setReExtracting] = useState<string | null>(null)
+  const [importing, setImporting] = useState(false)
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null)
 
   useEffect(() => {
     loadDocuments()
@@ -85,9 +89,20 @@ export function DocumentLibrary() {
 
   const handleDeleteDocuments = async (ids: string[]) => {
     const count = ids.length
-    const message = count === 1
-      ? 'Permanently delete this document from the library?\n\nThis will remove it from ALL projects and cannot be undone.'
-      : `Permanently delete ${count} documents from the library?\n\nThis will remove them from ALL projects and cannot be undone.`
+    let message: string
+
+    if (count === 1) {
+      // For single document, show which projects it's in
+      const projects = await getDocumentProjects(ids[0])
+      if (projects.length > 0) {
+        const projectNames = projects.map(p => `• ${p.name}`).join('\n')
+        message = `Permanently delete this document?\n\nIt is currently in ${projects.length} project(s):\n${projectNames}\n\nThis cannot be undone.`
+      } else {
+        message = 'Permanently delete this document from the library?\n\nThis cannot be undone.'
+      }
+    } else {
+      message = `Permanently delete ${count} documents from the library?\n\nThey will be removed from ALL projects. This cannot be undone.`
+    }
 
     if (!confirm(message)) {
       return
@@ -99,6 +114,44 @@ export function DocumentLibrary() {
       loadDocuments()
     } catch (error) {
       console.error('Failed to delete documents:', error)
+    }
+  }
+
+  const handleImportToLibrary = async () => {
+    try {
+      // Open file dialog
+      const result = await window.electron.openFileDialog({
+        title: 'Select PDFs to import',
+        filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+      })
+
+      if (result.canceled || result.filePaths.length === 0) return
+
+      const filePaths = result.filePaths
+
+      setImporting(true)
+      setImportProgress({ total: filePaths.length, current: 0, currentFile: '', status: 'importing' })
+
+      const results = await importDocuments(null, filePaths, (progress) => {
+        setImportProgress(progress)
+      })
+
+      // Show summary
+      const successful = results.filter((r) => r.success).length
+      const alreadyExisted = results.filter((r) => r.alreadyInLibrary).length
+      const failed = results.filter((r) => !r.success && !r.alreadyInLibrary).length
+
+      if (failed > 0) {
+        alert(`Import complete.\n\n${successful} imported\n${alreadyExisted} already in library\n${failed} failed`)
+      }
+
+      loadDocuments()
+    } catch (error) {
+      console.error('Failed to import documents:', error)
+      alert('Failed to import documents.')
+    } finally {
+      setImporting(false)
+      setImportProgress(null)
     }
   }
 
@@ -271,6 +324,10 @@ export function DocumentLibrary() {
             className="pl-9"
           />
         </div>
+        <Button onClick={handleImportToLibrary} disabled={importing}>
+          <Upload className="h-4 w-4 mr-2" />
+          {importing ? `Importing ${importProgress?.current || 0}/${importProgress?.total || 0}...` : 'Import PDFs'}
+        </Button>
         {selectedIds.size > 0 && (
           <Button
             variant="destructive"

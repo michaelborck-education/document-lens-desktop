@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, FolderOpen, Trash2, Leaf, Shield, TrendingUp, Heart, Scale, GraduationCap, ClipboardList, FileText, Search } from 'lucide-react'
+import { Plus, FolderOpen, Trash2, Copy, Loader2, Leaf, Shield, TrendingUp, Heart, Scale, GraduationCap, ClipboardList, FileText, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,7 @@ function getDefaultFocus(): string {
   return DEFAULT_FOCUS
 }
 import { cn } from '@/lib/utils'
+import { duplicateProject } from '@/services/projects'
 
 interface Project {
   id: string
@@ -49,6 +50,7 @@ export function ProjectList() {
   const [newProjectName, setNewProjectName] = useState('')
   const [newProjectDescription, setNewProjectDescription] = useState('')
   const [newProjectFocus, setNewProjectFocus] = useState(getDefaultFocus)
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
 
   useEffect(() => {
     loadProjects()
@@ -99,7 +101,7 @@ export function ProjectList() {
     e.preventDefault()
     e.stopPropagation()
 
-    if (!confirm('Are you sure you want to delete this project? All documents will be removed.')) {
+    if (!confirm('Delete this project?\n\nDocuments will remain in your library and can be added to other projects.')) {
       return
     }
 
@@ -108,6 +110,28 @@ export function ProjectList() {
       loadProjects()
     } catch (error) {
       console.error('Failed to delete project:', error)
+    }
+  }
+
+  const handleDuplicateProject = async (project: Project, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const newName = prompt(
+      'Enter a name for the duplicated project:',
+      `${project.name} (Copy)`
+    )
+    if (!newName?.trim()) return
+
+    try {
+      setDuplicatingId(project.id)
+      await duplicateProject(project.id, newName.trim())
+      loadProjects()
+    } catch (error) {
+      console.error('Failed to duplicate project:', error)
+      alert('Failed to duplicate project. Please try again.')
+    } finally {
+      setDuplicatingId(null)
     }
   }
 
@@ -247,14 +271,29 @@ export function ProjectList() {
                         <FocusIcon className={cn('h-5 w-5', focus.color)} />
                         <CardTitle className="text-lg">{project.name}</CardTitle>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 -mr-2 -mt-2"
-                        onClick={(e) => deleteProject(project.id, e)}
-                      >
-                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                      </Button>
+                      <div className="flex items-center -mr-2 -mt-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => handleDuplicateProject(project, e)}
+                          disabled={duplicatingId === project.id}
+                        >
+                          {duplicatingId === project.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => deleteProject(project.id, e)}
+                        >
+                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                     {project.description && (
                       <CardDescription className="line-clamp-2">
